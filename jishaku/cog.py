@@ -23,7 +23,9 @@ class Jishaku:
     async def jsk(self, ctx):
         """Jishaku debug and diagnostic commands
 
-        This command on its own does nothing, all functionality is in subcommands."""
+        This command on its own does nothing, all functionality is in subcommands.
+        """
+        
         pass
 
     @jsk.command(name="selftest")
@@ -32,6 +34,7 @@ class Jishaku:
 
         This tests that Jishaku and the bot are functioning correctly.
         """
+
         current_time = time.monotonic()
         time_string = utils.humanize_relative_time(self.init_time - current_time)
         await ctx.send(f"Jishaku running, init {time_string}.")
@@ -44,6 +47,12 @@ class Jishaku:
 
     @jsk.command("python", aliases=["py", "```py"])
     async def python_repl(self, ctx, *, code: str):
+        """Python REPL-like command
+
+        This evaluates or executes code passed into it, supporting async syntax.
+        Global variables include _ctx and _bot for interactions.
+        """
+
         code = utils.cleanup_codeblock(code)
         await self.repl_backend(ctx, code)
 
@@ -124,13 +133,15 @@ class Jishaku:
     async def repl_handle_syntaxerror(ctx, exc: SyntaxError):
         """Handles and points to syntax errors.
 
-        We handle this differently from normal exceptions since we don't need a long traceback."""
+        We handle this differently from normal exceptions since we don't need a long traceback.
+        """
 
         traceback_content = "\n".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 0))
         await ctx.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
     async def attempt_add_reaction(msg: discord.Message, text: str):
+        """Try to add a reaction, ignore if it fails"""
         try:
             await msg.add_reaction(text)
         except discord.HTTPException:
@@ -138,41 +149,76 @@ class Jishaku:
 
     @staticmethod
     def clean_sh_content(buffer: bytes):
+        # decode the bytestring and strip any extra data we don't care for
         text = buffer.decode('utf8').replace('\r', '').strip('\n')
+        # remove color-code characters and strip again for good measure
         return re.sub(r'\x1b[^m]*m', '', text).strip('\n')
 
     def sh_backend(self, *args):
+        """Open a subprocess, wait for it and format the output"""
         proc = subprocess.Popen(list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = map(self.clean_sh_content, proc.communicate(timeout=30))
 
+        # if this includes some stderr as well as stdout
         if err:
             out = out or '\u200b'
             total_length = len(out) + len(err)
+
+            # if the whole thing won't fit in a message
             if total_length > 1968:
+                # scale stdout and stderr to their proportions within a message
                 out_resize_len = len(out) * (1960 / total_length)
                 err_resize_len = len(err) * (1960 / total_length)
-                out = "...\n" + out[-out_resize_len:]
-                err = "...\n" + err[-err_resize_len:]
+
+                # add ellipses to show these have been truncated
+                # we show the last x amount of characters since they're usually the most important
+                out = "...\n" + out[int(-out_resize_len):]
+                err = "...\n" + err[int(-err_resize_len):]
+
+            # format into codeblocks
             return f"```prolog\n{out}\n```\n```prolog\n{err}\n```"
         else:
+            # if the stdout won't fit in a message
             if len(out) > 1980:
                 out = "...\n" + out[-1980:]
+            # format into a single codeblock
             return f"```prolog\n{out}\n```"
 
     @jsk.command("sh")
     async def sh_command(self, ctx: commands.Context, *args: str):
+        """Use the shell to run other CLI programs
+
+        This supports invoking programs, but not other shell syntax.
+        """
+
+        # create handle that'll add a right arrow reaction if this execution takes a long time
         handle = self.bot.loop.call_later(3, self.bot.loop.create_task,
                                           self.attempt_add_reaction(ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}"))
         try:
             result = await self.bot.loop.run_in_executor(None, self.sh_backend, *args)
         except subprocess.TimeoutExpired:
+            # the subprocess took more than 30 seconds to execute
+            # this could be because it was busy or because it blocked waiting for input
+
+            # cancel the arrow reaction handle
             handle.cancel()
+            # add an alarm clock reaction
             await self.attempt_add_reaction(ctx.message, "\N{ALARM CLOCK}")
         except Exception as exc:
+            # something went wrong trying to create the subprocess
+
+            # cancel the arrow reaction handle
             handle.cancel()
+            # add !! emote
             await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
+            # handle this the same as a standard repl exception
             await self.repl_handle_exception(ctx, exc)
         else:
+            # nothing went wrong
+
+            # cancel the arrow reaction handle
             handle.cancel()
+            # :tick:
             await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
+            # send the result of the command
             await ctx.send(result)
