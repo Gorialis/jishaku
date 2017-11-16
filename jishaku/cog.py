@@ -5,10 +5,12 @@ from . import utils
 import discord
 from discord.ext import commands
 
+import asyncio
 import re
 import subprocess
 import time
 import traceback
+import typing
 
 
 class Jishaku:
@@ -25,7 +27,7 @@ class Jishaku:
 
         This command on its own does nothing, all functionality is in subcommands.
         """
-        
+
         pass
 
     @jsk.command(name="selftest")
@@ -45,7 +47,7 @@ class Jishaku:
             "_bot": ctx.bot
         })
 
-    @jsk.command("python", aliases=["py", "```py"])
+    @jsk.command(name="python", aliases=["py", "```py"])
     async def python_repl(self, ctx, *, code: str):
         """Python REPL-like command
 
@@ -184,7 +186,7 @@ class Jishaku:
             # format into a single codeblock
             return f"```prolog\n{out}\n```"
 
-    @jsk.command("sh")
+    @jsk.command(name="sh")
     async def sh_command(self, ctx: commands.Context, *args: str):
         """Use the shell to run other CLI programs
 
@@ -222,3 +224,74 @@ class Jishaku:
             await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
             # send the result of the command
             await ctx.send(result)
+
+    @jsk.command(name="load")
+    async def load_command(self, ctx: commands.Context, *args: str):
+        # this list contains the info we'll output at the end
+        formatting_list = []
+        # the amount of exts trying to load that succeeded
+        success_count = 0
+        total_count = len(args)
+
+        for ext_name in args:
+            try:
+                self.bot.load_extension(ext_name)
+            except Exception as exc:
+                # add the extension name, exception type and exception string truncated
+                exception_text = str(exc)
+                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
+                continue
+            else:
+                formatting_list.append(f"+ {ext_name}")
+                success_count += 1
+
+        full_list = "\n\n".join(formatting_list)
+        await ctx.send(f"{success_count}/{total_count} loaded successfully\n```diff\n{full_list}\n```")
+
+    @jsk.command(name="unload")
+    async def unload_command(self, ctx: commands.Context, *args: str):
+        # this list contains the info we'll output at the end
+        formatting_list = []
+        # the amount of exts trying to unload that succeeded
+        success_count = 0
+        total_count = len(args)
+
+        for ext_name in args:
+            try:
+                self.bot.unload_extension(ext_name)
+            except Exception as exc:
+                # add the extension name, exception type and exception string truncated
+                exception_text = str(exc)
+                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
+                continue
+            else:
+                formatting_list.append(f"+ {ext_name}")
+                success_count += 1
+
+        full_list = "\n\n".join(formatting_list)
+        await ctx.send(f"{success_count}/{total_count} unloaded successfully\n```diff\n{full_list}\n```")
+
+    @jsk.command(name="reload")
+    async def reload_command(self, ctx: commands.Context, *args: str):
+        # this list contains the info we'll output at the end
+        formatting_list = []
+        # the amount of exts trying to reload that succeeded
+        success_count = 0
+        total_count = len(args)
+
+        for ext_name in args:
+            try:
+                self.bot.unload_extension(ext_name)
+                self.bot.load_extension(ext_name)
+            except Exception as exc:
+                # add the extension name, exception type and exception string truncated
+                exception_text = str(exc)
+                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
+                continue
+            else:
+                formatting_list.append(f"+ {ext_name}")
+                success_count += 1
+
+        full_list = "\n\n".join(formatting_list)
+        await ctx.send(f"{success_count}/{total_count} reloaded successfully\n```diff\n{full_list}\n```")
+
