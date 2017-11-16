@@ -20,6 +20,14 @@ class Jishaku:
         self.repl_global_scope = {}
         self.repl_local_scope = {}
 
+    @staticmethod
+    async def do_after_sleep(delay: float, future):
+        await asyncio.sleep(delay)
+        return await future
+
+    def do_later(self, delay: float, coro):
+        return self.bot.loop.create_task(self.do_after_sleep(delay, coro))
+
     @commands.group(name="jishaku", aliases=["jsk"])
     @commands.is_owner()
     async def jsk(self, ctx):
@@ -61,8 +69,7 @@ class Jishaku:
     async def repl_backend(self, ctx: commands.Context, code: str):
         """Attempts to compile code and execute it."""
         # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.bot.loop.call_later(3, self.bot.loop.create_task,
-                                          self.attempt_add_reaction(ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}"))
+        handle = self.do_later(1, self.attempt_add_reaction(ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}"))
 
         if "\n" not in code:
             # if there are no line breaks try eval mode first
@@ -194,8 +201,7 @@ class Jishaku:
         """
 
         # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.bot.loop.call_later(3, self.bot.loop.create_task,
-                                          self.attempt_add_reaction(ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}"))
+        handle = self.do_later(1, self.attempt_add_reaction(ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}"))
         try:
             result = await self.bot.loop.run_in_executor(None, self.sh_backend, *args)
         except subprocess.TimeoutExpired:
