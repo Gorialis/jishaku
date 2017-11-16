@@ -108,7 +108,7 @@ class Jishaku:
             extracted_coro = self.repl_local_scope.get("__repl_coroutine")
 
             # Await it with local scope args
-            result = await extracted_coro(ctx, ctx.message)
+            result = await extracted_coro(ctx)
         except Exception as exc:
             handle.cancel()
             await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")

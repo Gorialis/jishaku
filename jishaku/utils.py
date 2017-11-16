@@ -2,7 +2,13 @@
 
 
 REPL_COROUTINE_FORMAT = """
-async def __repl_coroutine(_ctx, _msg):
+async def __repl_coroutine(_ctx):
+    _msg = _ctx.message
+    _message = _msg
+    _guild = _ctx.guild
+    _channel = _ctx.channel
+    _author = _ctx.author
+    
     {}
 """
 
