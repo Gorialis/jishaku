@@ -52,7 +52,9 @@ class Jishaku:
     def prepare_environment(self, ctx: commands.Context):
         """Update the REPL scope with variables relating to the current ctx"""
         self.repl_global_scope.update({
-            "_bot": ctx.bot
+            "_bot": ctx.bot,
+            "asyncio": asyncio,
+            "discord": discord
         })
 
     @jsk.command(name="python", aliases=["py", "```py"])
