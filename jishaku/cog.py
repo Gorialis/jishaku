@@ -195,7 +195,7 @@ class Jishaku:
             # format into a single codeblock
             return f"```prolog\n{out}\n```"
 
-    @jsk.command(name="sh")
+    @jsk.command(name="sh", aliases=["```sh"])
     async def sh_command(self, ctx: commands.Context, *, code: str):
         """Use the shell to run other CLI programs
 
