@@ -165,9 +165,9 @@ class Jishaku:
         # remove color-code characters and strip again for good measure
         return re.sub(r'\x1b[^m]*m', '', text).strip('\n')
 
-    def sh_backend(self, *args):
+    def sh_backend(self, code):
         """Open a subprocess, wait for it and format the output"""
-        proc = subprocess.Popen(list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = map(self.clean_sh_content, proc.communicate(timeout=30))
 
         # if this includes some stderr as well as stdout
@@ -196,16 +196,18 @@ class Jishaku:
             return f"```prolog\n{out}\n```"
 
     @jsk.command(name="sh")
-    async def sh_command(self, ctx: commands.Context, *args: str):
+    async def sh_command(self, ctx: commands.Context, *, code: str):
         """Use the shell to run other CLI programs
 
         This supports invoking programs, but not other shell syntax.
         """
 
+        code = utils.cleanup_codeblock(code)
+
         # create handle that'll add a right arrow reaction if this execution takes a long time
         handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
         try:
-            result = await self.bot.loop.run_in_executor(None, self.sh_backend, *args)
+            result = await self.bot.loop.run_in_executor(None, self.sh_backend, code)
         except subprocess.TimeoutExpired:
             # the subprocess took more than 30 seconds to execute
             # this could be because it was busy or because it blocked waiting for input
