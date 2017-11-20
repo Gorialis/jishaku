@@ -137,7 +137,7 @@ class Jishaku:
         """Handles exec exceptions.
 
         This tries to DM the author with the traceback."""
-        traceback_content = "\n".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 8))
+        traceback_content = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 8))
         await ctx.author.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
@@ -147,7 +147,7 @@ class Jishaku:
         We handle this differently from normal exceptions since we don't need a long traceback.
         """
 
-        traceback_content = "\n".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 0))
+        traceback_content = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 0))
         await ctx.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
