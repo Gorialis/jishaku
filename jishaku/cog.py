@@ -138,6 +138,8 @@ class Jishaku:
 
         This tries to DM the author with the traceback."""
         traceback_content = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 8))
+        if len(traceback_content) > 1985:
+            traceback_content = "..." + traceback_content[-1985:]
         await ctx.author.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
