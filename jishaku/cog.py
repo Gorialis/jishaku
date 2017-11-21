@@ -169,8 +169,8 @@ class Jishaku:
 
     def sh_backend(self, code):
         """Open a subprocess, wait for it and format the output"""
-        proc = subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = map(self.clean_sh_content, proc.communicate(timeout=30))
+        with subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            out, err = map(self.clean_sh_content, proc.communicate(timeout=30))
 
         # if this includes some stderr as well as stdout
         if err:
