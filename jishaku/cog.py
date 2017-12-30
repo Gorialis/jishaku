@@ -71,7 +71,8 @@ class Jishaku:
 
         current_time = time.monotonic()
         time_string = utils.humanize_relative_time(self.init_time - current_time)
-        await ctx.send(f"Jishaku running, init {time_string}.")
+        await ctx.send(f"Jishaku running, init {time_string}.\n"
+                       f"This bot can see {len(self.bot.guilds)} guilds, {len(self.bot.users)} users.")
 
     def prepare_environment(self, ctx: commands.Context):
         """Update the REPL scope with variables relating to the current ctx"""
@@ -184,17 +185,10 @@ class Jishaku:
         except discord.HTTPException:
             pass
 
-    @staticmethod
-    def clean_sh_content(buffer: bytes):
-        # decode the bytestring and strip any extra data we don't care for
-        text = buffer.decode('utf8').replace('\r', '').strip('\n')
-        # remove color-code characters and strip again for good measure
-        return re.sub(r'\x1b[^m]*m', '', text).strip('\n')
-
     def sh_backend(self, code):
         """Open a subprocess, wait for it and format the output"""
-        with subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-            out, err = map(self.clean_sh_content, proc.communicate(timeout=30))
+        with subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            out, err = map(utils.clean_sh_content, process.communicate(timeout=30))
 
         # if this includes some stderr as well as stdout
         if err:

@@ -23,6 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import re as _re
 
 
 REPL_COROUTINE_FORMAT = """
@@ -69,6 +70,13 @@ def cleanup_codeblock(code: str):
     if code.startswith("```"):
         code = "\n".join(code.split("\n")[1:])
     return code.strip("`\n")
+
+
+def clean_sh_content(buffer: bytes):
+    # decode the bytestring and strip any extra data we don't care for
+    text = buffer.decode('utf8').replace('\r', '').strip('\n')
+    # remove color-code characters, escape backticks and strip again for good measure
+    return _re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
 
 
 def repl_coro(code: str):
