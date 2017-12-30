@@ -257,6 +257,7 @@ class Jishaku:
 
     @jsk.command(name="load")
     async def load_command(self, ctx: commands.Context, *args: str):
+        """Load a discord.py extension."""
         # this list contains the info we'll output at the end
         formatting_list = []
         # the amount of exts trying to load that succeeded
@@ -280,6 +281,7 @@ class Jishaku:
 
     @jsk.command(name="unload")
     async def unload_command(self, ctx: commands.Context, *args: str):
+        """Unload a discord.py extension."""
         # this list contains the info we'll output at the end
         formatting_list = []
         # the amount of exts trying to unload that succeeded
@@ -303,6 +305,7 @@ class Jishaku:
 
     @jsk.command(name="reload")
     async def reload_command(self, ctx: commands.Context, *args: str):
+        """Reload a discord.py extension."""
         # this list contains the info we'll output at the end
         formatting_list = []
         # the amount of exts trying to reload that succeeded
@@ -325,3 +328,15 @@ class Jishaku:
         full_list = "\n\n".join(formatting_list)
         await ctx.send(f"{success_count}/{total_count} reloaded successfully\n```diff\n{full_list}\n```")
 
+    @jsk.command(name="selfreload")
+    async def self_reload_command(self, ctx: commands.Context):
+        """Attempts to fully reload jishaku."""
+        needs_reload = ["jishaku.utils", "jishaku.cog", "jishaku"]
+
+        setcode = "\n".join(["import importlib", *[f"import {x}\nimportlib.reload({x})" for x in needs_reload]])
+        exec(setcode, {}, {})
+
+        self.bot.unload_extension("jishaku")
+        self.bot.load_extension("jishaku")
+
+        await ctx.send("Reload OK")
