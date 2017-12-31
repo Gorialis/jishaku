@@ -30,11 +30,11 @@ import discord
 from discord.ext import commands
 
 import asyncio
-import re
+import os
+import shlex
 import subprocess
 import time
 import traceback
-import typing
 
 
 class Jishaku:
@@ -187,7 +187,11 @@ class Jishaku:
 
     def sh_backend(self, code):
         """Open a subprocess, wait for it and format the output"""
-        with subprocess.Popen(["/bin/bash", "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+        if os.name == "nt":
+            sequence = shlex.split(code)
+        else:
+            sequence = ["/bin/bash", "-c", code]
+        with subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
             out, err = map(utils.clean_sh_content, process.communicate(timeout=30))
 
         # if this includes some stderr as well as stdout
@@ -203,15 +207,15 @@ class Jishaku:
 
                 # add ellipses to show these have been truncated
                 # we show the last x amount of characters since they're usually the most important
-                out = "...\n" + out[int(-out_resize_len):]
-                err = "...\n" + err[int(-err_resize_len):]
+                out = "...\n" + out[int(-out_resize_len):].strip()
+                err = "...\n" + err[int(-err_resize_len):].strip()
 
             # format into codeblocks
             return f"```prolog\n{out}\n```\n```prolog\n{err}\n```"
         else:
             # if the stdout won't fit in a message
             if len(out) > 1980:
-                out = "...\n" + out[-1980:]
+                out = "...\n" + out[-1980:].strip()
             # format into a single codeblock
             return f"```prolog\n{out}\n```"
 

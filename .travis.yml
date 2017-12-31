@@ -1,0 +1,8 @@
+dist: trusty
+language: python
+python:
+  - "3.6"
+before_script:
+  - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
+install: "pip install -r install_requires.txt"
+script: pytest -vs
