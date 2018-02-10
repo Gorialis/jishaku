@@ -263,6 +263,14 @@ class Jishaku:
             # send the result of the command
             await ctx.send(result)
 
+    @jsk.command(name="git")
+    async def git_command(self, ctx: commands.Context, *, code: str):
+        """Uses sh to make calls to git
+
+        Equivalent to 'sh git <code>'.
+        """
+        await ctx.invoke(self.sh_command, code=' '.join(['git', code]))
+
     @jsk.command(name="load")
     async def load_command(self, ctx: commands.Context, *args: str):
         """Load a discord.py extension."""
