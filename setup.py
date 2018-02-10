@@ -1,4 +1,6 @@
+
 from setuptools import setup
+
 import re
 
 
@@ -21,6 +23,7 @@ with open('README.rst') as f:
 setup(name='jishaku',
       author='Gorialis',
       url='https://github.com/Gorialis/jishaku',
+      download_url='https://github.com/Gorialis/jishaku/archive/0.0.4.tar.gz',
       version=version,
       packages=['jishaku'],
       license='MIT',
