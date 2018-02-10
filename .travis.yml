@@ -4,5 +4,7 @@ python:
   - "3.6"
 before_script:
   - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
-install: "pip install -r install_requires.txt"
+install:
+  - "pip install -r install_requires.txt"
+  - "pip install -U ."
 script: pytest -vs
