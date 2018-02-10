@@ -34,7 +34,7 @@ setup(name='jishaku',
       python_requires='>=3.6.0',
       classifiers=[
         'Development Status :: 3 - Alpha',
-        'Framework :: AsyncIO'
+        'Framework :: AsyncIO',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Natural Language :: English',
