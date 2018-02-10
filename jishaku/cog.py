@@ -31,10 +31,14 @@ from discord.ext import commands
 
 import asyncio
 import os
+import re
 import shlex
 import subprocess
 import time
 import traceback
+
+
+SEMICOLON_LOOKAROUND = re.compile("(?!\B[\"'][^\"']*);(?![^\"']*[\"']\B)")
 
 
 class Jishaku:
@@ -98,8 +102,8 @@ class Jishaku:
         # create handle that'll add a right arrow reaction if this execution takes a long time
         handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
-        if "\n" not in code:
-            # if there are no line breaks try eval mode first
+        if "\n" not in code and not any(SEMICOLON_LOOKAROUND.findall(code)):
+            # if there are no line breaks and no semicolons try eval mode first
             with_return = ' '.join(['return', code])
 
             try:
