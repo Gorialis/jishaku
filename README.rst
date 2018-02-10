@@ -82,4 +82,11 @@ Shell Interaction
 
 Jishaku can interact with CLI programs with ``[jishaku|jsk] sh <codeline|codeblock>``.
 
-This opens a subprocess, meaning you can run standard shell commands like ``git pull`` or such, but cannot use specific shell syntax like piping or envvars.
+This opens a bash subprocess, meaning you can run standard shell commands or bash syntax.
+
+Usually most distributions have bash installed in some capacity, but inside bot containers running minimalist distros such as Alpine, it may not be available.
+In this case you will need to install bash in order to use the sh command:
+
+.. code:: sh
+
+    apk add --no-cache bash
