@@ -38,8 +38,11 @@ async def __repl_coroutine(_ctx):
 """
 
 
-def humanize_relative_time(seconds: float):
-    if round(seconds, 2) == 0:
+def humanize_relative_time(seconds: int):
+    # in case we get a float
+    seconds = int(seconds)
+
+    if seconds == 0:
         return 'now'  # negligible time distance
 
     if seconds < 0:
