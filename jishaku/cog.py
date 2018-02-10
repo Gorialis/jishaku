@@ -97,10 +97,8 @@ class Jishaku:
         code = utils.cleanup_codeblock(code)
         await self.repl_backend(ctx, code)
 
-    async def repl_backend(self, ctx: commands.Context, code: str):
+    async def repl_inner_backend(self, ctx: commands.Context, code: str):
         """Attempts to compile code and execute it."""
-        # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
         if "\n" not in code and not any(SEMICOLON_LOOKAROUND.findall(code)):
             # if there are no line breaks and no semicolons try eval mode first
@@ -120,26 +118,32 @@ class Jishaku:
         # if this code fails.
 
         if code_object is None:
-            try:
-                coro_format = utils.repl_coro(code)
-                code_object = compile(coro_format, '<repl-x session>', 'exec')
-            except SyntaxError as exc:
-                handle.cancel()
-                await self.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
-                await self.repl_handle_syntaxerror(ctx, exc)
-                return
+            coro_format = utils.repl_coro(code)
+            code_object = compile(coro_format, '<repl-x session>', 'exec')
 
         # our code object is ready, let's actually execute it now
         self.prepare_environment(ctx)
 
+        exec(code_object, self.repl_global_scope, self.repl_local_scope)
+
+        # Grab the coro we just defined
+        extracted_coro = self.repl_local_scope.get("__repl_coroutine")
+
+        # Await it with local scope args
+        return await extracted_coro(ctx)
+
+    async def repl_backend(self, ctx: commands.Context, code: str):
+        """Passes code into the repl backend, and handles the result or resulting exceptions."""
+        # create handle that'll add a right arrow reaction if this execution takes a long time
+        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
+
         try:
-            exec(code_object, self.repl_global_scope, self.repl_local_scope)
-
-            # Grab the coro we just defined
-            extracted_coro = self.repl_local_scope.get("__repl_coroutine")
-
-            # Await it with local scope args
-            result = await extracted_coro(ctx)
+            result = await self.repl_inner_backend(ctx, code)
+        except SyntaxError as exc:
+            handle.cancel()
+            await self.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
+            await self.repl_handle_syntaxerror(ctx, exc)
+            return
         except Exception as exc:
             handle.cancel()
             await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
