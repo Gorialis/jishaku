@@ -30,6 +30,7 @@ import discord
 from discord.ext import commands
 
 import asyncio
+import inspect
 import os
 import re
 import shlex
@@ -96,6 +97,15 @@ class Jishaku:
 
         code = utils.cleanup_codeblock(code)
         await self.repl_backend(ctx, code)
+
+    @jsk.command(name="python_what", aliases=["py_what", "pyw"])
+    async def python_what(self, ctx, *, code: str):
+        """Returns info on the result of an evaluated expression
+
+        This evaluates the code passed into it and gives info on the result.
+        """
+        code = utils.cleanup_codeblock(code)
+        await self.py_what_backend(ctx, code)
 
     async def repl_inner_backend(self, ctx: commands.Context, code: str):
         """Attempts to compile code and execute it."""
@@ -164,6 +174,76 @@ class Jishaku:
             handle.cancel()
             await ctx.send(result)
             await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
+
+    async def py_what_backend(self, ctx: commands.Context, code: str):
+        """Evaluate code similar to above, but examine it instead of returning it"""
+        # create handle that'll add a right arrow reaction if this execution takes a long time
+        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
+
+        try:
+            result = await self.repl_inner_backend(ctx, code)
+        except SyntaxError as exc:
+            handle.cancel()
+            await self.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
+            await self.repl_handle_syntaxerror(ctx, exc)
+            return
+        except Exception as exc:
+            handle.cancel()
+            await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
+            await self.repl_handle_exception(ctx, exc)
+        else:
+            information = []
+
+            header = repr(result).replace('`', '\u200b`')
+            if len(header) > 485:
+                header = header[0:482] + '...'
+
+            information.append(('Type', type(result).__name__))
+            information.append(('Memory Location', hex(id(result))))
+
+            try:
+                information.append(('Module Name', inspect.getmodule(result).__name__))
+            except (TypeError, AttributeError):
+                pass
+
+            try:
+                file_loc = inspect.getfile(result)
+            except TypeError:
+                pass
+            else:
+                cwd = os.getcwd()
+                if file_loc.startswith(cwd):
+                    file_loc = "." + file_loc[len(cwd):]
+                information.append(('File Location', file_loc))
+
+            try:
+                source_lines, source_offset = inspect.getsourcelines(result)
+            except TypeError:
+                pass
+            else:
+                information.append(('Line Span', f'{source_offset}-{source_offset+len(source_lines)}'))
+
+            try:
+                signature = inspect.signature(result)
+            except (TypeError, AttributeError, ValueError):
+                pass
+            else:
+                information.append(('Signature', str(signature)))
+
+            if inspect.isclass(result):
+                try:
+                    information.append(('Class MRO', ', '.join([x.__name__ for x in inspect.getmro(result)])))
+                except (TypeError, AttributeError):
+                    pass
+
+            if isinstance(result, (str, tuple, list, bytes)):
+                information.append(('Length', len(result)))
+
+            information_flatten = "\n".join(f"{x:16.16} :: {y}" for x, y in information)
+            summary = f"```prolog\n== {header} ==\n\n{information_flatten}\n```"
+
+            handle.cancel()
+            await ctx.send(summary)
 
     @staticmethod
     async def repl_handle_exception(ctx, exc: Exception):
