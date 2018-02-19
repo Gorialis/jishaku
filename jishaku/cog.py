@@ -57,7 +57,7 @@ class Jishaku:
     def do_later(self, delay: float, coro, *args, **kwargs):
         return self.bot.loop.create_task(self.do_after_sleep(delay, coro, *args, **kwargs))
 
-    @commands.group(name="jishaku", aliases=["jsk"])
+    @commands.group(name="jishaku", aliases=["jsk"], hidden=True)
     @commands.is_owner()
     async def jsk(self, ctx):
         """Jishaku debug and diagnostic commands
