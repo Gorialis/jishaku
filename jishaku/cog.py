@@ -30,6 +30,7 @@ import discord
 from discord.ext import commands
 
 import asyncio
+import functools
 import inspect
 import os
 import re
@@ -319,78 +320,61 @@ class Jishaku:
         """
         await ctx.invoke(self.sh_command, code=' '.join(['git', code]))
 
+    @staticmethod
+    def try_multiple(operations, *args, **kwargs) -> typing.Optional[Exception]:
+        """
+        Does multiple operations on a set of arguments, returning an exception if there was one.
+        :param operations: Iterable of operations to perform
+        :param args: Arguments to pass to each operation
+        :param kwargs: Keyword arguments to pass to each operation
+        :return: The exception object, if there was one.
+        """
+        try:
+            for operation in operations:
+                operation(*args, **kwargs)
+        except Exception as exc:
+            return exc
+
+    def format_extension_management(self, operations, extension_name) -> str:
+        """
+        Does operations with an extension name, returning a difflist entry based on whether it succeeded.
+        :param operations: Operations to perform (load_command, etc)
+        :param extension_name: The extension name
+        :return: Diff list entry
+        """
+
+        exception = self.try_multiple(operations, extension_name)
+        if exception:
+            return f"- \N{CROSS MARK} {extension_name}\n! {exception.__class__.__name__}: {exception!s:.75}"
+        else:
+            return f"+ \N{WHITE HEAVY CHECK MARK} {extension_name}"
+
     @jsk.command(name="load")
     async def load_command(self, ctx: commands.Context, *args: str):
-        """Load a discord.py extension."""
-        # this list contains the info we'll output at the end
-        formatting_list = []
-        # the amount of exts trying to load that succeeded
-        success_count = 0
-        total_count = len(args)
+        """Loads discord.py extensions."""
 
-        for ext_name in args:
-            try:
-                self.bot.load_extension(ext_name)
-            except Exception as exc:
-                # add the extension name, exception type and exception string truncated
-                exception_text = str(exc)
-                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
-                continue
-            else:
-                formatting_list.append(f"+ {ext_name}")
-                success_count += 1
+        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
+                                                      (self.bot.load_extension,)), args))
 
-        full_list = "\n\n".join(formatting_list)
-        await ctx.send(f"{success_count}/{total_count} loaded successfully\n```diff\n{full_list}\n```")
+        await ctx.send(f"Attempted to load {len(args)} extension(s).\n```diff\n{formatted}\n```")
 
     @jsk.command(name="unload")
     async def unload_command(self, ctx: commands.Context, *args: str):
-        """Unload a discord.py extension."""
-        # this list contains the info we'll output at the end
-        formatting_list = []
-        # the amount of exts trying to unload that succeeded
-        success_count = 0
-        total_count = len(args)
+        """Unloads discord.py extensions."""
 
-        for ext_name in args:
-            try:
-                self.bot.unload_extension(ext_name)
-            except Exception as exc:
-                # add the extension name, exception type and exception string truncated
-                exception_text = str(exc)
-                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
-                continue
-            else:
-                formatting_list.append(f"+ {ext_name}")
-                success_count += 1
+        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
+                                                      (self.bot.unload_extension,)), args))
 
-        full_list = "\n\n".join(formatting_list)
-        await ctx.send(f"{success_count}/{total_count} unloaded successfully\n```diff\n{full_list}\n```")
+        await ctx.send(f"Attempted to unload {len(args)} extension(s).\n```diff\n{formatted}\n```")
 
     @jsk.command(name="reload")
     async def reload_command(self, ctx: commands.Context, *args: str):
-        """Reload a discord.py extension."""
-        # this list contains the info we'll output at the end
-        formatting_list = []
-        # the amount of exts trying to reload that succeeded
-        success_count = 0
-        total_count = len(args)
+        """Reloads discord.py extensions."""
 
-        for ext_name in args:
-            try:
-                self.bot.unload_extension(ext_name)
-                self.bot.load_extension(ext_name)
-            except Exception as exc:
-                # add the extension name, exception type and exception string truncated
-                exception_text = str(exc)
-                formatting_list.append(f"- {ext_name}\n! {exc.__class__.__name__}: {exception_text:.75}")
-                continue
-            else:
-                formatting_list.append(f"+ {ext_name}")
-                success_count += 1
+        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
+                                                      (self.bot.load_extension, self.bot.unload_extension)), args))
 
-        full_list = "\n\n".join(formatting_list)
-        await ctx.send(f"{success_count}/{total_count} reloaded successfully\n```diff\n{full_list}\n```")
+        await ctx.send(f"Attempted to reload {len(args)} extension(s).\n```diff\n{formatted}\n```")
 
     @jsk.command(name="selfreload", aliases=["self_reload", "self-reload"])
     async def self_reload_command(self, ctx: commands.Context):
