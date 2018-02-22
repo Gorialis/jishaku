@@ -37,7 +37,7 @@ import shlex
 import subprocess
 import sys
 import time
-import traceback
+import typing
 
 
 SEMICOLON_LOOKAROUND = re.compile("(?!\B[\"'][^\"']*);(?![^\"']*[\"']\B)")
@@ -107,7 +107,9 @@ class Jishaku:
         """
 
         code = utils.cleanup_codeblock(code)
-        await self.repl_backend(ctx, code)
+
+        async with utils.ReplResponseReactor(ctx.message):
+            await self.repl_backend(ctx, code, self.py_callback)
 
     @jsk.command(name="python_what", aliases=["py_what", "pyw"])
     async def python_what(self, ctx, *, code: str):
@@ -116,10 +118,18 @@ class Jishaku:
         This evaluates the code passed into it and gives info on the result.
         """
         code = utils.cleanup_codeblock(code)
-        await self.py_what_backend(ctx, code)
 
-    async def repl_inner_backend(self, ctx: commands.Context, code: str):
-        """Attempts to compile code and execute it."""
+        async with utils.ReplResponseReactor(ctx.message):
+            await self.repl_backend(ctx, code, self.pyw_callback)
+
+    async def repl_backend(self, ctx: commands.Context, code: str, callback):
+        """
+        Attempt to compile and execute code, yielding results to a callback.
+        :param ctx: Context for the repl environment and callback.
+        :param code: Code to try and execute
+        :param callback: Callback to send all results to.
+        :return: The final result, if there was one.
+        """
 
         if "\n" not in code and not any(SEMICOLON_LOOKAROUND.findall(code)):
             # if there are no line breaks and no semicolons try eval mode first
@@ -150,16 +160,33 @@ class Jishaku:
         # Grab the coro we just defined
         extracted_coro = self.repl_local_scope.get("__repl_coroutine")
 
-        # Await it with local scope args
-        return await extracted_coro(ctx)
+        result = None
 
-    async def repl_backend(self, ctx: commands.Context, code: str):
-        """Passes code into the repl backend, and handles the result or resulting exceptions."""
+        # Allow async generator definitions for multiple-result yielding
+        if inspect.isasyncgenfunction(extracted_coro):
+            # For every result we get back,
+            async for result in extracted_coro(ctx):
+                # send it to the callback.
+                await callback(ctx, result)
+        else:
+            # Not an async generator, so await with local scope args
+            result = await extracted_coro(ctx)
+            await callback(ctx, result)
 
-        async with utils.ReplResponseReactor(ctx.message) as handler:
-            result = await self.repl_inner_backend(ctx, code)
+        return result
 
-        if not handler.raised and result:
+    @staticmethod
+    async def py_callback(ctx: commands.Context, result) -> typing.Optional[discord.Message]:
+        """
+        Callback that converts the result into a chat-compatible format and sends it to the chat.
+        :param ctx: Context, passed by caller
+        :param result: The object to be converted
+        :return: The message sent
+        """
+
+        if result:
+            if isinstance(result, discord.File):
+                return await ctx.send(file=result)
 
             if not isinstance(result, str):
                 # repr all non-strings
@@ -169,66 +196,67 @@ class Jishaku:
             if len(result) > 1995:
                 result = result[0:1995] + "..."
 
-            await ctx.send(result)
+            return await ctx.send(result)
 
-    async def py_what_backend(self, ctx: commands.Context, code: str):
-        """Evaluate code similar to above, but examine it instead of returning it"""
+    @staticmethod
+    async def pyw_callback(ctx: commands.Context, result) -> discord.Message:
+        """
+        Callback that examines the result and sends information on it to the channel.
+        :param ctx: Context, passed by caller
+        :param result: The object to be examined
+        :return: The message sent
+        """
+        information = []
 
-        async with utils.ReplResponseReactor(ctx.message) as handler:
-            result = await self.repl_inner_backend(ctx, code)
+        header = repr(result).replace('`', '\u200b`')
+        if len(header) > 485:
+            header = header[0:482] + '...'
 
-        if not handler.raised:
-            information = []
+        information.append(('Type', type(result).__name__))
+        information.append(('Memory Location', hex(id(result))))
 
-            header = repr(result).replace('`', '\u200b`')
-            if len(header) > 485:
-                header = header[0:482] + '...'
+        try:
+            information.append(('Module Name', inspect.getmodule(result).__name__))
+        except (TypeError, AttributeError):
+            pass
 
-            information.append(('Type', type(result).__name__))
-            information.append(('Memory Location', hex(id(result))))
+        try:
+            file_loc = inspect.getfile(result)
+        except TypeError:
+            pass
+        else:
+            cwd = os.getcwd()
+            if file_loc.startswith(cwd):
+                file_loc = "." + file_loc[len(cwd):]
+            information.append(('File Location', file_loc))
 
+        try:
+            source_lines, source_offset = inspect.getsourcelines(result)
+        except TypeError:
+            pass
+        else:
+            information.append(('Line Span', f'{source_offset}-{source_offset+len(source_lines)}'))
+
+        try:
+            signature = inspect.signature(result)
+        except (TypeError, AttributeError, ValueError):
+            pass
+        else:
+            information.append(('Signature', str(signature)))
+
+        if inspect.isclass(result):
             try:
-                information.append(('Module Name', inspect.getmodule(result).__name__))
+                information.append(('Class MRO', ', '.join([x.__name__ for x in inspect.getmro(result)])))
             except (TypeError, AttributeError):
                 pass
 
-            try:
-                file_loc = inspect.getfile(result)
-            except TypeError:
-                pass
-            else:
-                cwd = os.getcwd()
-                if file_loc.startswith(cwd):
-                    file_loc = "." + file_loc[len(cwd):]
-                information.append(('File Location', file_loc))
+        if isinstance(result, (str, tuple, list, bytes)):
+            information.append(('Length', len(result)))
 
-            try:
-                source_lines, source_offset = inspect.getsourcelines(result)
-            except TypeError:
-                pass
-            else:
-                information.append(('Line Span', f'{source_offset}-{source_offset+len(source_lines)}'))
+        information_flatten = "\n".join(f"{x:16.16} :: {y}" for x, y in information)
+        summary = f"```prolog\n== {header} ==\n\n{information_flatten}\n```"
 
-            try:
-                signature = inspect.signature(result)
-            except (TypeError, AttributeError, ValueError):
-                pass
-            else:
-                information.append(('Signature', str(signature)))
-
-            if inspect.isclass(result):
-                try:
-                    information.append(('Class MRO', ', '.join([x.__name__ for x in inspect.getmro(result)])))
-                except (TypeError, AttributeError):
-                    pass
-
-            if isinstance(result, (str, tuple, list, bytes)):
-                information.append(('Length', len(result)))
-
-            information_flatten = "\n".join(f"{x:16.16} :: {y}" for x, y in information)
-            summary = f"```prolog\n== {header} ==\n\n{information_flatten}\n```"
-
-            await ctx.send(summary)
+        return await ctx.send(summary)
 
     @staticmethod
     def sh_backend(code):
