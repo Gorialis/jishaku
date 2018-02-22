@@ -43,6 +43,8 @@ import typing
 
 SEMICOLON_LOOKAROUND = re.compile("(?!\B[\"'][^\"']*);(?![^\"']*[\"']\B)")
 
+HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in ('true', 't', 'yes', 'y', 'on', '1')
+
 
 class Jishaku:
     """
@@ -68,7 +70,7 @@ class Jishaku:
         """
         return self.bot.loop.create_task(utils.do_after_sleep(delay, coro, *args, **kwargs))
 
-    @commands.group(name="jishaku", aliases=["jsk"])
+    @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU)
     @commands.is_owner()
     async def jsk(self, ctx):
         """Jishaku debug and diagnostic commands
@@ -90,6 +92,24 @@ class Jishaku:
         time_string = utils.humanize_relative_time(self.init_time - current_time)
         await ctx.send(f"Jishaku running, init {time_string}.\n"
                        f"This bot can see {len(self.bot.guilds)} guilds, {len(self.bot.users)} users.")
+
+    @jsk.command(name="hide")
+    async def hide_self(self, ctx):
+        """Hides the Jishaku command from help."""
+        if self.jsk.hidden:
+            return await ctx.send("Already hidden.")
+
+        self.jsk.hidden = True
+        await ctx.send("Hiding away..")
+
+    @jsk.command(name="show")
+    async def show_self(self, ctx):
+        """Shows the Jishaku command in help."""
+        if not self.jsk.hidden:
+            return await ctx.send("Already visible.")
+
+        self.jsk.hidden = False
+        await ctx.send("Showing self..")
 
     def prepare_environment(self, ctx: commands.Context):
         """Update the REPL scope with variables relating to the current ctx"""

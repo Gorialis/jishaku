@@ -1,6 +1,28 @@
 jishaku
 =======
 
+.. |py| image:: https://img.shields.io/pypi/pyversions/jishaku.svg
+
+.. |license| image:: https://img.shields.io/pypi/l/jishaku.svg
+  :target: https://github.com/Gorialis/jishaku/blob/master/LICENSE
+
+.. |travis| image:: https://img.shields.io/travis/Gorialis/jishaku/master.svg?label=TravisCI
+  :target: https://travis-ci.org/Gorialis/jishaku
+
+.. |circle| image:: https://img.shields.io/circleci/project/github/Gorialis/jishaku/master.svg?label=CircleCI
+  :target: https://circleci.com/gh/Gorialis/jishaku
+
+.. |issues| image:: https://img.shields.io/github/issues/Gorialis/jishaku.svg?colorB=3333ff
+  :target: https://github.com/Gorialis/jishaku/issues
+
+.. |commit| image:: https://img.shields.io/github/commit-activity/w/Gorialis/jishaku.svg
+  :target: https://github.com/Gorialis/jishaku/commits
+
+.. |status| image:: https://img.shields.io/pypi/status/jishaku.svg
+  :target: https://pypi.python.org/pypi/jishaku
+
+|py| |license| |travis| |circle| |issues| |commit| |status|
+
 jishaku is a debugging and experimenting cog for Discord bots using ``discord.py@rewrite``.
 
 It is locked to Python 3.6 and requirements will shift as new ``discord.py`` and Python versions release.
@@ -55,6 +77,8 @@ Jishaku contains 3 commands for loading and unloading extensions:
 These commands do as described, with ``reload`` unloading and loading cogs again for quick reloads.
 ``[exts...]`` are a set of extension names separated by spaces, such as ``cogs.one cogs.two cogs.three``.
 
+Jishaku can reload itself using ``[jishaku|jsk] selfreload``.
+
 Python REPL
 ~~~~~~~~~~~
 
@@ -77,6 +101,14 @@ Variables available in both eval and exec modes are:
 
 ``_bot`` is globally available, but all other REPL variables are local (that is, editing or overwriting them won't affect other current repl sessions)
 
+Yielding inside of an eval codeblock allows you to return intermediate data as your code runs. Any objects yielded will be treated as if they were returned, without terminating execution.
+
+(Note that as yielding creates an asynchronous generator, you can no longer return and must yield for **all** results you feed back.)
+
+An alternate command is available, ``[jishaku|jsk] [python_what|pyw] <codeline|codeblock>``.
+
+This command performs identically as the standard eval, but inspects yielded results instead of just formatting them.
+
 Shell Interaction
 ~~~~~~~~~~~~~~~~~
 
@@ -90,3 +122,7 @@ In this case you will need to install bash in order to use the sh command:
 .. code:: sh
 
     apk add --no-cache bash
+
+For bots maintained using the git version control system, a shortcut command ``[jishaku|jsk] git <codeline>`` is available.
+
+This simply invokes the sh command, but prefixes with git to make running git commands easier, such as ``jsk git pull``.
