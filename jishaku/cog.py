@@ -35,6 +35,7 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 import time
 import traceback
 
@@ -43,19 +44,28 @@ SEMICOLON_LOOKAROUND = re.compile("(?!\B[\"'][^\"']*);(?![^\"']*[\"']\B)")
 
 
 class Jishaku:
+    """
+    Class that contains the Jishaku command, subcommands, and various context-sensitive utilities Jishaku uses.
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.init_time = time.monotonic()
         self.repl_global_scope = {}
         self.repl_local_scope = {}
 
-    @staticmethod
-    async def do_after_sleep(delay: float, coro, *args, **kwargs):
-        await asyncio.sleep(delay)
-        return await coro(*args, **kwargs)
-
     def do_later(self, delay: float, coro, *args, **kwargs):
-        return self.bot.loop.create_task(self.do_after_sleep(delay, coro, *args, **kwargs))
+        """
+        Sync interface to return a task for do_after_sleep
+        Like loop.call_later, but for coroutines.
+        Useful to create cancellable deferred tasks.
+
+        :param delay: Time in seconds
+        :param coro: Coroutine to run
+        :param args: Arguments to pass to coroutine
+        :param kwargs: Keyword arguments to pass to coroutine
+        :return: Cancellable task for the coroutine
+        """
+        return self.bot.loop.create_task(utils.do_after_sleep(delay, coro, *args, **kwargs))
 
     @commands.group(name="jishaku", aliases=["jsk"])
     @commands.is_owner()
@@ -67,9 +77,10 @@ class Jishaku:
 
         pass
 
-    @jsk.command(name="selftest")
+    @jsk.command(name="selftest", aliases=["self_test", "self-test"])
     async def self_test(self, ctx):
-        """Jishaku self-test
+        """
+        Jishaku self-test
 
         This tests that Jishaku and the bot are functioning correctly.
         """
@@ -145,23 +156,23 @@ class Jishaku:
     async def repl_backend(self, ctx: commands.Context, code: str):
         """Passes code into the repl backend, and handles the result or resulting exceptions."""
         # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
+        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
         try:
             result = await self.repl_inner_backend(ctx, code)
         except SyntaxError as exc:
             handle.cancel()
-            await self.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
+            await utils.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
             await self.repl_handle_syntaxerror(ctx, exc)
             return
         except Exception as exc:
             handle.cancel()
-            await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
             await self.repl_handle_exception(ctx, exc)
         else:
             if result is None:
                 handle.cancel()
-                await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
+                await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
                 return
 
             if not isinstance(result, str):
@@ -173,23 +184,23 @@ class Jishaku:
                 result = result[0:1995] + "..."
             handle.cancel()
             await ctx.send(result)
-            await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
 
     async def py_what_backend(self, ctx: commands.Context, code: str):
         """Evaluate code similar to above, but examine it instead of returning it"""
         # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
+        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
         try:
             result = await self.repl_inner_backend(ctx, code)
         except SyntaxError as exc:
             handle.cancel()
-            await self.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
+            await utils.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
             await self.repl_handle_syntaxerror(ctx, exc)
             return
         except Exception as exc:
             handle.cancel()
-            await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
             await self.repl_handle_exception(ctx, exc)
         else:
             information = []
@@ -266,16 +277,9 @@ class Jishaku:
         await ctx.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
-    async def attempt_add_reaction(msg: discord.Message, text: str):
-        """Try to add a reaction, ignore if it fails"""
-        try:
-            await msg.add_reaction(text)
-        except discord.HTTPException:
-            pass
-
-    def sh_backend(self, code):
+    def sh_backend(code):
         """Open a subprocess, wait for it and format the output"""
-        if os.name == "nt":
+        if sys.platform == "win32":
             sequence = shlex.split(code)
         else:
             sequence = ["/bin/bash", "-c", code]
@@ -317,7 +321,7 @@ class Jishaku:
         code = utils.cleanup_codeblock(code)
 
         # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, self.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
+        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
         try:
             result = await self.bot.loop.run_in_executor(None, self.sh_backend, code)
         except subprocess.TimeoutExpired:
@@ -327,14 +331,14 @@ class Jishaku:
             # cancel the arrow reaction handle
             handle.cancel()
             # add an alarm clock reaction
-            await self.attempt_add_reaction(ctx.message, "\N{ALARM CLOCK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{ALARM CLOCK}")
         except Exception as exc:
             # something went wrong trying to create the subprocess
 
             # cancel the arrow reaction handle
             handle.cancel()
             # add !! emote
-            await self.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
             # handle this the same as a standard repl exception
             await self.repl_handle_exception(ctx, exc)
         else:
@@ -343,7 +347,7 @@ class Jishaku:
             # cancel the arrow reaction handle
             handle.cancel()
             # :tick:
-            await self.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
+            await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
             # send the result of the command
             await ctx.send(result)
 
@@ -428,7 +432,7 @@ class Jishaku:
         full_list = "\n\n".join(formatting_list)
         await ctx.send(f"{success_count}/{total_count} reloaded successfully\n```diff\n{full_list}\n```")
 
-    @jsk.command(name="selfreload")
+    @jsk.command(name="selfreload", aliases=["self_reload", "self-reload"])
     async def self_reload_command(self, ctx: commands.Context):
         """Attempts to fully reload jishaku."""
         needs_reload = ["jishaku.utils", "jishaku.cog", "jishaku"]
