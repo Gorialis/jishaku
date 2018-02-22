@@ -155,25 +155,11 @@ class Jishaku:
 
     async def repl_backend(self, ctx: commands.Context, code: str):
         """Passes code into the repl backend, and handles the result or resulting exceptions."""
-        # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
-        try:
+        async with utils.ReplResponseReactor(ctx.message) as handler:
             result = await self.repl_inner_backend(ctx, code)
-        except SyntaxError as exc:
-            handle.cancel()
-            await utils.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
-            await self.repl_handle_syntaxerror(ctx, exc)
-            return
-        except Exception as exc:
-            handle.cancel()
-            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
-            await self.repl_handle_exception(ctx, exc)
-        else:
-            if result is None:
-                handle.cancel()
-                await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
-                return
+
+        if not handler.raised and result:
 
             if not isinstance(result, str):
                 # repr all non-strings
@@ -182,27 +168,16 @@ class Jishaku:
             # if result is really long cut it down
             if len(result) > 1995:
                 result = result[0:1995] + "..."
-            handle.cancel()
+
             await ctx.send(result)
-            await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
 
     async def py_what_backend(self, ctx: commands.Context, code: str):
         """Evaluate code similar to above, but examine it instead of returning it"""
-        # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
 
-        try:
+        async with utils.ReplResponseReactor(ctx.message) as handler:
             result = await self.repl_inner_backend(ctx, code)
-        except SyntaxError as exc:
-            handle.cancel()
-            await utils.attempt_add_reaction(ctx.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
-            await self.repl_handle_syntaxerror(ctx, exc)
-            return
-        except Exception as exc:
-            handle.cancel()
-            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
-            await self.repl_handle_exception(ctx, exc)
-        else:
+
+        if not handler.raised:
             information = []
 
             header = repr(result).replace('`', '\u200b`')
@@ -253,28 +228,7 @@ class Jishaku:
             information_flatten = "\n".join(f"{x:16.16} :: {y}" for x, y in information)
             summary = f"```prolog\n== {header} ==\n\n{information_flatten}\n```"
 
-            handle.cancel()
             await ctx.send(summary)
-
-    @staticmethod
-    async def repl_handle_exception(ctx, exc: Exception):
-        """Handles exec exceptions.
-
-        This tries to DM the author with the traceback."""
-        traceback_content = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 8))
-        if len(traceback_content) > 1985:
-            traceback_content = "..." + traceback_content[-1985:]
-        await ctx.author.send(f"```py\n{traceback_content}\n```")
-
-    @staticmethod
-    async def repl_handle_syntaxerror(ctx, exc: SyntaxError):
-        """Handles and points to syntax errors.
-
-        We handle this differently from normal exceptions since we don't need a long traceback.
-        """
-
-        traceback_content = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 0))
-        await ctx.send(f"```py\n{traceback_content}\n```")
 
     @staticmethod
     def sh_backend(code):
@@ -320,34 +274,12 @@ class Jishaku:
 
         code = utils.cleanup_codeblock(code)
 
-        # create handle that'll add a right arrow reaction if this execution takes a long time
-        handle = self.do_later(1, utils.attempt_add_reaction, ctx.message, "\N{BLACK RIGHT-POINTING TRIANGLE}")
-        try:
+        async with utils.ReplResponseReactor(ctx.message) as handler:
             result = await self.bot.loop.run_in_executor(None, self.sh_backend, code)
-        except subprocess.TimeoutExpired:
-            # the subprocess took more than 30 seconds to execute
-            # this could be because it was busy or because it blocked waiting for input
 
-            # cancel the arrow reaction handle
-            handle.cancel()
-            # add an alarm clock reaction
-            await utils.attempt_add_reaction(ctx.message, "\N{ALARM CLOCK}")
-        except Exception as exc:
-            # something went wrong trying to create the subprocess
-
-            # cancel the arrow reaction handle
-            handle.cancel()
-            # add !! emote
-            await utils.attempt_add_reaction(ctx.message, "\N{DOUBLE EXCLAMATION MARK}")
-            # handle this the same as a standard repl exception
-            await self.repl_handle_exception(ctx, exc)
-        else:
+        if not handler.raised:
             # nothing went wrong
 
-            # cancel the arrow reaction handle
-            handle.cancel()
-            # :tick:
-            await utils.attempt_add_reaction(ctx.message, "\N{WHITE HEAVY CHECK MARK}")
             # send the result of the command
             await ctx.send(result)
 
@@ -435,7 +367,8 @@ class Jishaku:
     @jsk.command(name="selfreload", aliases=["self_reload", "self-reload"])
     async def self_reload_command(self, ctx: commands.Context):
         """Attempts to fully reload jishaku."""
-        needs_reload = ["jishaku.utils", "jishaku.cog", "jishaku"]
+        needs_reload = ["jishaku.utils.sync_utils", "jishaku.utils.async_utils", "jishaku.utils.class_utils",
+                        "jishaku.utils", "jishaku.cog", "jishaku"]
 
         setcode = "\n".join(["import importlib", *[f"import {x}\nimportlib.reload({x})" for x in needs_reload]])
         exec(setcode, {}, {})

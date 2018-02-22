@@ -24,10 +24,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import asyncio as _asyncio
-import discord as _discord
-import re as _re
-import typing as _typing
+import re
+
+
+__all__ = ("REPL_COROUTINE_FORMAT", "humanize_relative_time", "cleanup_codeblock", "clean_sh_content", "repl_coro")
 
 
 REPL_COROUTINE_FORMAT = """
@@ -37,7 +37,7 @@ async def __repl_coroutine(_ctx):
     _guild = _ctx.guild
     _channel = _ctx.channel
     _author = _ctx.author
-    
+
     {}
 """
 
@@ -73,7 +73,7 @@ def humanize_relative_time(seconds: int):
     for measurement, unit in units:
         if not measurement:
             continue
-        formatted_unit_list.append('{} {}'.format(measurement, unit + ('s' if measurement-1 else '')))
+        formatted_unit_list.append('{} {}'.format(measurement, unit + ('s' if measurement - 1 else '')))
 
     return ', '.join(formatted_unit_list) + (' ago' if past else '')
 
@@ -98,7 +98,7 @@ def clean_sh_content(buffer: bytes) -> str:
     # decode the bytestring and strip any extra data we don't care for
     text = buffer.decode('utf8').replace('\r', '').strip('\n')
     # remove color-code characters, escape backticks and strip again for good measure
-    return _re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
+    return re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
 
 
 def repl_coro(code: str) -> str:
@@ -108,32 +108,3 @@ def repl_coro(code: str) -> str:
     :return: Code defining an async function of the supplied code
     """
     return REPL_COROUTINE_FORMAT.format("\n    ".join(code.split("\n")))
-
-
-async def do_after_sleep(delay: float, coro, *args, **kwargs):
-    """
-    Performs an action after a set amount of time.
-    This function only calls the coroutine after the delay, preventing asyncio complaints about destroyed coros.
-
-    :param delay: Time in seconds
-    :param coro: Coroutine to run
-    :param args: Arguments to pass to coroutine
-    :param kwargs: Keyword arguments to pass to coroutine
-    :return: Whatever the coroutine returned.
-    """
-    await _asyncio.sleep(delay)
-    return await coro(*args, **kwargs)
-
-
-async def attempt_add_reaction(msg: _discord.Message, reaction: _typing.Union[str, _discord.Emoji])\
-        -> _typing.Optional[_discord.Reaction]:
-    """
-    Try to add a reaction to a message, ignoring it if it fails for any reason.
-    :param msg: The message to add the reaction to.
-    :param reaction: The reaction emoji, could be a string or `discord.Emoji`
-    :return: A `discord.Reaction` or None, depending on if it failed or not.
-    """
-    try:
-        return await msg.add_reaction(reaction)
-    except _discord.HTTPException:
-        pass
