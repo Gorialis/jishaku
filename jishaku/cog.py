@@ -392,7 +392,7 @@ class Jishaku:
         """Reloads discord.py extensions."""
 
         formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
-                                                      (self.bot.load_extension, self.bot.unload_extension)), args))
+                                                      (self.bot.unload_extension, self.bot.load_extension)), args))
 
         await ctx.send(f"Attempted to reload {len(args)} extension(s).\n```diff\n{formatted}\n```")
 
