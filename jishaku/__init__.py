@@ -15,7 +15,7 @@ __title__ = 'jishaku'
 __author__ = 'Gorialis'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2017 Devon R'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 from . import cog

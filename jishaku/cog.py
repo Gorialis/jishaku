@@ -205,7 +205,7 @@ class Jishaku:
         :return: The message sent
         """
 
-        if result:
+        if result is not None:
             if isinstance(result, discord.File):
                 return await ctx.send(file=result)
 
@@ -213,9 +213,12 @@ class Jishaku:
                 # repr all non-strings
                 result = repr(result)
 
-            # if result is really long cut it down
             if len(result) > 1995:
+                # if result is really long cut it down
                 result = result[0:1995] + "..."
+            elif result.strip() == '':
+                # or if it's literally empty replace with a zwsp
+                result = '\u200b'
 
             return await ctx.send(result)
 
