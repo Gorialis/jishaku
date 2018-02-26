@@ -368,9 +368,9 @@ class Jishaku:
 
         exception = self.try_multiple(operations, extension_name)
         if exception:
-            return f"- \N{CROSS MARK} {extension_name}\n! {exception.__class__.__name__}: {exception!s:.75}"
+            return f"- {extension_name}\n! {exception.__class__.__name__}: {exception!s:.75}"
         else:
-            return f"+ \N{WHITE HEAVY CHECK MARK} {extension_name}"
+            return f"+ {extension_name}"
 
     @jsk.command(name="load")
     async def load_command(self, ctx: commands.Context, *args: str):
