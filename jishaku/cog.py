@@ -208,6 +208,9 @@ class Jishaku:
         if result is None:
             return
 
+        if inspect.isawaitable(result):
+            result = await result
+
         if isinstance(result, discord.File):
             return await ctx.send(file=result)
 
