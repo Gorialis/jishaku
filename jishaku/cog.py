@@ -205,22 +205,27 @@ class Jishaku:
         :return: The message sent
         """
 
-        if result is not None:
-            if isinstance(result, discord.File):
-                return await ctx.send(file=result)
+        if result is None:
+            return
 
-            if not isinstance(result, str):
-                # repr all non-strings
-                result = repr(result)
+        if isinstance(result, discord.File):
+            return await ctx.send(file=result)
 
-            if len(result) > 1995:
-                # if result is really long cut it down
-                result = result[0:1995] + "..."
-            elif result.strip() == '':
-                # or if it's literally empty replace with a zwsp
-                result = '\u200b'
+        if isinstance(result, discord.Embed):
+            return await ctx.send(embed=result)
 
-            return await ctx.send(result)
+        if not isinstance(result, str):
+            # repr all non-strings
+            result = repr(result)
+
+        if len(result) > 1995:
+            # if result is really long cut it down
+            result = result[0:1995] + "..."
+        elif result.strip() == '':
+            # or if it's literally empty replace with a zwsp
+            result = '\u200b'
+
+        return await ctx.send(result)
 
     @staticmethod
     async def pyw_callback(ctx: commands.Context, result) -> discord.Message:
