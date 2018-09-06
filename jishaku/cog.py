@@ -171,8 +171,6 @@ class Jishaku:
             code_object = compile(coro_format, '<repl-x session>', 'exec')
 
         # our code object is ready, let's actually execute it now
-        self.prepare_environment(ctx)
-
         exec(code_object, self.repl_global_scope, self.repl_local_scope)
 
         # Grab the coro we just defined
