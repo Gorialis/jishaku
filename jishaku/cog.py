@@ -53,7 +53,12 @@ class Jishaku:
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.init_time = time.monotonic()
-        self.repl_global_scope = {}
+        self.repl_global_scope = {
+            "_bot": self.bot,
+            "asyncio": asyncio,
+            "discord": discord,
+            "commands": discord.ext.commands,
+        }
         self.repl_local_scope = {}
 
     def do_later(self, delay: float, coro, *args, **kwargs):
@@ -110,14 +115,6 @@ class Jishaku:
 
         self.jsk.hidden = False
         await ctx.send("Showing self..")
-
-    def prepare_environment(self, ctx: commands.Context):
-        """Update the REPL scope with variables relating to the current ctx"""
-        self.repl_global_scope.update({
-            "_bot": ctx.bot,
-            "asyncio": asyncio,
-            "discord": discord
-        })
 
     @jsk.command(name="python", aliases=["py", "```py"])
     async def python_repl(self, ctx, *, code: str):
