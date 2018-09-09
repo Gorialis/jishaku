@@ -120,7 +120,8 @@ class Jishaku:
     async def python_repl(self, ctx, *, code: str):
         """Python REPL-like command
 
-        This evaluates or executes code passed into it, supporting async syntax.
+        This evaluates or 
+        utes code passed into it, supporting async syntax.
         Global variables include _ctx and _bot for interactions.
         """
 
@@ -170,11 +171,13 @@ class Jishaku:
             coro_format = utils.repl_coro(code)
             code_object = compile(coro_format, '<repl-x session>', 'exec')
 
+        # copy the dicts so that the exec doesn't modify them
+        global_scope, local_scope = self.repl_global_scope.copy(), self.repl_local_scope.copy()
         # our code object is ready, let's actually execute it now
-        exec(code_object, self.repl_global_scope, self.repl_local_scope)
+        exec(code_object, global_scope, local_scope)
 
         # Grab the coro we just defined
-        extracted_coro = self.repl_local_scope.get("__repl_coroutine")
+        extracted_coro = global_scope.get("__repl_coroutine")
 
         result = None
 
