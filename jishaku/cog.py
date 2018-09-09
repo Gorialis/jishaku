@@ -53,7 +53,12 @@ class Jishaku:
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.init_time = time.monotonic()
-        self.repl_global_scope = {}
+        self.repl_global_scope = {
+            "_bot": self.bot,
+            "asyncio": asyncio,
+            "discord": discord,
+            "commands": discord.ext.commands,
+        }
         self.repl_local_scope = {}
 
     def do_later(self, delay: float, coro, *args, **kwargs):
@@ -111,14 +116,6 @@ class Jishaku:
         self.jsk.hidden = False
         await ctx.send("Showing self..")
 
-    def prepare_environment(self, ctx: commands.Context):
-        """Update the REPL scope with variables relating to the current ctx"""
-        self.repl_global_scope.update({
-            "_bot": ctx.bot,
-            "asyncio": asyncio,
-            "discord": discord
-        })
-
     @jsk.command(name="python", aliases=["py", "```py"])
     async def python_repl(self, ctx, *, code: str):
         """Python REPL-like command
@@ -173,13 +170,13 @@ class Jishaku:
             coro_format = utils.repl_coro(code)
             code_object = compile(coro_format, '<repl-x session>', 'exec')
 
+        # copy the dicts so that the exec doesn't modify them
+        global_scope, local_scope = self.repl_global_scope.copy(), self.repl_local_scope.copy()
         # our code object is ready, let's actually execute it now
-        self.prepare_environment(ctx)
-
-        exec(code_object, self.repl_global_scope, self.repl_local_scope)
+        exec(code_object, global_scope, local_scope)
 
         # Grab the coro we just defined
-        extracted_coro = self.repl_local_scope.get("__repl_coroutine")
+        extracted_coro = global_scope.get("__repl_coroutine")
 
         result = None
 
