@@ -120,8 +120,7 @@ class Jishaku:
     async def python_repl(self, ctx, *, code: str):
         """Python REPL-like command
 
-        This evaluates or 
-        utes code passed into it, supporting async syntax.
+        This evaluates or executes code passed into it, supporting async syntax.
         Global variables include _ctx and _bot for interactions.
         """
 
