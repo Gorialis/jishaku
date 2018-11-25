@@ -1,419 +1,629 @@
 # -*- coding: utf-8 -*-
 
 """
-MIT License
+jishaku.cog
+~~~~~~~~~~~
 
-Copyright (c) 2017 Devon R
+The Jishaku debugging and diagnostics cog.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+:copyright: (c) 2018 Devon (Gorialis) R
+:license: MIT, see LICENSE for more details.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 """
 
-from . import utils
-
-import discord
-from discord.ext import commands
-
 import asyncio
-import functools
+import collections
+import contextlib
+import datetime
 import inspect
 import os
+import os.path
 import re
-import shlex
-import subprocess
-import sys
 import time
+import traceback
 import typing
 
+import discord
+import humanize
+from discord.ext import commands
 
-SEMICOLON_LOOKAROUND = re.compile("(?!\B[\"'][^\"']*);(?![^\"']*[\"']\B)")
+from jishaku.codeblocks import Codeblock, CodeblockConverter
+from jishaku.exception_handling import ReplResponseReactor
+from jishaku.models import copy_context_with
+from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginator
+from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
+from jishaku.shell import ShellReader
+from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
 
-HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in ('true', 't', 'yes', 'y', 'on', '1')
+__all__ = (
+    "Jishaku",
+    "setup"
+)
+
+HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in ("true", "t", "yes", "y", "on", "1")
 
 
-class Jishaku:
+CommandTask = collections.namedtuple("CommandTask", "index ctx task")
+
+
+class Jishaku:  # pylint: disable=too-many-public-methods
     """
-    Class that contains the Jishaku command, subcommands, and various context-sensitive utilities Jishaku uses.
+    The cog that includes Jishaku's Discord-facing default functionality.
     """
+
+    load_time = datetime.datetime.now()
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.init_time = time.monotonic()
-        self.repl_global_scope = {}
-        self.repl_local_scope = {}
+        self._scope = Scope()
+        self.retain = False
+        self.last_result = None
+        self.start_time = datetime.datetime.now()
+        self.tasks = collections.deque()
+        self.task_count: int = 0
 
-    def do_later(self, delay: float, coro, *args, **kwargs):
+    @property
+    def scope(self):
         """
-        Sync interface to return a task for do_after_sleep
-        Like loop.call_later, but for coroutines.
-        Useful to create cancellable deferred tasks.
+        Gets a scope for use in REPL.
 
-        :param delay: Time in seconds
-        :param coro: Coroutine to run
-        :param args: Arguments to pass to coroutine
-        :param kwargs: Keyword arguments to pass to coroutine
-        :return: Cancellable task for the coroutine
+        If retention is on, this is the internal stored scope,
+        otherwise it is always a new Scope.
         """
-        return self.bot.loop.create_task(utils.do_after_sleep(delay, coro, *args, **kwargs))
+
+        if self.retain:
+            return self._scope
+        return Scope()
+
+    @contextlib.contextmanager
+    def submit(self, ctx: commands.Context):
+        """
+        A context-manager that submits the current task to jishaku's task list
+        and removes it afterwards.
+
+        Arguments
+        ---------
+        ctx: commands.Context
+            A Context object used to derive information about this command task.
+        """
+
+        self.task_count += 1
+        cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
+        self.tasks.append(cmdtask)
+
+        try:
+            yield cmdtask
+        finally:
+            if cmdtask in self.tasks:
+                self.tasks.remove(cmdtask)
 
     @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU)
     @commands.is_owner()
-    async def jsk(self, ctx):
-        """Jishaku debug and diagnostic commands
+    async def jsk(self, ctx: commands.Context):
+        """
+        The Jishaku debug and diagnostic commands.
 
-        This command on its own does nothing, all functionality is in subcommands.
+        This command on its own gives a status brief.
+        All other functionality is within its subcommands.
         """
 
-        pass
-
-    @jsk.command(name="selftest", aliases=["self_test", "self-test"])
-    async def self_test(self, ctx):
-        """
-        Jishaku self-test
-
-        This tests that Jishaku and the bot are functioning correctly.
-        """
-
-        current_time = time.monotonic()
-        time_string = utils.humanize_relative_time(self.init_time - current_time)
-        await ctx.send(f"Jishaku running, init {time_string}.\n"
-                       f"This bot can see {len(self.bot.guilds)} guilds, {len(self.bot.users)} users.")
-
-    @jsk.command(name="hide")
-    async def hide_self(self, ctx):
-        """Hides the Jishaku command from help."""
-        if self.jsk.hidden:
-            return await ctx.send("Already hidden.")
-
-        self.jsk.hidden = True
-        await ctx.send("Hiding away..")
-
-    @jsk.command(name="show")
-    async def show_self(self, ctx):
-        """Shows the Jishaku command in help."""
-        if not self.jsk.hidden:
-            return await ctx.send("Already visible.")
-
-        self.jsk.hidden = False
-        await ctx.send("Showing self..")
-
-    def prepare_environment(self, ctx: commands.Context):
-        """Update the REPL scope with variables relating to the current ctx"""
-        self.repl_global_scope.update({
-            "_bot": ctx.bot,
-            "asyncio": asyncio,
-            "discord": discord
-        })
-
-    @jsk.command(name="python", aliases=["py", "```py"])
-    async def python_repl(self, ctx, *, code: str):
-        """Python REPL-like command
-
-        This evaluates or executes code passed into it, supporting async syntax.
-        Global variables include _ctx and _bot for interactions.
-        """
-
-        code = utils.cleanup_codeblock(code)
-
-        async with utils.ReplResponseReactor(ctx.message):
-            await self.repl_backend(ctx, code, self.py_callback)
-
-    @jsk.command(name="python_what", aliases=["py_what", "pyw"])
-    async def python_what(self, ctx, *, code: str):
-        """Returns info on the result of an evaluated expression
-
-        This evaluates the code passed into it and gives info on the result.
-        """
-        code = utils.cleanup_codeblock(code)
-
-        async with utils.ReplResponseReactor(ctx.message):
-            await self.repl_backend(ctx, code, self.pyw_callback)
-
-    async def repl_backend(self, ctx: commands.Context, code: str, callback):
-        """
-        Attempt to compile and execute code, yielding results to a callback.
-        :param ctx: Context for the repl environment and callback.
-        :param code: Code to try and execute
-        :param callback: Callback to send all results to.
-        :return: The final result, if there was one.
-        """
-
-        if "\n" not in code and not any(SEMICOLON_LOOKAROUND.findall(code)):
-            # if there are no line breaks and no semicolons try eval mode first
-            with_return = ' '.join(['return', code])
-
-            try:
-                # try to compile with 'return' in front first
-                # this lets you do eval-like expressions
-                coro_format = utils.repl_coro(with_return)
-                code_object = compile(coro_format, '<repl-v session>', 'exec')
-            except SyntaxError:
-                code_object = None
-        else:
-            code_object = None
-
-        # we set as None and check here because nesting looks worse and complicates the traceback
-        # if this code fails.
-
-        if code_object is None:
-            coro_format = utils.repl_coro(code)
-            code_object = compile(coro_format, '<repl-x session>', 'exec')
-
-        # our code object is ready, let's actually execute it now
-        self.prepare_environment(ctx)
-
-        exec(code_object, self.repl_global_scope, self.repl_local_scope)
-
-        # Grab the coro we just defined
-        extracted_coro = self.repl_local_scope.get("__repl_coroutine")
-
-        result = None
-
-        # Allow async generator definitions for multiple-result yielding
-        if inspect.isasyncgenfunction(extracted_coro):
-            # For every result we get back,
-            async for result in extracted_coro(ctx):
-                # send it to the callback.
-                await callback(ctx, result)
-        else:
-            # Not an async generator, so await with local scope args
-            result = await extracted_coro(ctx)
-            await callback(ctx, result)
-
-        return result
-
-    @staticmethod
-    async def py_callback(ctx: commands.Context, result) -> typing.Optional[discord.Message]:
-        """
-        Callback that converts the result into a chat-compatible format and sends it to the chat.
-        :param ctx: Context, passed by caller
-        :param result: The object to be converted
-        :return: The message sent
-        """
-
-        if result is None:
+        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk:
             return
 
-        if isinstance(result, discord.File):
-            return await ctx.send(file=result)
+        # This only runs when no subcommand has been invoked, so give a brief.
+        await ctx.send(inspect.cleandoc(f"""
+            Jishaku is active. ({len(self.bot.guilds)} guild(s), {len(self.bot.users)} user(s))
+            Module load time: {humanize.naturaltime(self.load_time)}
+            {'Using automatic sharding.' if isinstance(self.bot, discord.AutoShardedClient) else
+             'Using manual sharding.' if self.bot.shard_count else
+             'Not using sharding.'}
+            Average websocket latency: {round(self.bot.latency * 1000, 2)}ms
+        """))
 
-        if isinstance(result, discord.Embed):
-            return await ctx.send(embed=result)
-
-        if not isinstance(result, str):
-            # repr all non-strings
-            result = repr(result)
-
-        if len(result) > 1995:
-            # if result is really long cut it down
-            result = result[0:1995] + "..."
-        elif result.strip() == '':
-            # or if it's literally empty replace with a zwsp
-            result = '\u200b'
-
-        return await ctx.send(result)
-
-    @staticmethod
-    async def pyw_callback(ctx: commands.Context, result) -> discord.Message:
+    @jsk.command(name="hide")
+    async def jsk_hide(self, ctx: commands.Context):
         """
-        Callback that examines the result and sends information on it to the channel.
-        :param ctx: Context, passed by caller
-        :param result: The object to be examined
-        :return: The message sent
-        """
-        information = []
-
-        header = repr(result).replace('`', '\u200b`')
-        if len(header) > 485:
-            header = header[0:482] + '...'
-
-        information.append(('Type', type(result).__name__))
-        information.append(('Memory Location', hex(id(result))))
-
-        try:
-            information.append(('Module Name', inspect.getmodule(result).__name__))
-        except (TypeError, AttributeError):
-            pass
-
-        try:
-            file_loc = inspect.getfile(result)
-        except TypeError:
-            pass
-        else:
-            cwd = os.getcwd()
-            if file_loc.startswith(cwd):
-                file_loc = "." + file_loc[len(cwd):]
-            information.append(('File Location', file_loc))
-
-        try:
-            source_lines, source_offset = inspect.getsourcelines(result)
-        except TypeError:
-            pass
-        else:
-            information.append(('Line Span', f'{source_offset}-{source_offset+len(source_lines)}'))
-
-        try:
-            signature = inspect.signature(result)
-        except (TypeError, AttributeError, ValueError):
-            pass
-        else:
-            information.append(('Signature', str(signature)))
-
-        if inspect.isclass(result):
-            try:
-                information.append(('Class MRO', ', '.join([x.__name__ for x in inspect.getmro(result)])))
-            except (TypeError, AttributeError):
-                pass
-
-        if isinstance(result, (str, tuple, list, bytes)):
-            information.append(('Length', len(result)))
-
-        information_flatten = "\n".join(f"{x:16.16} :: {y}" for x, y in information)
-        summary = f"```prolog\n== {header} ==\n\n{information_flatten}\n```"
-
-        return await ctx.send(summary)
-
-    @staticmethod
-    def sh_backend(code):
-        """Open a subprocess, wait for it and format the output"""
-        if sys.platform == "win32":
-            sequence = shlex.split(code)
-        else:
-            sequence = ["/bin/bash", "-c", code]
-        with subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
-            out, err = map(utils.clean_sh_content, process.communicate(timeout=30))
-
-        # if this includes some stderr as well as stdout
-        if err:
-            out = out or '\u200b'
-            total_length = len(out) + len(err)
-
-            # if the whole thing won't fit in a message
-            if total_length > 1968:
-                # scale stdout and stderr to their proportions within a message
-                out_resize_len = len(out) * (1960 / total_length)
-                err_resize_len = len(err) * (1960 / total_length)
-
-                # add ellipses to show these have been truncated
-                # we show the last x amount of characters since they're usually the most important
-                out = "...\n" + out[int(-out_resize_len):].strip()
-                err = "...\n" + err[int(-err_resize_len):].strip()
-
-            # format into codeblocks
-            return f"```prolog\n{out}\n```\n```prolog\n{err}\n```"
-        else:
-            # if the stdout won't fit in a message
-            if len(out) > 1980:
-                out = "...\n" + out[-1980:].strip()
-            # format into a single codeblock
-            return f"```prolog\n{out}\n```"
-
-    @jsk.command(name="sh", aliases=["```sh"])
-    async def sh_command(self, ctx: commands.Context, *, code: str):
-        """Use the shell to run other CLI programs
-
-        This supports invoking programs, but not other shell syntax.
+        Hides Jishaku from the help command.
         """
 
-        code = utils.cleanup_codeblock(code)
+        if self.jsk.hidden:
+            return await ctx.send("Jishaku is already hidden.")
 
-        async with utils.ReplResponseReactor(ctx.message) as handler:
-            result = await self.bot.loop.run_in_executor(None, self.sh_backend, code)
+        self.jsk.hidden = True
+        await ctx.send("Jishaku is now hidden.")
 
-        if not handler.raised:
-            # nothing went wrong
+    @jsk.command(name="show")
+    async def jsk_show(self, ctx: commands.Context):
+        """
+        Shows Jishaku in the help command.
+        """
 
-            # send the result of the command
-            await ctx.send(result)
+        if not self.jsk.hidden:
+            return await ctx.send("Jishaku is already visible.")
+
+        self.jsk.hidden = False
+        await ctx.send("Jishaku is now visible.")
+
+    __cat_line_regex = re.compile(r"(?:\.\/+)?(.+?)(?:#L?(\d+)(?:\-L?(\d+))?)?$")
+
+    @jsk.command(name="cat")
+    async def jsk_cat(self, ctx: commands.Context, argument: str):
+        """
+        Read out a file, using syntax highlighting if detected.
+
+        Lines and linespans are supported by adding '#L12' or '#L12-14' etc to the end of the filename.
+        """
+
+        match = self.__cat_line_regex.search(argument)
+
+        if not match:  # should never happen
+            return await ctx.send("Couldn't parse this input.")
+
+        path = match.group(1)
+
+        line_span = None
+
+        if match.group(2):
+            start = int(match.group(2))
+            line_span = (start, int(match.group(3) or start))
+
+        if not os.path.exists(path) or os.path.isdir(path):
+            return await ctx.send(f"`{path}`: No file by that name.")
+
+        size = os.path.getsize(path)
+
+        if size <= 0:
+            return await ctx.send(f"`{path}`: Cowardly refusing to read a file with no size stat"
+                                  f" (it may be empty, endless or inaccessible).")
+
+        if size > 50 * (1024 ** 2):
+            return await ctx.send(f"`{path}`: Cowardly refusing to read a file >50MB.")
+
+        try:
+            with open(path, "rb") as file:
+                paginator = FilePaginator(file, line_span=line_span, max_size=1985)
+        except UnicodeDecodeError:
+            return await ctx.send(f"`{path}`: Couldn't determine the encoding of this file.")
+        except ValueError as exc:
+            return await ctx.send(f"`{path}`: Couldn't read this file, {exc}")
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        await interface.send_to(ctx)
+
+    @jsk.command(name="tasks")
+    async def jsk_tasks(self, ctx: commands.Context):
+        """
+        Shows the currently running jishaku tasks.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No currently running tasks.")
+
+        paginator = commands.Paginator(max_size=1985)
+
+        for task in self.tasks:
+            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                               f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        await interface.send_to(ctx)
+
+    @jsk.command(name="cancel")
+    async def jsk_cancel(self, ctx: commands.Context, *, index: int):
+        """
+        Cancels a task with the given index.
+
+        If the index passed is -1, will cancel the last task instead.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No tasks to cancel.")
+
+        if index == -1:
+            task = self.tasks.pop()
+        else:
+            task = discord.utils.get(self.tasks, index=index)
+            if task:
+                self.tasks.remove(task)
+            else:
+                return await ctx.send("Unknown task.")
+
+        task.task.cancel()
+        return await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
+                              f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+
+    @jsk.command(name="retain")
+    async def jsk_retain(self, ctx: commands.Context, *, toggle: bool):
+        """
+        Turn variable retention for REPL on or off.
+        """
+
+        if toggle:
+            if self.retain:
+                return await ctx.send("Variable retention is already set to ON.")
+
+            self.retain = True
+            self._scope = Scope()
+            return await ctx.send("Variable retention is ON. Future REPL sessions will retain their scope.")
+
+        if not self.retain:
+            return await ctx.send("Variable retention is already set to OFF.")
+
+        self.retain = False
+        return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
+
+    @jsk.command(name="py", aliases=["python"])
+    async def jsk_python(self, ctx: commands.Context, *, argument: CodeblockConverter):
+        """
+        Direct evaluation of Python code.
+        """
+
+        arg_dict = get_var_dict_from_ctx(ctx)
+
+        scope = self.scope
+
+        scope.clean()
+        arg_dict["_"] = self.last_result
+
+        async with ReplResponseReactor(ctx.message):
+            with self.submit(ctx):
+                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                    if result is None:
+                        continue
+
+                    self.last_result = result
+
+                    if isinstance(result, discord.File):
+                        await ctx.send(file=result)
+                    elif isinstance(result, discord.Embed):
+                        await ctx.send(embed=result)
+                    else:
+                        if not isinstance(result, str):
+                            # repr all non-strings
+                            result = repr(result)
+
+                        if len(result) > 2000:
+                            result = result[0:1997] + "..."
+                        elif result.strip() == '':
+                            result = "\u200b"
+
+                        await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+
+        scope.clean()
+
+    @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
+    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
+        """
+        Evaluation of Python code with inspect information.
+        """
+
+        arg_dict = get_var_dict_from_ctx(ctx)
+
+        scope = self.scope
+
+        scope.clean()
+        arg_dict["_"] = self.last_result
+
+        async with ReplResponseReactor(ctx.message):
+            with self.submit(ctx):
+                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                    self.last_result = result
+
+                    header = repr(result).replace("`", "\u200b`").replace(self.bot.http.token, "[token omitted]")
+
+                    if len(header) > 485:
+                        header = header[0:482] + "..."
+
+                    paginator = WrappedPaginator(prefix=f"```prolog\n=== {header} ===\n", max_size=1985)
+
+                    for name, res in all_inspections(result):
+                        paginator.add_line(f"{name:16.16} :: {res}")
+
+                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                    await interface.send_to(ctx)
+
+        scope.clean()
+
+    @jsk.command(name="shell", aliases=["sh"])
+    async def jsk_shell(self, ctx: commands.Context, *, argument: CodeblockConverter):
+        """
+        Executes statements in the system shell.
+
+        This uses the bash shell. Execution can be cancelled by closing the paginator.
+        """
+
+        async with ReplResponseReactor(ctx.message):
+            with self.submit(ctx):
+                paginator = WrappedPaginator(prefix="```sh", max_size=1985)
+                paginator.add_line(f"$ {argument.content}\n")
+
+                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                self.bot.loop.create_task(interface.send_to(ctx))
+
+                with ShellReader(argument.content) as reader:
+                    async for line in reader:
+                        if interface.closed:
+                            return
+                        await interface.add_line(line)
+
+                await interface.add_line(f"\n[status] Return code {reader.close_code}")
 
     @jsk.command(name="git")
-    async def git_command(self, ctx: commands.Context, *, code: str):
-        """Uses sh to make calls to git
-
-        Equivalent to 'sh git <code>'.
+    async def jsk_git(self, ctx: commands.Context, *, argument: CodeblockConverter):
         """
-        await ctx.invoke(self.sh_command, code=' '.join(['git', code]))
-
-    @staticmethod
-    def try_multiple(operations, *args, **kwargs) -> typing.Optional[Exception]:
-        """
-        Does multiple operations on a set of arguments, returning an exception if there was one.
-        :param operations: Iterable of operations to perform
-        :param args: Arguments to pass to each operation
-        :param kwargs: Keyword arguments to pass to each operation
-        :return: The exception object, if there was one.
-        """
-        try:
-            for operation in operations:
-                operation(*args, **kwargs)
-        except Exception as exc:
-            return exc
-
-    def format_extension_management(self, operations, extension_name) -> str:
-        """
-        Does operations with an extension name, returning a difflist entry based on whether it succeeded.
-        :param operations: Operations to perform (load_command, etc)
-        :param extension_name: The extension name
-        :return: Diff list entry
+        Shortcut for 'jsk sh git'. Invokes the system shell.
         """
 
-        exception = self.try_multiple(operations, extension_name)
-        if exception:
-            return f"- \N{CROSS MARK} {extension_name}\n! {exception.__class__.__name__}: {exception!s:.75}"
-        else:
-            return f"+ \N{WHITE HEAVY CHECK MARK} {extension_name}"
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
 
-    @jsk.command(name="load")
-    async def load_command(self, ctx: commands.Context, *args: str):
-        """Loads discord.py extensions."""
+    @jsk.command(name="load", aliases=["reload"])
+    async def jsk_load(self, ctx: commands.Context, *extensions):
+        """
+        Loads or reloads the given extension names.
 
-        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
-                                                      (self.bot.load_extension,)), args))
+        Reports any extensions that failed to load.
+        """
 
-        await ctx.send(f"Attempted to load {len(args)} extension(s).\n```diff\n{formatted}\n```")
+        paginator = commands.Paginator(prefix='', suffix='')
+
+        for extension in extensions:
+            load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
+                        if extension in self.bot.extensions else "\N{INBOX TRAY}"
+            try:
+                self.bot.unload_extension(extension)
+                self.bot.load_extension(extension)
+            except Exception as exc:  # pylint: disable=broad-except
+                traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+
+                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+            else:
+                paginator.add_line(f"{load_icon} `{extension}`", empty=True)
+
+        for page in paginator.pages:
+            await ctx.send(page)
 
     @jsk.command(name="unload")
-    async def unload_command(self, ctx: commands.Context, *args: str):
-        """Unloads discord.py extensions."""
+    async def jsk_unload(self, ctx: commands.Context, *extensions):
+        """
+        Unloads the given extension names.
 
-        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
-                                                      (self.bot.unload_extension,)), args))
+        Reports any extensions that failed to unload.
+        """
 
-        await ctx.send(f"Attempted to unload {len(args)} extension(s).\n```diff\n{formatted}\n```")
+        paginator = commands.Paginator(prefix='', suffix='')
 
-    @jsk.command(name="reload")
-    async def reload_command(self, ctx: commands.Context, *args: str):
-        """Reloads discord.py extensions."""
+        for extension in extensions:
+            try:
+                self.bot.unload_extension(extension)
+            except Exception as exc:  # pylint: disable=broad-except
+                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
-        formatted = '\n\n'.join(map(functools.partial(self.format_extension_management,
-                                                      (self.bot.unload_extension, self.bot.load_extension)), args))
+                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+            else:
+                paginator.add_line(f"\N{OUTBOX TRAY} `{extension}`", empty=True)
 
-        await ctx.send(f"Attempted to reload {len(args)} extension(s).\n```diff\n{formatted}\n```")
+        for page in paginator.pages:
+            await ctx.send(page)
 
-    @jsk.command(name="selfreload", aliases=["self_reload", "self-reload"])
-    async def self_reload_command(self, ctx: commands.Context):
-        """Attempts to fully reload jishaku."""
-        needs_reload = ["jishaku.utils.sync_utils", "jishaku.utils.async_utils", "jishaku.utils.class_utils",
-                        "jishaku.utils", "jishaku.cog", "jishaku"]
+    @jsk.group(name="voice", aliases=["vc"])
+    @commands.check(vc_check)
+    async def jsk_voice(self, ctx: commands.Context):
+        """
+        Voice-related commands.
 
-        setcode = "\n".join(["import importlib", *[f"import {x}\nimportlib.reload({x})" for x in needs_reload]])
-        exec(setcode, {}, {})
+        If invoked without subcommand, relays current voice state.
+        """
 
-        self.bot.unload_extension("jishaku")
-        self.bot.load_extension("jishaku")
+        # if using a subcommand, short out
+        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk_voice:
+            return
 
-        await ctx.send("Reload OK")
+        # give info about the current voice client if there is one
+        voice = ctx.guild.voice_client
+
+        if not voice or not voice.is_connected():
+            return await ctx.send("Not connected.")
+
+        await ctx.send(f"Connected to {voice.channel.name}, "
+                       f"{'paused' if voice.is_paused() else 'playing' if voice.is_playing() else 'idle'}.")
+
+    @jsk_voice.command(name="join", aliases=["connect"])
+    async def jsk_vc_join(self, ctx: commands.Context, *,
+                          destination: typing.Union[discord.VoiceChannel, discord.Member] = None):
+        """
+        Joins a voice channel, or moves to it if already connected.
+
+        Passing a voice channel uses that voice channel.
+        Passing a member will use that member's current voice channel.
+        Passing nothing will use the author's voice channel.
+        """
+
+        destination = destination or ctx.author
+
+        if isinstance(destination, discord.Member):
+            if destination.voice and destination.voice.channel:
+                destination = destination.voice.channel
+            else:
+                return await ctx.send("Member has no voice channel.")
+
+        voice = ctx.guild.voice_client
+
+        if voice:
+            await voice.move_to(destination)
+        else:
+            await destination.connect(reconnect=True)
+
+        await ctx.send(f"Connected to {destination.name}.")
+
+    @jsk_voice.command(name="disconnect", aliases=["dc"])
+    @commands.check(connected_check)
+    async def jsk_vc_disconnect(self, ctx: commands.Context):
+        """
+        Disconnects from the voice channel in this guild, if there is one.
+        """
+
+        voice = ctx.guild.voice_client
+
+        await voice.disconnect()
+        await ctx.send(f"Disconnected from {voice.channel.name}.")
+
+    @jsk_voice.command(name="stop")
+    @commands.check(playing_check)
+    async def jsk_vc_stop(self, ctx: commands.Context):
+        """
+        Stops running an audio source, if there is one.
+        """
+
+        voice = ctx.guild.voice_client
+
+        voice.stop()
+        await ctx.send(f"Stopped playing audio in {voice.channel.name}.")
+
+    @jsk_voice.command(name="pause")
+    @commands.check(playing_check)
+    async def jsk_vc_pause(self, ctx: commands.Context):
+        """
+        Pauses a running audio source, if there is one.
+        """
+
+        voice = ctx.guild.voice_client
+
+        if voice.is_paused():
+            return await ctx.send("Audio is already paused.")
+
+        voice.pause()
+        await ctx.send(f"Paused audio in {voice.channel.name}.")
+
+    @jsk_voice.command(name="resume")
+    @commands.check(playing_check)
+    async def jsk_vc_resume(self, ctx: commands.Context):
+        """
+        Resumes a running audio source, if there is one.
+        """
+
+        voice = ctx.guild.voice_client
+
+        if not voice.is_paused():
+            return await ctx.send("Audio is not paused.")
+
+        voice.resume()
+        await ctx.send(f"Resumed audio in {voice.channel.name}.")
+
+    @jsk_voice.command(name="volume")
+    @commands.check(playing_check)
+    async def jsk_vc_volume(self, ctx: commands.Context, *, percentage: float):
+        """
+        Adjusts the volume of an audio source if it is supported.
+        """
+
+        volume = max(0.0, min(1.0, percentage / 100))
+
+        source = ctx.guild.voice_client.source
+
+        if not isinstance(source, discord.PCMVolumeTransformer):
+            return await ctx.send("This source doesn't support adjusting volume or "
+                                  "the interface to do so is not exposed.")
+
+        source.volume = volume
+
+        await ctx.send(f"Volume set to {volume * 100:.2f}%")
+
+    @jsk_voice.command(name="play", aliases=["play_local"])
+    @commands.check(connected_check)
+    async def jsk_vc_play(self, ctx: commands.Context, *, uri: str):
+        """
+        Plays audio direct from a URI.
+
+        Can be either a local file or an audio resource on the internet.
+        """
+
+        voice = ctx.guild.voice_client
+
+        if voice.is_playing():
+            voice.stop()
+
+        # remove embed maskers if present
+        uri = uri.lstrip("<").rstrip(">")
+
+        voice.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(uri)))
+        await ctx.send(f"Playing in {voice.channel.name}.")
+
+    @jsk_voice.command(name="youtube_dl", aliases=["youtubedl", "ytdl", "yt"])
+    @commands.check(connected_check)
+    async def jsk_vc_youtube_dl(self, ctx: commands.Context, *, url: str):
+        """
+        Plays audio from youtube_dl-compatible sources.
+        """
+
+        if not youtube_dl:
+            return await ctx.send("youtube_dl is not installed.")
+
+        voice = ctx.guild.voice_client
+
+        if voice.is_playing():
+            voice.stop()
+
+        # remove embed maskers if present
+        url = url.lstrip("<").rstrip(">")
+
+        voice.play(discord.PCMVolumeTransformer(BasicYouTubeDLSource(url)))
+        await ctx.send(f"Playing in {voice.channel.name}.")
+
+    @jsk.command(name="su")
+    async def jsk_su(self, ctx: commands.Context, member: typing.Union[discord.Member, discord.User],
+                     *, command_string: str):
+        """
+        Run a command as someone else.
+
+        This will try to resolve to a Member, but will use a User if it can't find one.
+        """
+
+        alt_ctx = await copy_context_with(ctx, author=member, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @jsk.command(name="sudo")
+    async def jsk_sudo(self, ctx: commands.Context, *, command_string: str):
+        """
+        Run a command bypassing all checks and cooldowns.
+
+        This also bypasses permission checks so this has a high possibility of making a command raise.
+        """
+
+        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.reinvoke(alt_ctx)
+
+    @jsk.command(name="debug", aliases=["dbg"])
+    async def jsk_debug(self, ctx: commands.Context, *, command_string: str):
+        """
+        Run a command timing execution and catching exceptions.
+        """
+
+        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        start = time.perf_counter()
+
+        async with ReplResponseReactor(ctx.message):
+            with self.submit(ctx):
+                await alt_ctx.command.invoke(alt_ctx)
+
+        end = time.perf_counter()
+        return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
+
+
+def setup(bot: commands.Bot):
+    """
+    Adds the Jishaku cog to the bot.
+    """
+
+    bot.add_cog(Jishaku(bot=bot))

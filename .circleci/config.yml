@@ -6,14 +6,7 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
-      
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
+      - image: circleci/python:3.6-stretch
 
     working_directory: ~/repo
 
@@ -23,7 +16,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "install_requires.txt" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
@@ -32,20 +25,22 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install -U pytest
-            pip install -r install_requires.txt
-            pip install -U .
+            pip install -U coverage flake8 isort pylint pytest pytest-cov
+            pip install -U -r install_requires.txt
 
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "install_requires.txt" }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
         
-      # run tests!
+      # run tests
       - run:
           name: run tests
           command: |
             . venv/bin/activate
+            PYTHONPATH=$PYTHONPATH:$(pwd) pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            pip install -U .
+            rm -rf jishaku
             pytest -vs
 
       - store_artifacts:

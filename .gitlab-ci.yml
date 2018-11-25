@@ -1,0 +1,99 @@
+
+stages:
+  - build
+
+alpine 3.7:
+  stage: build
+  image: gorialis/discord.py:3.7-alpine-rewrite
+  before_script:
+    - pip install -U coverage flake8 isort pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
+    - pip install -r install_requires.txt
+  script:
+    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+    - flake8 .
+    - pylint -j "$(nproc)" jishaku
+    - isort . --check-only --recursive
+    - python ./setup.py bdist_wheel
+    - pip install dist/$(ls dist)
+    - rm -rf jishaku
+    - pytest -vs
+    - cd docs && make html
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+stretch 3.7:
+  stage: build
+  image: gorialis/discord.py:3.7-stretch-rewrite
+  before_script:
+    - pip install -U coverage flake8 isort pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
+    - pip install -r install_requires.txt
+  script:
+    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+    - flake8 .
+    - pylint -j "$(nproc)" jishaku
+    - isort . --check-only --recursive
+    - python ./setup.py bdist_wheel
+    - pip install dist/$(ls dist)
+    - rm -rf jishaku
+    - pytest -vs
+    - cd docs && make html
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+alpine 3.6:
+  stage: build
+  image: gorialis/discord.py:3.6-alpine-rewrite
+  before_script:
+    - pip install -U coverage flake8 isort pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
+    - pip install -r install_requires.txt
+  script:
+    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+    - flake8 .
+    - pylint -j "$(nproc)" jishaku
+    - isort . --check-only --recursive
+    - python ./setup.py bdist_wheel
+    - pip install dist/$(ls dist)
+    - rm -rf jishaku
+    - pytest -vs
+    - cd docs && make html
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+stretch 3.6:
+  stage: build
+  image: gorialis/discord.py:3.6-stretch-rewrite
+  before_script:
+    - pip install -U coverage flake8 isort pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
+    - pip install -r install_requires.txt
+  script:
+    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+    - flake8 .
+    - pylint -j "$(nproc)" jishaku
+    - isort . --check-only --recursive
+    - python ./setup.py bdist_wheel
+    - pip install dist/$(ls dist)
+    - rm -rf jishaku
+    - pytest -vs
+    - cd docs && make html
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always

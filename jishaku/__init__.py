@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 
 """
-Jishaku
+jishaku
 ~~~~~~~
 
-A debugging, testing and experimentation cog for Discord bots.
+A discord.py extension including useful tools for bot development and debugging.
 
-:copyright: (c) 2017 Devon R
+:copyright: (c) 2018 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """
 
-__title__ = 'jishaku'
 __author__ = 'Gorialis'
+__copyright__ = 'Copyright 2018 Devon (Gorialis) R'
+__docformat__ = 'restructuredtext en'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2017 Devon R'
-__version__ = '0.1.2'
+__title__ = 'jishaku'
+__version__ = '1.0.1'
 
+# pylint: disable=wildcard-import
+from jishaku.cog import *  # noqa: F401
 
-from . import cog
-
-
-def setup(bot):
-    """
-    Loads the cog into a bot, if the module was used as an extension.
-    """
-    bot.add_cog(cog.Jishaku(bot))
+__all__ = (
+    'Jishaku',
+    'setup'
+)

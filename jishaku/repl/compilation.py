@@ -1,0 +1,150 @@
+# -*- coding: utf-8 -*-
+
+"""
+jishaku.repl.compilation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Constants, functions and classes related to classifying, compiling and executing Python code.
+
+:copyright: (c) 2018 Devon (Gorialis) R
+:license: MIT, see LICENSE for more details.
+
+"""
+
+import ast
+import asyncio
+import inspect
+import textwrap
+
+from .scope import Scope
+
+CORO_CODE = """
+async def __repl_coroutine({0}):
+    import asyncio
+
+    import aiohttp
+    import discord
+    from discord.ext import commands
+
+    import jishaku
+
+    try:
+{1}
+    finally:
+        __async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
+        if __async_executor:
+            __async_executor.scope.globals.update(locals())
+"""
+
+
+def get_wrapped_code(code: str, args: str = ''):
+    """
+    Wraps code into an async function body for REPL.
+    """
+
+    return CORO_CODE.format(args, textwrap.indent(code, ' ' * 8))
+
+
+def maybe_add_return(code: str, args: str = '') -> ast.Module:
+    """
+    Compiles Python code into an async function or generator,
+    and automatically adds return if the function body is a single evaluation.
+    """
+
+    mod = ast.parse(get_wrapped_code(code, args=args))
+    ast.increment_lineno(mod, -11)  # bring line numbers back in sync with repl
+
+    definition = mod.body[-1]  # async def ...:
+    assert isinstance(definition, ast.AsyncFunctionDef)
+
+    try_block = definition.body[-1]  # try:
+    assert isinstance(try_block, ast.Try)
+
+    is_asyncgen = any(isinstance(node, ast.Yield) for node in ast.walk(try_block))
+
+    last_expr = try_block.body[-1]
+
+    # if the last part isn't an expression, ignore it
+    if not isinstance(last_expr, ast.Expr):
+        return mod
+
+    # if the last expression is not a yield
+    if not isinstance(last_expr.value, ast.Yield):
+        # copy the expression into a return/yield
+        if is_asyncgen:
+            # copy the value of the expression into a yield
+            yield_stmt = ast.Yield(last_expr.value)
+            ast.copy_location(yield_stmt, last_expr)
+            # place the yield into its own expression
+            yield_expr = ast.Expr(yield_stmt)
+            ast.copy_location(yield_expr, last_expr)
+
+            # place the yield where the original expression was
+            try_block.body[-1] = yield_expr
+        else:
+            # copy the expression into a return
+            return_stmt = ast.Return(last_expr.value)
+            ast.copy_location(return_stmt, last_expr)
+
+            # place the return where the original expression was
+            try_block.body[-1] = return_stmt
+
+    return mod
+
+
+class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
+    """
+    Executes/evaluates Python code inside of an async function or generator.
+
+    Example
+    -------
+
+    .. code:: python3
+
+        total = 0
+
+        # prints 1, 2 and 3
+        async for x in AsyncCodeExecutor('yield 1; yield 2; yield 3'):
+            total += x
+            print(x)
+
+        # prints 6
+        print(total)
+    """
+
+    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope')
+
+    def __init__(self, code: str, scope: Scope = None, arg_dict: dict = None, loop: asyncio.BaseEventLoop = None):
+        self.args = []
+        self.arg_names = []
+
+        if arg_dict:
+            for key, value in arg_dict.items():
+                self.arg_names.append(key)
+                self.args.append(value)
+
+        self.code = maybe_add_return(code, args=', '.join(self.arg_names))
+        self.scope = scope or Scope()
+        self.loop = loop or asyncio.get_event_loop()
+
+    def __aiter__(self):
+        exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
+        func_def = self.scope.locals.get('__repl_coroutine') or self.scope.globals['__repl_coroutine']
+
+        return self.traverse(func_def)
+
+    async def traverse(self, func):
+        """
+        Traverses an async function or generator, yielding each result.
+
+        This function is private. The class should be used as an iterator instead of using this method.
+        """
+
+        # this allows the reference to be stolen
+        async_executor = self
+
+        if inspect.isasyncgenfunction(func):
+            async for result in func(*async_executor.args):
+                yield result
+        else:
+            yield await func(*async_executor.args)
