@@ -19,7 +19,7 @@ import textwrap
 from .scope import Scope
 
 CORO_CODE = """
-async def __repl_coroutine({0}):
+async def _repl_coroutine({0}):
     import asyncio
 
     import aiohttp
@@ -31,9 +31,9 @@ async def __repl_coroutine({0}):
     try:
 {1}
     finally:
-        __async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
-        if __async_executor:
-            __async_executor.scope.globals.update(locals())
+        _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
+        if _async_executor:
+            _async_executor.scope.globals.update(locals())
 """
 
 
@@ -129,7 +129,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
     def __aiter__(self):
         exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
-        func_def = self.scope.locals.get('__repl_coroutine') or self.scope.globals['__repl_coroutine']
+        func_def = self.scope.locals.get('_repl_coroutine') or self.scope.globals['_repl_coroutine']
 
         return self.traverse(func_def)
 

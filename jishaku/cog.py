@@ -289,8 +289,6 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
                         await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
 
-        scope.clean()
-
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
         """
@@ -321,8 +319,6 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
                     interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                     await interface.send_to(ctx)
-
-        scope.clean()
 
     @jsk.command(name="shell", aliases=["sh"])
     async def jsk_shell(self, ctx: commands.Context, *, argument: CodeblockConverter):

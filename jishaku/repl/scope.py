@@ -49,11 +49,11 @@ class Scope:
         """
 
         for key in tuple(self.globals.keys()):
-            if key.startswith('_'):
+            if key.startswith('_') and not key.startswith('__'):
                 del self.globals[key]
 
         for key in tuple(self.locals.keys()):
-            if key.startswith('_'):
+            if key.startswith('_') and not key.startswith('__'):
                 del self.locals[key]
 
         return self
