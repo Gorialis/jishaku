@@ -287,6 +287,8 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                             #  but don't if they're not. probably not that bad, but noting for later review
                             paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
 
+                            paginator.add_line(result)
+
                             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                             await interface.send_to(ctx)
                         else:
