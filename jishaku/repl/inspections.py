@@ -110,7 +110,11 @@ def subclass_inspection(obj):
     if not hasattr(obj, "__subclasses__"):
         return
 
-    subclasses = obj.__subclasses__()
+    if isinstance(obj, type):
+        subclasses = type.__subclasses__(obj)
+    else:
+        subclasses = obj.__subclasses__()
+
     output = ', '.join(class_name(x) for x in subclasses[0:5])
 
     if len(subclasses) > 5:
