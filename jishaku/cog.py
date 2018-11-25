@@ -283,11 +283,17 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                             result = repr(result)
 
                         if len(result) > 2000:
-                            result = result[0:1997] + "..."
-                        elif result.strip() == '':
-                            result = "\u200b"
+                            # inconsistency here, results get wrapped in codeblocks when they are too large
+                            #  but don't if they're not. probably not that bad, but noting for later review
+                            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
 
-                        await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                            await interface.send_to(ctx)
+                        else:
+                            if result.strip() == '':
+                                result = "\u200b"
+
+                            await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
 
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):

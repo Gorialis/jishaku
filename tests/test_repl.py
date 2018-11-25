@@ -10,6 +10,7 @@ jishaku.repl internal test
 """
 
 import asyncio
+import inspect
 import random
 import unittest
 
@@ -138,3 +139,19 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         self.assertIn('e', scope.locals)
         self.assertNotIn('e', scope2.locals)
+
+        scope.clean()
+
+        codeblock = inspect.cleandoc("""
+        def ensure_builtins():
+            return ValueError
+        """)
+
+        async for result in AsyncCodeExecutor(codeblock, scope):
+            pass
+
+        scope.clean()
+
+        self.assertIn('ensure_builtins', scope.globals)
+        self.assertTrue(callable(scope.globals['ensure_builtins']))
+        self.assertEqual(scope.globals['ensure_builtins'](), ValueError)
