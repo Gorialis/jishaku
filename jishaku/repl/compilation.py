@@ -16,11 +16,14 @@ import asyncio
 import inspect
 import textwrap
 
+import import_expression
+
 from .scope import Scope
 
 CORO_CODE = """
-async def _repl_coroutine({0}):
+async def _repl_coroutine({{0}}):
     import asyncio
+    from importlib import import_module as {0}
 
     import aiohttp
     import discord
@@ -29,12 +32,12 @@ async def _repl_coroutine({0}):
     import jishaku
 
     try:
-{1}
+{{1}}
     finally:
         _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
         if _async_executor:
             _async_executor.scope.globals.update(locals())
-"""
+""".format(import_expression.constants.IMPORTER)
 
 
 def get_wrapped_code(code: str, args: str = ''):
@@ -49,10 +52,11 @@ def maybe_add_return(code: str, args: str = '') -> ast.Module:
     """
     Compiles Python code into an async function or generator,
     and automatically adds return if the function body is a single evaluation.
+    Also adds inline import expression support.
     """
 
-    mod = ast.parse(get_wrapped_code(code, args=args))
-    ast.increment_lineno(mod, -11)  # bring line numbers back in sync with repl
+    mod = import_expression.parse(get_wrapped_code(code, args=args), mode='exec')
+    ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
