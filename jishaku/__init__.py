@@ -11,15 +11,9 @@ A discord.py extension including useful tools for bot development and debugging.
 
 """
 
-__author__ = 'Gorialis'
-__copyright__ = 'Copyright 2018 Devon (Gorialis) R'
-__docformat__ = 'restructuredtext en'
-__license__ = 'MIT'
-__title__ = 'jishaku'
-__version__ = '1.1.1'
-
 # pylint: disable=wildcard-import
 from jishaku.cog import *  # noqa: F401
+from jishaku.meta import *  # noqa: F401
 
 __all__ = (
     'Jishaku',

@@ -29,6 +29,7 @@ from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor
+from jishaku.meta import __version__
 from jishaku.models import copy_context_with
 from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
@@ -112,7 +113,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         # This only runs when no subcommand has been invoked, so give a brief.
         await ctx.send(inspect.cleandoc(f"""
-            Jishaku is active. ({len(self.bot.guilds)} guild(s), {len(self.bot.users)} user(s))
+            Jishaku v{__version__} is active. ({len(self.bot.guilds)} guild(s), {len(self.bot.users)} user(s))
             Module load time: {humanize.naturaltime(self.load_time)}
             {'Using automatic sharding.' if isinstance(self.bot, discord.AutoShardedClient) else
              'Using manual sharding.' if self.bot.shard_count else
@@ -315,7 +316,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                 async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
                     self.last_result = result
 
-                    header = repr(result).replace("`", "\u200b`").replace(self.bot.http.token, "[token omitted]")
+                    header = repr(result).replace("``", "`\u200b`").replace(self.bot.http.token, "[token omitted]")
 
                     if len(header) > 485:
                         header = header[0:482] + "..."
@@ -623,6 +624,15 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         end = time.perf_counter()
         return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
+
+    @jsk.command(name="shutdown", aliases=["logout"])
+    async def jsk_shutdown(self, ctx: commands.Context):
+        """
+        Logs this bot out.
+        """
+
+        await ctx.send("Logging out now..")
+        await ctx.bot.logout()
 
 
 def setup(bot: commands.Bot):
