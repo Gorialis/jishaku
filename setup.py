@@ -25,55 +25,84 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import pathlib
 import re
 
 from setuptools import setup
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+ROOT = pathlib.Path(__file__).parent
 
-with open('jishaku/meta.py') as f:
-    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+with open(str(ROOT / 'requirements.txt'), 'r', encoding='utf-8') as f:
+    REQUIREMENTS = f.read().splitlines()
 
-if not version:
+with open(str(ROOT / 'jishaku' / 'meta.py'), 'r', encoding='utf-8') as f:
+    VERSION = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+
+if not VERSION:
     raise RuntimeError('version is not set')
 
 
-if version.endswith(('a', 'b', 'rc')):
+if VERSION.endswith(('a', 'b', 'rc')):
     try:
         import subprocess
 
-        p = subprocess.Popen(['git', 'rev-list', '--count', 'HEAD'],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        commit_count, err = p.communicate()
+        PROCESS = subprocess.Popen(['git', 'rev-list', '--count', 'HEAD'],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        COMMIT_COUNT, ERR = PROCESS.communicate()
 
-        if commit_count:
-            p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            commit_hash, err = p.communicate()
+        if COMMIT_COUNT:
+            PROCESS = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            COMMIT_HASH, ERR = PROCESS.communicate()
 
-            if commit_hash:
-                version += commit_count.decode('utf-8').strip() + '+' + commit_hash.decode('utf-8').strip()
-    except Exception:
+            if COMMIT_HASH:
+                VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
+    except FileNotFoundError:
         pass
 
 
-with open('README.rst') as f:
-    readme = f.read()
+with open(str(ROOT / 'README.rst'), 'r', encoding='utf-8') as f:
+    README = f.read()
 
 
 setup(name='jishaku',
-      author='Gorialis',
+      author='Devon (Gorialis) R',
       url='https://github.com/Gorialis/jishaku',
-      download_url='https://github.com/Gorialis/jishaku/archive/{}.tar.gz'.format(version),
-      version=version,
-      packages=['jishaku', 'jishaku.repl'],
+
       license='MIT',
       description='A discord.py extension including useful tools for bot development and debugging.',
-      long_description=readme,
+      long_description=README,
+      long_description_content_type='text/x-rst',
+
+      version=VERSION,
+      packages=['jishaku', 'jishaku.repl'],
       include_package_data=True,
-      install_requires=requirements,
+      install_requires=REQUIREMENTS,
       python_requires='>=3.6.0',
+
+      extras_require={
+          'docs': [
+              'sphinx>=1.7.0',
+              'sphinxcontrib-asyncio'
+          ],
+
+          'test': [
+              'coverage',
+              'flake8',
+              'isort',
+              'pylint',
+              'pytest',
+              'pytest-cov'
+          ],
+
+          'voice': [
+              'PyNaCl',
+              'youtube-dl'
+          ]
+      },
+
+      download_url='https://github.com/Gorialis/jishaku/archive/{}.tar.gz'.format(VERSION),
+
       classifiers=[
           'Development Status :: 4 - Beta',
           'Framework :: AsyncIO',
@@ -81,6 +110,7 @@ setup(name='jishaku',
           'License :: OSI Approved :: MIT License',
           'Natural Language :: English',
           'Operating System :: OS Independent',
+          'Programming Language :: Python :: 3 :: Only',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Topic :: Communications :: Chat',

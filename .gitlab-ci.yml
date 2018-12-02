@@ -13,8 +13,8 @@ alpine 3.7:
     - flake8 .
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
-    - python ./setup.py bdist_wheel
-    - pip install dist/$(ls dist)
+    - python ./setup.py sdist bdist_egg bdist_wheel
+    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
     - pytest -vs
     - cd docs && make html
@@ -37,8 +37,8 @@ stretch 3.7:
     - flake8 .
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
-    - python ./setup.py bdist_wheel
-    - pip install dist/$(ls dist)
+    - python ./setup.py sdist bdist_egg bdist_wheel
+    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
     - pytest -vs
     - cd docs && make html
@@ -61,8 +61,8 @@ alpine 3.6:
     - flake8 .
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
-    - python ./setup.py bdist_wheel
-    - pip install dist/$(ls dist)
+    - python ./setup.py sdist bdist_egg bdist_wheel
+    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
     - pytest -vs
     - cd docs && make html
@@ -85,8 +85,8 @@ stretch 3.6:
     - flake8 .
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
-    - python ./setup.py bdist_wheel
-    - pip install dist/$(ls dist)
+    - python ./setup.py sdist bdist_egg bdist_wheel
+    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
     - pytest -vs
     - cd docs && make html
