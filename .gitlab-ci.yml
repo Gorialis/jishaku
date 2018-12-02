@@ -14,8 +14,8 @@ alpine 3.7:
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
     - python ./setup.py sdist bdist_egg bdist_wheel
-    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
+    - find dist -name *.whl -exec pip install '{}' +
     - pytest -vs
     - cd docs && make html
   artifacts:
@@ -38,8 +38,8 @@ stretch 3.7:
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
     - python ./setup.py sdist bdist_egg bdist_wheel
-    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
+    - find dist -name *.whl -exec pip install '{}' +
     - pytest -vs
     - cd docs && make html
   artifacts:
@@ -62,8 +62,8 @@ alpine 3.6:
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
     - python ./setup.py sdist bdist_egg bdist_wheel
-    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
+    - find dist -name *.whl -exec pip install '{}' +
     - pytest -vs
     - cd docs && make html
   artifacts:
@@ -86,8 +86,8 @@ stretch 3.6:
     - pylint -j "$(nproc)" jishaku
     - isort . --check-only --recursive
     - python ./setup.py sdist bdist_egg bdist_wheel
-    - find dist -name *.whl -exec pip install '{}' +
     - rm -rf jishaku
+    - find dist -name *.whl -exec pip install '{}' +
     - pytest -vs
     - cd docs && make html
   artifacts:

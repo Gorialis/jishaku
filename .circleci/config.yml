@@ -25,7 +25,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install -U coverage flake8 isort pylint pytest pytest-cov
+            pip install -U coverage flake8 isort pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
             pip install -U -r install_requires.txt
 
       - save_cache:
@@ -39,11 +39,22 @@ jobs:
           command: |
             . venv/bin/activate
             PYTHONPATH=$PYTHONPATH:$(pwd) pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-            pip install -U .
+            python3 ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
+            find dist -name *.whl -exec pip install '{}' +
             pytest -vs
+            
+      # build docs
+      - run:
+          name: build documentation
+          command: |
+            . venv/bin/activate
+            cd docs && make html
 
       - store_artifacts:
-          path: test-reports
-          destination: test-reports
+          path: dist
+          destination: distributions
           
+      - store_artifacts:
+          path: docs/_build
+          destination: documentation
