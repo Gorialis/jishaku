@@ -14,7 +14,6 @@ Constants, functions and classes related to classifying, compiling and executing
 import ast
 import asyncio
 import inspect
-import textwrap
 
 import import_expression
 
@@ -32,7 +31,7 @@ async def _repl_coroutine({{0}}):
     import jishaku
 
     try:
-{{1}}
+        pass
     finally:
         _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
         if _async_executor:
@@ -40,29 +39,27 @@ async def _repl_coroutine({{0}}):
 """.format(import_expression.constants.IMPORTER)
 
 
-def get_wrapped_code(code: str, args: str = ''):
-    """
-    Wraps code into an async function body for REPL.
-    """
-
-    return CORO_CODE.format(args, textwrap.indent(code, ' ' * 8))
-
-
-def maybe_add_return(code: str, args: str = '') -> ast.Module:
+def wrap_code(code: str, args: str = '') -> ast.Module:
     """
     Compiles Python code into an async function or generator,
     and automatically adds return if the function body is a single evaluation.
     Also adds inline import expression support.
     """
 
-    mod = import_expression.parse(get_wrapped_code(code, args=args), mode='exec')
-    ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
+    eval_code = import_expression.parse(code, mode='exec')
+
+    mod = ast.parse(CORO_CODE.format(args), mode='exec')
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
 
     try_block = definition.body[-1]  # try:
     assert isinstance(try_block, ast.Try)
+
+    try_block.body = eval_code.body
+
+    ast.fix_missing_locations(mod)
+    ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
 
     is_asyncgen = any(isinstance(node, ast.Yield) for node in ast.walk(try_block))
 
@@ -127,7 +124,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 self.arg_names.append(key)
                 self.args.append(value)
 
-        self.code = maybe_add_return(code, args=', '.join(self.arg_names))
+        self.code = wrap_code(code, args=', '.join(self.arg_names))
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
 

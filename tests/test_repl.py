@@ -155,3 +155,16 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         self.assertIn('ensure_builtins', scope.globals)
         self.assertTrue(callable(scope.globals['ensure_builtins']))
         self.assertEqual(scope.globals['ensure_builtins'](), ValueError)
+
+        codeblock = inspect.cleandoc("""
+        eval('''
+        3 + 4
+        ''')
+        """)
+
+        return_data = []
+        async for result in AsyncCodeExecutor(codeblock, scope):
+            return_data.append(result)
+
+        self.assertEqual(len(return_data), 1)
+        self.assertEqual(return_data[0], 7)
