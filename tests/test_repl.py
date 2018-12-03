@@ -12,8 +12,8 @@ jishaku.repl internal test
 import asyncio
 import inspect
 import random
-import unittest
 import sys
+import unittest
 
 from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var
 
