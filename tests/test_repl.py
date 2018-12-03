@@ -13,6 +13,7 @@ import asyncio
 import inspect
 import random
 import unittest
+import sys
 
 from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var
 
@@ -44,6 +45,9 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.internal_test())
 
+    async def add_numbers(self, one, two):
+        return one + two
+
     async def internal_test(self):
         scope = Scope()
 
@@ -51,29 +55,29 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         async for result in AsyncCodeExecutor('3 + 4', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 7)
+        self.assertEqual(len(return_data), 1, msg="Checking eval produces single result")
+        self.assertEqual(return_data[0], 7, msg="Checking eval result is consistent")
 
         return_data = []
         async for result in AsyncCodeExecutor('return 3 + 9', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 12)
+        self.assertEqual(len(return_data), 1, msg="Checking manual return produces single result")
+        self.assertEqual(return_data[0], 12, msg="Checking return result is consistent")
 
         return_data = []
         async for result in AsyncCodeExecutor('b = 12 + 82', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], None)
+        self.assertEqual(len(return_data), 1, msg="Checking that assignment returns")
+        self.assertIsNone(return_data[0], msg="Checking assignment returns None")
 
         return_data = []
         async for result in AsyncCodeExecutor('b', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 94)
+        self.assertEqual(len(return_data), 1, msg="Checking variable eval returns")
+        self.assertEqual(return_data[0], 94, msg="Checking retained variable consistent")
 
         scope.update_globals({'d': 41})
 
@@ -81,31 +85,31 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         async for result in AsyncCodeExecutor('c = d + 7; c', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 48)
+        self.assertEqual(len(return_data), 1, msg="Checking multi-expression implicitly returns")
+        self.assertEqual(return_data[0], 48, msg="Checking last expression return is consistent")
 
         return_data = []
         async for result in AsyncCodeExecutor('yield 30; yield 40', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 2)
-        self.assertEqual(return_data[0], 30)
-        self.assertEqual(return_data[1], 40)
+        self.assertEqual(len(return_data), 2, msg="Checking two yields returns two results")
+        self.assertEqual(return_data[0], 30, msg="Checking first yield consistency")
+        self.assertEqual(return_data[1], 40, msg="Checking second yield consistency")
 
         return_data = []
         async for result in AsyncCodeExecutor('yield 60; 70', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 2)
-        self.assertEqual(return_data[0], 60)
-        self.assertEqual(return_data[1], 70)
+        self.assertEqual(len(return_data), 2, msg="Checking multi-statement implicitly yields")
+        self.assertEqual(return_data[0], 60, msg="Checking explicit yield consistent")
+        self.assertEqual(return_data[1], 70, msg="Checking implicit yield consistent")
 
         return_data = []
         async for result in AsyncCodeExecutor('90; 100', scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 100)
+        self.assertEqual(len(return_data), 1, msg="Checking multi-statement implicitly returns")
+        self.assertEqual(return_data[0], 100, msg="Checking implicit return consistent")
 
         arg_dict = {
             '_cool_data': 45,
@@ -115,8 +119,8 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         async for result in AsyncCodeExecutor('_cool_data + _not_so_cool', scope, arg_dict=arg_dict):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 445)
+        self.assertEqual(len(return_data), 1, msg="Checking arg dictionary expression returned")
+        self.assertEqual(return_data[0], 445, msg="Checking arg dictionary expression consistent")
 
         scope.clean()
 
@@ -127,18 +131,18 @@ class ReplAsyncExecutorTest(unittest.TestCase):
         except NameError:
             hit_exception = True
 
-        self.assertTrue(hit_exception)
+        self.assertTrue(hit_exception, msg="Checking private locals removed")
 
         scope2 = Scope()
         scope2.update(scope)
 
-        self.assertEqual(scope.globals, scope2.globals)
-        self.assertEqual(scope.locals, scope2.locals)
+        self.assertEqual(scope.globals, scope2.globals, msg="Checking scope globals copied")
+        self.assertEqual(scope.locals, scope2.locals, msg="Checking scope locals copied")
 
         scope.update_locals({'e': 7})
 
-        self.assertIn('e', scope.locals)
-        self.assertNotIn('e', scope2.locals)
+        self.assertIn('e', scope.locals, msg="Checking scope locals updated")
+        self.assertNotIn('e', scope2.locals, msg="Checking scope clone locals not updated")
 
         scope.clean()
 
@@ -152,19 +156,31 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         scope.clean()
 
-        self.assertIn('ensure_builtins', scope.globals)
-        self.assertTrue(callable(scope.globals['ensure_builtins']))
-        self.assertEqual(scope.globals['ensure_builtins'](), ValueError)
+        self.assertIn('ensure_builtins', scope.globals, msg="Checking function remains defined")
+        self.assertTrue(callable(scope.globals['ensure_builtins']), msg="Checking defined is callable")
+        self.assertEqual(scope.globals['ensure_builtins'](), ValueError, msg="Checking defined retuurn consistent")
 
-        codeblock = inspect.cleandoc("""
-        eval('''
-        3 + 4
-        ''')
-        """)
+        if sys.version_info >= (3, 7):
+            codeblock = inspect.cleandoc("""
+            eval('''
+            3 + 4
+            ''')
+            """)
+
+            return_data = []
+            async for result in AsyncCodeExecutor(codeblock, scope):
+                return_data.append(result)
+
+            self.assertEqual(len(return_data), 1, msg="Checking multi-line docstring eval returns")
+            self.assertEqual(return_data[0], 7, msg="Checking eval return consistent")
+
+            scope.clean()
+
+        scope.update_globals({'add_numbers': self.add_numbers})
 
         return_data = []
-        async for result in AsyncCodeExecutor(codeblock, scope):
+        async for result in AsyncCodeExecutor("await add_numbers(10, 12)", scope):
             return_data.append(result)
 
-        self.assertEqual(len(return_data), 1)
-        self.assertEqual(return_data[0], 7)
+        self.assertEqual(len(return_data), 1, msg="Checking await returns result")
+        self.assertEqual(return_data[0], 22, msg="Checking await result consistent")
