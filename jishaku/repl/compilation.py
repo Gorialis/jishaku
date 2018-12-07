@@ -65,7 +65,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     if PY_THREE_SEVEN:
         try_block.body = user_code.body
- 
+
     ast.fix_missing_locations(mod)
     if not PY_THREE_SEVEN:
         ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
