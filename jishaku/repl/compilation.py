@@ -40,6 +40,7 @@ async def _repl_coroutine({{0}}):
             _async_executor.scope.globals.update(locals())
 """.format(import_expression.constants.IMPORTER)
 
+PY_THREE_SEVEN = sys.version_info >= (3, 7)
 
 def wrap_code(code: str, args: str = '') -> ast.Module:
     """
@@ -48,7 +49,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     Also adds inline import expression support.
     """
 
-    if sys.version_info >= (3, 7):
+    if PY_THREE_SEVEN:
         user_code = import_expression.parse(code, mode='exec')
         injected = 'pass'
     else:
@@ -62,11 +63,12 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     try_block = definition.body[-1]  # try:
     assert isinstance(try_block, ast.Try)
 
-    if sys.version_info >= (3, 7):
+    if PY_THREE_SEVEN:
         try_block.body = user_code.body
-
+ 
     ast.fix_missing_locations(mod)
-    ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
+    if not PY_THREE_SEVEN:
+        ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
 
     is_asyncgen = any(isinstance(node, ast.Yield) for node in ast.walk(try_block))
 
