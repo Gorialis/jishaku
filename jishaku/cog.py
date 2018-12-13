@@ -98,9 +98,11 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             if cmdtask in self.tasks:
                 self.tasks.remove(cmdtask)
 
-    @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU)
+    # usage = ZWSP to hide the *args from help
+    # can't use empty string because d.py ignores empty string as usage
+    @commands.group(name="jishaku", aliases=["jsk"], usage="\u200b", hidden=HIDE_JISHAKU)
     @commands.is_owner()
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: commands.Context, *args):
         """
         The Jishaku debug and diagnostic commands.
 
@@ -109,6 +111,9 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         """
 
         if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk:
+            return
+
+        if args:  # the user probably meant an invalid subcommand
             return
 
         # This only runs when no subcommand has been invoked, so give a brief.
