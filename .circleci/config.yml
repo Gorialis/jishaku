@@ -33,7 +33,7 @@ jobs:
           paths:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
-        
+
       # run tests
       - run:
           name: run tests
@@ -44,7 +44,7 @@ jobs:
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
             pytest -vs
-            
+
       # build docs
       - run:
           name: build documentation
@@ -55,7 +55,7 @@ jobs:
       - store_artifacts:
           path: dist
           destination: distributions
-          
+
       - store_artifacts:
           path: docs/_build
           destination: documentation
