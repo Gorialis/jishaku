@@ -278,6 +278,8 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                         await ctx.send(file=result)
                     elif isinstance(result, discord.Embed):
                         await ctx.send(embed=result)
+                    elif isinstance(result, PaginatorInterface):
+                        await result.send_to(ctx)
                     else:
                         if not isinstance(result, str):
                             # repr all non-strings
