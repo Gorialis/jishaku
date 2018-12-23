@@ -113,7 +113,8 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             raise commands.NotOwner("You must own this bot to use jishaku.")
         return True
 
-    @commands.group(name="jishaku", aliases=["jsk"], invoke_without_command=True, usage=" ", hidden=HIDE_JISHAKU)
+    @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU,
+                    invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: commands.Context):
         """
         The Jishaku debug and diagnostic commands.
