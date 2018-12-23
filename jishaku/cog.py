@@ -138,12 +138,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                 pid = proc.pid
                 thread_count = proc.num_threads()
 
-                try:
-                    cpu_num = proc.cpu_num()
-                except AttributeError:
-                    summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
-                else:
-                    summary.append(f"Running on PID {pid} (`{name}`), CPU {cpu_num} with {thread_count} thread(s).")
+                summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
 
                 summary.append("")  # blank line
 
