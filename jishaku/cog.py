@@ -104,8 +104,16 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             if cmdtask in self.tasks:
                 self.tasks.remove(cmdtask)
 
-    @commands.group(name="jishaku", aliases=["jsk"], usage=" ", hidden=HIDE_JISHAKU)
-    @commands.is_owner()
+    async def __local_check(self, ctx: commands.Context):
+        """
+        Local check, makes all commands in this cog owner-only
+        """
+
+        if not await ctx.bot.is_owner(ctx.author):
+            raise commands.NotOwner("You must own this bot to use jishaku.")
+        return True
+
+    @commands.group(name="jishaku", aliases=["jsk"], invoke_without_command=True, usage=" ", hidden=HIDE_JISHAKU)
     async def jsk(self, ctx: commands.Context):
         """
         The Jishaku debug and diagnostic commands.
@@ -114,10 +122,6 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         All other functionality is within its subcommands.
         """
 
-        if ctx.subcommand_passed not in (None, "selftest"):
-            return
-
-        # No subcommand has been invoked, create a status summary
         summary = [
             f"Jishaku v{__version__}, `Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded {humanize.naturaltime(self.load_time)}, "
