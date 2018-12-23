@@ -98,6 +98,10 @@ setup(name='jishaku',
           'voice': [
               'PyNaCl',
               'youtube-dl'
+          ],
+
+          'procinfo': [
+              'psutil'
           ]
       },
 

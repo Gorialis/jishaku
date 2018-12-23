@@ -15,10 +15,10 @@ import asyncio
 import collections
 import contextlib
 import datetime
-import inspect
 import os
 import os.path
 import re
+import sys
 import time
 import traceback
 import typing
@@ -35,6 +35,12 @@ from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginat
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
 from jishaku.shell import ShellReader
 from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
 
 __all__ = (
     "Jishaku",
@@ -98,7 +104,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             if cmdtask in self.tasks:
                 self.tasks.remove(cmdtask)
 
-    @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU)
+    @commands.group(name="jishaku", aliases=["jsk"], usage=" ", hidden=HIDE_JISHAKU)
     @commands.is_owner()
     async def jsk(self, ctx: commands.Context):
         """
@@ -108,18 +114,51 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         All other functionality is within its subcommands.
         """
 
-        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk:
+        if ctx.subcommand_passed not in (None, "selftest"):
             return
 
-        # This only runs when no subcommand has been invoked, so give a brief.
-        await ctx.send(inspect.cleandoc(f"""
-            Jishaku v{__version__} is active. ({len(self.bot.guilds)} guild(s), {len(self.bot.users)} user(s))
-            Module load time: {humanize.naturaltime(self.load_time)}
-            {'Using automatic sharding.' if isinstance(self.bot, discord.AutoShardedClient) else
-             'Using manual sharding.' if self.bot.shard_count else
-             'Not using sharding.'}
-            Average websocket latency: {round(self.bot.latency * 1000, 2)}ms
-        """))
+        # No subcommand has been invoked, create a status summary
+        summary = [
+            f"Jishaku v{__version__}, `Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
+            f"Module was loaded {humanize.naturaltime(self.load_time)}, "
+            f"cog was loaded {humanize.naturaltime(self.start_time)}.",
+            ""
+        ]
+
+        if psutil:
+            proc = psutil.Process()
+
+            with proc.oneshot():
+                mem = proc.memory_full_info()
+                summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
+                               f"{humanize.naturalsize(mem.vms)} virtual memory, "
+                               f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+
+                name = proc.name()
+                pid = proc.pid
+                thread_count = proc.num_threads()
+
+                try:
+                    cpu_num = proc.cpu_num()
+                except AttributeError:
+                    summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
+                else:
+                    summary.append(f"Running on PID {pid} (`{name}`), CPU {cpu_num} with {thread_count} thread(s).")
+
+                summary.append("")  # blank line
+
+        cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
+
+        if isinstance(self.bot, discord.AutoShardedClient):
+            summary.append(f"This bot is automatically sharded and can see {cache_summary}.")
+        elif self.bot.shard_count:
+            summary.append(f"This bot is manually sharded and can see {cache_summary}.")
+        else:
+            summary.append(f"This bot is not sharded and can see {cache_summary}.")
+
+        summary.append(f"Average websocket latency: {round(self.bot.latency * 1000, 2)}ms")
+
+        await ctx.send("\n".join(summary))
 
     @jsk.command(name="hide")
     async def jsk_hide(self, ctx: commands.Context):
