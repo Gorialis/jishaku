@@ -7,7 +7,7 @@ requirements_file: install_requires.txt
 
 python:
   version: 3.6
-  pip_install: true
+  setup_py_install: true
   extra_requirements:
     - docs
 
