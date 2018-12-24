@@ -1,0 +1,8 @@
+git+https://github.com/Rapptz/discord.py@rewrite
+humanize
+import_expression<1.0.0,>=0.3.2
+sphinx>=1.7.0
+sphinxcontrib-asyncio
+PyNaCl
+youtube-dl
+psutil
