@@ -184,3 +184,6 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         self.assertEqual(len(return_data), 1, msg="Checking await returns result")
         self.assertEqual(return_data[0], 22, msg="Checking await result consistent")
+
+        AsyncCodeExecutor('')
+        AsyncCodeExecutor('# a')
