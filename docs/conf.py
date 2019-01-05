@@ -19,14 +19,16 @@
 
 # -- Project information -----------------------------------------------------
 
+from jishaku.meta import __version__
+
 project = 'jishaku'
 copyright = '2019, Gorialis'
 author = 'Gorialis'
 
 # The short X.Y version
-version = '1.3.4'
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = '1.3.4'
+release = version
 
 
 # -- General configuration ---------------------------------------------------

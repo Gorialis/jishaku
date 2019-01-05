@@ -33,6 +33,7 @@ async def _repl_coroutine({{0}}):
     import jishaku
 
     try:
+        pass
 {{1}}
     finally:
         _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
@@ -50,7 +51,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     if sys.version_info >= (3, 7):
         user_code = import_expression.parse(code, mode='exec')
-        injected = 'pass'
+        injected = ''
     else:
         injected = code
 
@@ -63,7 +64,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     assert isinstance(try_block, ast.Try)
 
     if sys.version_info >= (3, 7):
-        try_block.body = user_code.body
+        try_block.body.extend(user_code.body)
     else:
         ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
 

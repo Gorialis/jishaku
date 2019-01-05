@@ -30,7 +30,7 @@ class ReplInternalsTest(unittest.TestCase):
             del hidden_variable
 
             test = self.upper_method()
-            self.assertEqual(test, None)
+            self.assertIsNone(test)
 
             self.assertEqual(get_parent_var('unittest', global_ok=True), unittest)
 
@@ -184,3 +184,17 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         self.assertEqual(len(return_data), 1, msg="Checking await returns result")
         self.assertEqual(return_data[0], 22, msg="Checking await result consistent")
+
+        return_data = []
+        async for result in AsyncCodeExecutor("", scope):
+            return_data.append(result)
+
+        self.assertEqual(len(return_data), 1, msg="Checking empty eval returns")
+        self.assertIsNone(return_data[0], msg="Checking empty eval returns None")
+
+        return_data = []
+        async for result in AsyncCodeExecutor("# this is a comment", scope):
+            return_data.append(result)
+
+        self.assertEqual(len(return_data), 1, msg="Checking eval of only comment returns")
+        self.assertIsNone(return_data[0], msg="Checking eval of only comment returns None")
