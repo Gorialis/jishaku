@@ -6,7 +6,7 @@ jishaku.cog
 
 The Jishaku debugging and diagnostics cog.
 
-:copyright: (c) 2018 Devon (Gorialis) R
+:copyright: (c) 2019 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """

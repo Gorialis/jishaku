@@ -6,7 +6,7 @@ jishaku.meta
 
 Meta information about jishaku.
 
-:copyright: (c) 2018 Devon (Gorialis) R
+:copyright: (c) 2019 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -21,7 +21,7 @@ __all__ = (
 )
 
 __author__ = 'Gorialis'
-__copyright__ = 'Copyright 2018 Devon (Gorialis) R'
+__copyright__ = 'Copyright 2019 Devon (Gorialis) R'
 __docformat__ = 'restructuredtext en'
 __license__ = 'MIT'
 __title__ = 'jishaku'

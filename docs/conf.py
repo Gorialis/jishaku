@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'jishaku'
-copyright = '2018, Gorialis'
+copyright = '2019, Gorialis'
 author = 'Gorialis'
 
 # The short X.Y version
