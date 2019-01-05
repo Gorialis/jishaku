@@ -137,7 +137,8 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                 mem = proc.memory_full_info()
                 summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
                                f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                               f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+                               f"{humanize.naturalsize(mem.uss)} of which unique to this process, "
+                               f"with CPU usage of {psutil.cpu_percent()}%")
 
                 name = proc.name()
                 pid = proc.pid
