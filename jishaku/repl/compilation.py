@@ -21,7 +21,7 @@ import import_expression
 
 from .scope import Scope
 
-CORO_CODE = """
+CORO_CODE_PRELUDE = """
 async def _repl_coroutine({{0}}):
     import asyncio
     from importlib import import_module as {0}
@@ -34,13 +34,14 @@ async def _repl_coroutine({{0}}):
 
     try:
         pass
-{{1}}
+""".format(import_expression.constants.IMPORTER)
+
+CORO_CODE_POSTLUDE = """
     finally:
         _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
         if _async_executor:
             _async_executor.scope.globals.update(locals())
-""".format(import_expression.constants.IMPORTER)
-
+"""
 
 def wrap_code(code: str, args: str = '') -> ast.Module:
     """
@@ -53,9 +54,10 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
         user_code = import_expression.parse(code, mode='exec')
         injected = ''
     else:
-        injected = code
+        injected = textwrap.indent(code, ' ' * 8)
 
-    mod = import_expression.parse(CORO_CODE.format(args, textwrap.indent(injected, ' ' * 8)), mode='exec')
+    coro_code = CORO_CODE_PRELUDE + injected + CORO_CODE_POSTLUDE
+    mod = import_expression.parse(coro_code.format(args), mode='exec')
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -66,7 +68,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     if sys.version_info >= (3, 7):
         try_block.body.extend(user_code.body)
     else:
-        ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
+        ast.increment_lineno(mod, -1 * CORO_CODE_PRELUDE.count('\n'))  # bring line numbers back in sync with repl
 
     ast.fix_missing_locations(mod)
 
