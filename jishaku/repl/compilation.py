@@ -66,7 +66,8 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     if sys.version_info >= (3, 7):
         try_block.body.extend(user_code.body)
     else:
-        ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
+        prelude_offset = CORO_CODE.split('pass')[0].count('\n') + 1
+        ast.increment_lineno(mod, -prelude_offset)  # bring line numbers back in sync with repl
 
     ast.fix_missing_locations(mod)
 
