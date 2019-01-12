@@ -9,13 +9,14 @@ jishaku.repl internal test
 
 """
 
+import ast
 import asyncio
 import inspect
 import random
 import sys
 import unittest
 
-from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var
+from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, wrap_code
 
 
 class ReplInternalsTest(unittest.TestCase):
@@ -198,3 +199,16 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         self.assertEqual(len(return_data), 1, msg="Checking eval of only comment returns")
         self.assertIsNone(return_data[0], msg="Checking eval of only comment returns None")
+
+class ReplWrapCodeTest(unittest.TestCase):
+
+    def test_wrap_code_line_numbers(self):
+        mod = wrap_code('a = b\nc = d')
+
+        func_def = mod.body[-1]
+        try_block = func_def.body[-1]
+        user_code = try_block.body
+
+        assignment = user_code[-1]
+        self.assertIsInstance(assignment, ast.Assign)
+        self.assertEqual(assignment.lineno, 2)
