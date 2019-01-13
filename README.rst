@@ -52,9 +52,20 @@ This cog can be installed through the following command:
 
 Or the development version:
 
-.. code:: sh
-
-    python3 -m pip install -U git+https://github.com/Gorialis/jishaku@master#egg=jishaku
++-------------------------------------------------------------------------------------------+
+| From GitHub:                                                                              |
+|                                                                                           |
+| .. code:: sh                                                                              |
+|                                                                                           |
+|     python3 -m pip install -U git+https://github.com/Gorialis/jishaku@master#egg=jishaku  |
+|                                                                                           |
+| From GitLab:                                                                              |
+|                                                                                           |
+| .. code:: sh                                                                              |
+|                                                                                           |
+|     python3 -m pip install -U git+https://gitlab.com/Gorialis/jishaku@master#egg=jishaku  |
+|                                                                                           |
++-------------------------------------------------------------------------------------------+
 
 It can be used in bots directly using
 
