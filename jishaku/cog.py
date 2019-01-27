@@ -412,6 +412,9 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         paginator = commands.Paginator(prefix='', suffix='')
 
+        if any(ext in ("*", "all") for ext in extensions):
+            extensions = self.bot.extensions
+
         for extension in extensions:
             load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
                         if extension in self.bot.extensions else "\N{INBOX TRAY}"
