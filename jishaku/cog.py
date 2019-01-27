@@ -415,7 +415,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         if any(ext in ("*", "all") for ext in extensions):
             extensions = self.bot.extensions
 
-        for extension in extensions:
+        for extension in set(extensions):
             load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
                         if extension in self.bot.extensions else "\N{INBOX TRAY}"
             try:
@@ -441,7 +441,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         paginator = commands.Paginator(prefix='', suffix='')
 
-        for extension in extensions:
+        if any(ext in ("*", "all") for ext in extensions):
+            extensions = self.bot.extensions
+
+        for extension in set(extensions):
             try:
                 self.bot.unload_extension(extension)
             except Exception as exc:  # pylint: disable=broad-except
