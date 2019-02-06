@@ -197,38 +197,46 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         start, back, forward, end, close = self.emojis
 
-        def check(react, react_user):
+        def check(payload: discord.RawReactionActionEvent):
             """
             Checks if this reaction is related to the paginator interface.
             """
 
-            owner_check = react_user.id == self.owner.id if self.owner else not react_user.bot
+            owner_check = not self.owner or payload.user_id == self.owner.id
 
-            return react.message.id == self.message.id and \
-                react.emoji and react.emoji in self.emojis and \
-                react_user.id != self.bot.user.id and owner_check
+            emoji = payload.emoji
+            if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
+                emoji = emoji.name
+
+            return payload.message_id == self.message.id and \
+                emoji and emoji in self.emojis and \
+                payload.user_id != self.bot.user.id and owner_check
 
         try:
             while not self.bot.is_closed():
-                reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=3600)
+                payload = await self.bot.wait_for('raw_reaction_add', check=check, timeout=3600)
 
-                if reaction.emoji == close:
+                emoji = payload.emoji
+                if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
+                    emoji = emoji.name
+
+                if emoji == close:
                     await self.message.delete()
                     return
 
-                if reaction.emoji == start:
+                if emoji == start:
                     self._display_page = 0
-                elif reaction.emoji == end:
+                elif emoji == end:
                     self._display_page = self.page_count - 1
-                elif reaction.emoji == back:
+                elif emoji == back:
                     self._display_page -= 1
-                elif reaction.emoji == forward:
+                elif emoji == forward:
                     self._display_page += 1
 
                 self.bot.loop.create_task(self.update())
 
                 try:
-                    await self.message.remove_reaction(reaction.emoji, user)
+                    await self.message.remove_reaction(payload.emoji, discord.Object(id=payload.user_id))
                 except discord.Forbidden:
                     pass
 
