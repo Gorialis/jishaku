@@ -146,9 +146,34 @@ Commands
 
     If loading the extension fails, it will be reported with a traceback.
 
+    Extensions can be specified en masse by typing e.g. ``cogs.*``.
+    This searches for anything that looks like an extension in the folder and loads/reloads it.
+
+    ``jsk reload ~`` will reload every extension the bot currently has loaded.
+
 
 .. py:function:: jsk unload [extensions...]
 
     Unloads a number of extensions. Extension names are delimited by spaces.
 
+    Matching rules are the same as ``jsk load``.
+
+    Running ``jsk unload ~`` will unload every extension on your bot. This includes jishaku, which may leave you unable to maintain your bot
+    until it is restarted. Use with care.
+
     If unloading the extension fails, it will be reported with a traceback.
+
+
+.. py:function:: jsk su <member> <command: str>
+
+    Runs a command as if it were ran by someone else.
+
+    This allows you to test how your bot would react to other users, or perform administrative actions you may have not programmed yourself
+    to be able to use by default.
+
+
+.. py:function:: jsk sudo <command: str>
+
+    Runs a command, ignoring any checks or cooldowns on the command.
+
+    This forces the relevant callbacks to be triggered, and can be used to let you bypass any large cooldowns or conditions you have set.

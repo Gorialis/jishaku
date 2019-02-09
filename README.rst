@@ -28,6 +28,9 @@ jishaku is a debugging and experimenting cog for Discord bots using ``discord.py
 It is locked to Python 3.6+ and requirements will shift as new ``discord.py`` and Python versions release.
 This repo primarily exists for the purpose of example and usage in other bot projects.
 
+Documentation is available on `readthedocs <https://jishaku.readthedocs.io/en/latest/>`__, although incomplete.
+If in doubt, all commands have docstrings visible from the help command.
+
 Installing
 -----------
 
