@@ -15,6 +15,7 @@ import asyncio
 import collections
 import contextlib
 import datetime
+import itertools
 import os
 import os.path
 import re
@@ -31,6 +32,7 @@ from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
+from jishaku.modules import ExtensionConverter
 from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
 from jishaku.shell import ShellReader
@@ -403,7 +405,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
 
     @jsk.command(name="load", aliases=["reload"])
-    async def jsk_load(self, ctx: commands.Context, *extensions):
+    async def jsk_load(self, ctx: commands.Context, *extensions: ExtensionConverter):
         """
         Loads or reloads the given extension names.
 
@@ -412,7 +414,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         paginator = commands.Paginator(prefix='', suffix='')
 
-        for extension in extensions:
+        for extension in itertools.chain(*extensions):
             load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
                         if extension in self.bot.extensions else "\N{INBOX TRAY}"
             try:
@@ -429,7 +431,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             await ctx.send(page)
 
     @jsk.command(name="unload")
-    async def jsk_unload(self, ctx: commands.Context, *extensions):
+    async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
         """
         Unloads the given extension names.
 
@@ -438,7 +440,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         paginator = commands.Paginator(prefix='', suffix='')
 
-        for extension in extensions:
+        for extension in itertools.chain(*extensions):
             try:
                 self.bot.unload_extension(extension)
             except Exception as exc:  # pylint: disable=broad-except
