@@ -41,8 +41,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
     A message and reaction based interface for paginators.
     """
 
-    def __init__(self, bot: commands.Bot, paginator: commands.Paginator, owner: discord.Member = None,
-                 emojis: EmojiSettings = None):
+    def __init__(self, bot: commands.Bot, paginator: commands.Paginator, **kwargs):
         if not isinstance(paginator, commands.Paginator):
             raise TypeError('paginator must be a commands.Paginator instance')
 
@@ -51,9 +50,11 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         self.bot = bot
 
         self.message = None
-        self.owner = owner
         self.paginator = paginator
-        self.emojis = emojis or EMOJI_DEFAULT
+
+        self.owner = kwargs.pop('owner', None)
+        self.emojis = kwargs.pop('emoji', EMOJI_DEFAULT)
+        self.timeout = kwargs.pop('timeout', 3600)
 
         self.sent_page_reactions = False
 
@@ -214,7 +215,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         try:
             while not self.bot.is_closed():
-                payload = await self.bot.wait_for('raw_reaction_add', check=check, timeout=3600)
+                payload = await self.bot.wait_for('raw_reaction_add', check=check, timeout=self.timeout)
 
                 emoji = payload.emoji
                 if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
