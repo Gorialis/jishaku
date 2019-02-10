@@ -49,7 +49,9 @@ __all__ = (
     "setup"
 )
 
-HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in ("true", "t", "yes", "y", "on", "1")
+ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
+JISHAKU_HIDE = os.getenv("JISHAKU_HIDE", "").lower() in ENABLED_SYMBOLS
+JISHAKU_RETAIN = os.getenv("JISHAKU_RETAIN", "").lower() in ENABLED_SYMBOLS
 
 
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
@@ -65,7 +67,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self._scope = Scope()
-        self.retain = False
+        self.retain = JISHAKU_RETAIN
         self.last_result = None
         self.start_time = datetime.datetime.now()
         self.tasks = collections.deque()
@@ -115,7 +117,7 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             raise commands.NotOwner("You must own this bot to use jishaku.")
         return True
 
-    @commands.group(name="jishaku", aliases=["jsk"], hidden=HIDE_JISHAKU,
+    @commands.group(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                     invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: commands.Context):
         """
