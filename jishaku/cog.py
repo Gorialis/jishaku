@@ -620,15 +620,33 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         await ctx.send(f"Playing in {voice.channel.name}.")
 
     @jsk.command(name="su")
-    async def jsk_su(self, ctx: commands.Context, member: typing.Union[discord.Member, discord.User],
-                     *, command_string: str):
+    async def jsk_su(self, ctx: commands.Context, target: discord.User, *, command_string: str):
         """
         Run a command as someone else.
 
         This will try to resolve to a Member, but will use a User if it can't find one.
         """
 
-        alt_ctx = await copy_context_with(ctx, author=member, content=ctx.prefix + command_string)
+        if ctx.guild:
+            # Try to upgrade to a Member instance
+            # This used to be done by a Union converter, but doing it like this makes
+            #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
+            target = ctx.guild.get_member(target.id) or target
+
+        alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @jsk.command(name="in")
+    async def jsk_in(self, ctx: commands.Context, channel: discord.TextChannel, *, command_string: str):
+        """
+        Run a command as if it were in a different channel.
+        """
+
+        alt_ctx = await copy_context_with(ctx, channel=channel, content=ctx.prefix + command_string)
 
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
