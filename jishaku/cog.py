@@ -57,7 +57,7 @@ JISHAKU_RETAIN = os.getenv("JISHAKU_RETAIN", "").lower() in ENABLED_SYMBOLS
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
 
 
-class Jishaku:  # pylint: disable=too-many-public-methods
+class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
     """
     The cog that includes Jishaku's Discord-facing default functionality.
     """
@@ -108,13 +108,13 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             if cmdtask in self.tasks:
                 self.tasks.remove(cmdtask)
 
-    async def __local_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: commands.Context):
         """
         Local check, makes all commands in this cog owner-only
         """
 
         if not await ctx.bot.is_owner(ctx.author):
-            raise commands.NotOwner("You must own this bot to use jishaku.")
+            raise commands.NotOwner("You must own this bot to use Jishaku.")
         return True
 
     @commands.group(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
