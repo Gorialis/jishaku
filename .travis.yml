@@ -5,7 +5,7 @@ python:
 before_script:
   - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
 install:
-  - "pip install -U coverage flake8 isort pylint pytest pytest-cov"
+  - "pip install -U coverage flake8 'isort<4.3.5' pylint pytest pytest-cov"
   - "pip install -U -r install_requires.txt"
 script:
   - "pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"

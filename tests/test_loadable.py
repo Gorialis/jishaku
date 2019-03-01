@@ -26,5 +26,3 @@ class LoadabilityTest(unittest.TestCase):
 
         bot.load_extension("jishaku.cog")
         bot.unload_extension("jishaku.cog")
-
-        bot.loop.run_until_complete(bot.close())

@@ -169,5 +169,3 @@ class PaginatorTest(unittest.TestCase):
             raised = True
 
         self.assertTrue(raised)
-
-        bot.loop.run_until_complete(bot.close())

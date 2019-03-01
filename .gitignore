@@ -104,8 +104,8 @@ venv.bak/
 .mypy_cache/
 
 # IntelliJ
-.idea/*
+.idea/
 
 # Visual Studio Code
-.code/*
-.vscode/*
+.code/
+.vscode/
