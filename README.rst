@@ -147,6 +147,7 @@ Jishaku can invoke other commands on your bot in special modes:
 - ``[jishaku|jsk] sudo <command string>``
 - ``[jishaku|jsk] debug <command string>``
 - ``[jishaku|jsk] su <member> <command string>``
+- ``[jishaku|jsk] in <channel> <command string>``
 
 ``sudo`` invokes a command bypassing all checks and cooldowns. This may also invoke parent group callbacks, depending on how the command is defined.
 For example, ``jsk sudo foo`` will invoke ``foo`` regardless of if checks or cooldowns fail.
@@ -163,3 +164,6 @@ For example, ``jsk su @Clyde#0001 foo`` will invoke ``foo`` as if it was used di
 This command won't work on users that the bot cannot see.
 
 Trying to use this command with a user that is not in the current guild (if applicable) will work, but may cause weird side effects, so it is recommended to restrict usage to available members.
+
+``in`` invokes a command as if it was invoked in another channel.
+In guilds, this only works in channels of the same guild, but can work across guilds if ``in`` is used in a DM.

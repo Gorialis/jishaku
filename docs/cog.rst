@@ -172,8 +172,23 @@ Commands
     to be able to use by default.
 
 
+.. py:function:: jsk in <channel> <command: str>
+
+    Runs a command as if it were in a different channel.
+
+    Because it matches a `TextChannel`, using this in a guild will only work for other channels in that guild.
+    Cross-server remote commanding can be facilitated by DMing the bot instead.
+
+
 .. py:function:: jsk sudo <command: str>
 
     Runs a command, ignoring any checks or cooldowns on the command.
 
     This forces the relevant callbacks to be triggered, and can be used to let you bypass any large cooldowns or conditions you have set.
+
+
+.. py:function:: jsk source <command_name: str>
+
+    Shows the source for a command in a :class:`PaginatorInterface`.
+
+    This is similar to doing ``jsk cat`` on the source file, limited to the line span of the command.
