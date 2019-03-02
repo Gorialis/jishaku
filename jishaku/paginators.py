@@ -54,12 +54,13 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.owner = kwargs.pop('owner', None)
         self.emojis = kwargs.pop('emoji', EMOJI_DEFAULT)
-        self.timeout = kwargs.pop('timeout', 3600)
+        self.timeout = kwargs.pop('timeout', 7200)
+        self.delete_message = kwargs.pop('delete_message', False)
 
         self.sent_page_reactions = False
 
         self.task: asyncio.Task = None
-        self.update_lock: asyncio.Lock = asyncio.Semaphore(value=2)
+        self.update_lock: asyncio.Lock = asyncio.Semaphore(value=kwargs.pop('update_max', 2))
 
         if self.page_size > self.max_page_size:
             raise ValueError('Paginator passed has too large of a page size for this interface.')
@@ -176,9 +177,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         This method is generally for internal use only.
         """
 
-        for emoji in self.emojis:
-            if emoji:
-                await self.message.add_reaction(emoji)
+        for emoji in filter(None, self.emojis):
+            await self.message.add_reaction(emoji)
         self.sent_page_reactions = True
 
     @property
@@ -242,7 +242,14 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                     pass
 
         except asyncio.TimeoutError:
-            await self.message.delete()
+            if self.delete_message:
+                return await self.message.delete()
+
+            try:
+                for emoji in filter(None, self.emojis):
+                    await self.message.remove_reaction(emoji)
+            except (discord.Forbidden, discord.NotFound):
+                pass
 
     async def update(self):
         """
