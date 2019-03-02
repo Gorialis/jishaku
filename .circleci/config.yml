@@ -16,7 +16,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
+          - v1-dependencies-{{ checksum "requirements/all.txt" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
@@ -27,12 +27,12 @@ jobs:
             . venv/bin/activate
             pip install -U pip setuptools wheel
             pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
-            pip install -U -r install_requires.txt
+            pip install -U -r requirements/base.txt
 
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ checksum "requirements/all.txt" }}
 
       # run tests
       - run:

@@ -3,7 +3,7 @@ formats: []
 build:
   image: latest
 
-requirements_file: all_requires.txt
+requirements_file: requirements/all.txt
 
 python:
   version: 3.6
