@@ -33,7 +33,7 @@ from jishaku.exception_handling import ReplResponseReactor
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
 from jishaku.modules import ExtensionConverter
-from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginator
+from jishaku.paginators import PaginatorInterface, WrappedFilePaginator, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
 from jishaku.shell import ShellReader
 from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
@@ -225,7 +225,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
         try:
             with open(path, "rb") as file:
-                paginator = FilePaginator(file, line_span=line_span, max_size=1985)
+                paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1985)
         except UnicodeDecodeError:
             return await ctx.send(f"`{path}`: Couldn't determine the encoding of this file.")
         except ValueError as exc:

@@ -414,3 +414,10 @@ class FilePaginator(commands.Paginator):
 
         for line in lines:
             self.add_line(line)
+
+
+class WrappedFilePaginator(FilePaginator, WrappedPaginator):
+    """
+    Combination of FilePaginator and WrappedPaginator.
+    In other words, a FilePaginator that supports line wrapping.
+    """
