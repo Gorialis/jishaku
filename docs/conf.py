@@ -81,6 +81,11 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'friendly'
 
+rst_prolog = """
+.. |tasked| replace:: This command submits itself to the |taskref|_.
+.. |taskref| replace:: *task queue*
+.. _taskref: Task system
+"""
 
 # -- Options for HTML output -------------------------------------------------
 

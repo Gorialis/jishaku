@@ -14,9 +14,10 @@ Functions for managing and searching modules.
 import pathlib
 import typing
 
+import pkg_resources
 from discord.ext import commands
 
-__all__ = ('find_extensions_in', 'resolve_extensions', 'ExtensionConverter')
+__all__ = ('find_extensions_in', 'resolve_extensions', 'package_version', 'ExtensionConverter')
 
 
 def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> list:
@@ -69,6 +70,17 @@ def resolve_extensions(bot: commands.Bot, name: str) -> list:
         return list(bot.extensions.keys())
 
     return [name]
+
+
+def package_version(package_name: str) -> typing.Optional[str]:
+    """
+    Returns package version as a string, or None if it couldn't be found.
+    """
+
+    try:
+        return pkg_resources.get_distribution(package_name).version
+    except (pkg_resources.DistributionNotFound, AttributeError):
+        return None
 
 
 class ExtensionConverter(commands.Converter):  # pylint: disable=too-few-public-methods

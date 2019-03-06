@@ -33,7 +33,7 @@ from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
-from jishaku.modules import ExtensionConverter
+from jishaku.modules import ExtensionConverter, package_version
 from jishaku.paginators import PaginatorInterface, WrappedFilePaginator, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
 from jishaku.shell import ShellReader
@@ -129,7 +129,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         summary = [
-            f"Jishaku v{__version__}, `Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
+            f"Jishaku v{__version__}, discord.py `{package_version('discord.py')}`, "
+            f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded {humanize.naturaltime(self.load_time)}, "
             f"cog was loaded {humanize.naturaltime(self.start_time)}.",
             ""
@@ -165,6 +166,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
         await ctx.send("\n".join(summary))
 
+    # Meta commands
     @jsk.command(name="hide")
     async def jsk_hide(self, ctx: commands.Context):
         """
@@ -189,6 +191,195 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         self.jsk.hidden = False
         await ctx.send("Jishaku is now visible.")
 
+    @jsk.command(name="tasks")
+    async def jsk_tasks(self, ctx: commands.Context):
+        """
+        Shows the currently running jishaku tasks.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No currently running tasks.")
+
+        paginator = commands.Paginator(max_size=1985)
+
+        for task in self.tasks:
+            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                               f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        await interface.send_to(ctx)
+
+    @jsk.command(name="cancel")
+    async def jsk_cancel(self, ctx: commands.Context, *, index: int):
+        """
+        Cancels a task with the given index.
+
+        If the index passed is -1, will cancel the last task instead.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No tasks to cancel.")
+
+        if index == -1:
+            task = self.tasks.pop()
+        else:
+            task = discord.utils.get(self.tasks, index=index)
+            if task:
+                self.tasks.remove(task)
+            else:
+                return await ctx.send("Unknown task.")
+
+        task.task.cancel()
+        return await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
+                              f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+
+    # Bot management commands
+    @jsk.command(name="load", aliases=["reload"])
+    async def jsk_load(self, ctx: commands.Context, *extensions: ExtensionConverter):
+        """
+        Loads or reloads the given extension names.
+
+        Reports any extensions that failed to load.
+        """
+
+        paginator = commands.Paginator(prefix='', suffix='')
+
+        for extension in itertools.chain(*extensions):
+            load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
+                        if extension in self.bot.extensions else "\N{INBOX TRAY}"
+            try:
+                self.bot.unload_extension(extension)
+                self.bot.load_extension(extension)
+            except Exception as exc:  # pylint: disable=broad-except
+                traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+
+                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+            else:
+                paginator.add_line(f"{load_icon} `{extension}`", empty=True)
+
+        for page in paginator.pages:
+            await ctx.send(page)
+
+    @jsk.command(name="unload")
+    async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
+        """
+        Unloads the given extension names.
+
+        Reports any extensions that failed to unload.
+        """
+
+        paginator = commands.Paginator(prefix='', suffix='')
+
+        for extension in itertools.chain(*extensions):
+            try:
+                self.bot.unload_extension(extension)
+            except Exception as exc:  # pylint: disable=broad-except
+                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+
+                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+            else:
+                paginator.add_line(f"\N{OUTBOX TRAY} `{extension}`", empty=True)
+
+        for page in paginator.pages:
+            await ctx.send(page)
+
+    @jsk.command(name="shutdown", aliases=["logout"])
+    async def jsk_shutdown(self, ctx: commands.Context):
+        """
+        Logs this bot out.
+        """
+
+        await ctx.send("Logging out now..")
+        await ctx.bot.logout()
+
+    # Command-invocation commands
+    @jsk.command(name="su")
+    async def jsk_su(self, ctx: commands.Context, target: discord.User, *, command_string: str):
+        """
+        Run a command as someone else.
+
+        This will try to resolve to a Member, but will use a User if it can't find one.
+        """
+
+        if ctx.guild:
+            # Try to upgrade to a Member instance
+            # This used to be done by a Union converter, but doing it like this makes
+            #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
+            target = ctx.guild.get_member(target.id) or target
+
+        alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @jsk.command(name="in")
+    async def jsk_in(self, ctx: commands.Context, channel: discord.TextChannel, *, command_string: str):
+        """
+        Run a command as if it were in a different channel.
+        """
+
+        alt_ctx = await copy_context_with(ctx, channel=channel, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @jsk.command(name="sudo")
+    async def jsk_sudo(self, ctx: commands.Context, *, command_string: str):
+        """
+        Run a command bypassing all checks and cooldowns.
+
+        This also bypasses permission checks so this has a high possibility of making a command raise.
+        """
+
+        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.reinvoke(alt_ctx)
+
+    @jsk.command(name="repeat")
+    async def jsk_repeat(self, ctx: commands.Context, times: int, *, command_string: str):
+        """
+        Runs a command multiple times in a row.
+
+        This acts like the command was invoked several times manually, so it obeys cooldowns.
+        """
+
+        with self.submit(ctx):  # allow repeats to be cancelled
+            for _ in range(times):
+                alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+                if alt_ctx.command is None:
+                    return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+                await alt_ctx.command.reinvoke(alt_ctx)
+
+    @jsk.command(name="debug", aliases=["dbg"])
+    async def jsk_debug(self, ctx: commands.Context, *, command_string: str):
+        """
+        Run a command timing execution and catching exceptions.
+        """
+
+        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        start = time.perf_counter()
+
+        async with ReplResponseReactor(ctx.message):
+            with self.submit(ctx):
+                await alt_ctx.command.invoke(alt_ctx)
+
+        end = time.perf_counter()
+        return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
+
+    # Filesystem commands
     __cat_line_regex = re.compile(r"(?:\.\/+)?(.+?)(?:#L?(\d+)(?:\-L?(\d+))?)?$")
 
     @jsk.command(name="cat")
@@ -235,48 +426,32 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         await interface.send_to(ctx)
 
-    @jsk.command(name="tasks")
-    async def jsk_tasks(self, ctx: commands.Context):
+    @jsk.command(name="source", aliases=["src"])
+    async def jsk_source(self, ctx: commands.Context, *, command_name: str):
         """
-        Shows the currently running jishaku tasks.
+        Displays the source code for a command.
         """
 
-        if not self.tasks:
-            return await ctx.send("No currently running tasks.")
+        command = self.bot.get_command(command_name)
+        if not command:
+            return await ctx.send(f"Couldn't find command `{command_name}`.")
 
-        paginator = commands.Paginator(max_size=1985)
+        try:
+            source_lines, _ = inspect.getsourcelines(command.callback)
+        except (TypeError, OSError):
+            return await ctx.send(f"Was unable to retrieve the source for `{command}` for some reason.")
 
-        for task in self.tasks:
-            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                               f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        # getsourcelines for some reason returns WITH line endings
+        source_lines = ''.join(source_lines).split('\n')
+
+        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+        for line in source_lines:
+            paginator.add_line(line)
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         await interface.send_to(ctx)
 
-    @jsk.command(name="cancel")
-    async def jsk_cancel(self, ctx: commands.Context, *, index: int):
-        """
-        Cancels a task with the given index.
-
-        If the index passed is -1, will cancel the last task instead.
-        """
-
-        if not self.tasks:
-            return await ctx.send("No tasks to cancel.")
-
-        if index == -1:
-            task = self.tasks.pop()
-        else:
-            task = discord.utils.get(self.tasks, index=index)
-            if task:
-                self.tasks.remove(task)
-            else:
-                return await ctx.send("Unknown task.")
-
-        task.task.cancel()
-        return await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
-                              f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
-
+    # Python evaluation/execution-related commands
     @jsk.command(name="retain")
     async def jsk_retain(self, ctx: commands.Context, *, toggle: bool):
         """
@@ -375,6 +550,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                     interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                     await interface.send_to(ctx)
 
+    # Shell-related commands
     @jsk.command(name="shell", aliases=["sh"])
     async def jsk_shell(self, ctx: commands.Context, *, argument: CodeblockConverter):
         """
@@ -407,55 +583,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
 
-    @jsk.command(name="load", aliases=["reload"])
-    async def jsk_load(self, ctx: commands.Context, *extensions: ExtensionConverter):
-        """
-        Loads or reloads the given extension names.
-
-        Reports any extensions that failed to load.
-        """
-
-        paginator = commands.Paginator(prefix='', suffix='')
-
-        for extension in itertools.chain(*extensions):
-            load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
-                        if extension in self.bot.extensions else "\N{INBOX TRAY}"
-            try:
-                self.bot.unload_extension(extension)
-                self.bot.load_extension(extension)
-            except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
-
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
-            else:
-                paginator.add_line(f"{load_icon} `{extension}`", empty=True)
-
-        for page in paginator.pages:
-            await ctx.send(page)
-
-    @jsk.command(name="unload")
-    async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
-        """
-        Unloads the given extension names.
-
-        Reports any extensions that failed to unload.
-        """
-
-        paginator = commands.Paginator(prefix='', suffix='')
-
-        for extension in itertools.chain(*extensions):
-            try:
-                self.bot.unload_extension(extension)
-            except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
-
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
-            else:
-                paginator.add_line(f"\N{OUTBOX TRAY} `{extension}`", empty=True)
-
-        for page in paginator.pages:
-            await ctx.send(page)
-
+    # Voice-related commands
     @jsk.group(name="voice", aliases=["vc"])
     @commands.check(vc_check)
     async def jsk_voice(self, ctx: commands.Context):
@@ -619,109 +747,6 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
         voice.play(discord.PCMVolumeTransformer(BasicYouTubeDLSource(url)))
         await ctx.send(f"Playing in {voice.channel.name}.")
-
-    @jsk.command(name="su")
-    async def jsk_su(self, ctx: commands.Context, target: discord.User, *, command_string: str):
-        """
-        Run a command as someone else.
-
-        This will try to resolve to a Member, but will use a User if it can't find one.
-        """
-
-        if ctx.guild:
-            # Try to upgrade to a Member instance
-            # This used to be done by a Union converter, but doing it like this makes
-            #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
-            target = ctx.guild.get_member(target.id) or target
-
-        alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        return await alt_ctx.command.invoke(alt_ctx)
-
-    @jsk.command(name="in")
-    async def jsk_in(self, ctx: commands.Context, channel: discord.TextChannel, *, command_string: str):
-        """
-        Run a command as if it were in a different channel.
-        """
-
-        alt_ctx = await copy_context_with(ctx, channel=channel, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        return await alt_ctx.command.invoke(alt_ctx)
-
-    @jsk.command(name="sudo")
-    async def jsk_sudo(self, ctx: commands.Context, *, command_string: str):
-        """
-        Run a command bypassing all checks and cooldowns.
-
-        This also bypasses permission checks so this has a high possibility of making a command raise.
-        """
-
-        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        return await alt_ctx.command.reinvoke(alt_ctx)
-
-    @jsk.command(name="debug", aliases=["dbg"])
-    async def jsk_debug(self, ctx: commands.Context, *, command_string: str):
-        """
-        Run a command timing execution and catching exceptions.
-        """
-
-        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        start = time.perf_counter()
-
-        async with ReplResponseReactor(ctx.message):
-            with self.submit(ctx):
-                await alt_ctx.command.invoke(alt_ctx)
-
-        end = time.perf_counter()
-        return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
-
-    @jsk.command(name="source", aliases=["src"])
-    async def jsk_source(self, ctx: commands.Context, *, command_name: str):
-        """
-        Displays the source code for a command.
-        """
-
-        command = self.bot.get_command(command_name)
-        if not command:
-            return await ctx.send(f"Couldn't find command `{command_name}`.")
-
-        try:
-            source_lines, _ = inspect.getsourcelines(command.callback)
-        except (TypeError, OSError):
-            return await ctx.send(f"Was unable to retrieve the source for `{command}` for some reason.")
-
-        # getsourcelines for some reason returns WITH line endings
-        source_lines = ''.join(source_lines).split('\n')
-
-        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-        for line in source_lines:
-            paginator.add_line(line)
-
-        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        await interface.send_to(ctx)
-
-    @jsk.command(name="shutdown", aliases=["logout"])
-    async def jsk_shutdown(self, ctx: commands.Context):
-        """
-        Logs this bot out.
-        """
-
-        await ctx.send("Logging out now..")
-        await ctx.bot.logout()
 
 
 def setup(bot: commands.Bot):

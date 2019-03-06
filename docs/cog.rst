@@ -51,7 +51,7 @@ This will make it very difficult to cancel those tasks.
 
     Shows a list of the currently running command-tasks. This includes the index, command qualified name and time invoked.
 
-.. py:function:: jsk cancel <index>
+.. py:function:: jsk cancel <index: int>
 
     Cancels the command-task at the provided index. If the index is -1, it will cancel the most recent still-running task.
 
@@ -95,6 +95,8 @@ Commands
 
 .. py:function:: jsk [python|py] <argument: str>
 
+    |tasked|
+
     Evaluates Python code, returning the results verbatim in its clearest representation.
 
     If None is received, nothing is sent.
@@ -110,6 +112,8 @@ Commands
     Any other instance is ``repr``'d and sent using the same rules as a string.
 
 .. py:function:: jsk [python_inspect|pythoninspect|pyi] <argument: str>
+
+    |tasked|
 
     Evaluates Python code, returning an inspection of the results.
 
@@ -132,6 +136,8 @@ Commands
 
 
 .. py:function:: jsk [shell|sh] <argument: str>
+
+    |tasked|
 
     Evaluates code in the bash shell. ``stdout`` and ``stderr`` are read back asynchronously into the current channel.
 
@@ -186,6 +192,24 @@ Commands
 
     This forces the relevant callbacks to be triggered, and can be used to let you bypass any large cooldowns or conditions you have set.
 
+.. py:function:: jsk debug <command: str>
+
+    Runs a command using ``jsk python``-style timing and exception reporting.
+
+    This allows you to invoke a broken command with this command to get the exception directly without having to read logs.
+
+    When the command finishes, the time to run will be reported.
+
+.. py:function:: jsk repeat <times: int> <command: str>
+
+    |tasked|
+
+    Repeats a command the specified amount of times.
+
+    This works like a direct message invocation, so cooldowns *will* be honored.
+    You can use ``jsk repeat . jsk sudo ..`` to bypass cooldowns on each invoke if need be.
+
+    This command will wait for a previous invocation to finish before moving onto the next one.
 
 .. py:function:: jsk source <command_name: str>
 

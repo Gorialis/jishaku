@@ -94,6 +94,19 @@ These commands do as described, with ``reload`` unloading and loading cogs again
 
 Reloading jishaku itself can be done conventionally with ``[jishaku|jsk] reload jishaku``.
 
+Task queue
+~~~~~~~~~~
+
+Some actions jishaku can do may take a long time, and could be invoked incorrectly or by accident.
+As such, jishaku implements a command queue that long-lasting commands are submitted to.
+
+- ``[jishaku|jsk] tasks``
+- ``[jishaku|jsk] cancel <id>``
+
+``tasks`` shows which tasks are currently running, for what commands. You can use this to figure out which task you need to cancel.
+
+``cancel`` cancels a task by a given ID. It will accept a numeric ID as shown in ``tasks``. Supplying ``-1`` will make it cancel the last task submitted.
+
 Python REPL
 ~~~~~~~~~~~
 
@@ -146,6 +159,7 @@ Jishaku can invoke other commands on your bot in special modes:
 
 - ``[jishaku|jsk] sudo <command string>``
 - ``[jishaku|jsk] debug <command string>``
+- ``[jishaku|jsk] repeat <times> <command string>``
 - ``[jishaku|jsk] su <member> <command string>``
 - ``[jishaku|jsk] in <channel> <command string>``
 
@@ -156,6 +170,9 @@ For example, ``jsk sudo foo`` will invoke ``foo`` regardless of if checks or coo
 This means if an exception occurs, it will be direct messaged to you like as in ``jishaku python``.
 
 When execution finishes, the time taken to complete execution will be sent as a message.
+
+``repeat`` invokes a command many times in a row. It acts the same as a direct message invocation, so it *will* obey cooldowns if commands have them.
+As this command may take a long time, it is submitted to the task queue so it can be cancelled.
 
 ``su`` invokes a command as if it was invoked directly by another member.
 This allows you to effectively impersonate another account to your own bot, such that you can perform actions on their behalf or test command behavior.
