@@ -245,11 +245,11 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             if self.delete_message:
                 return await self.message.delete()
 
-            try:
-                for emoji in filter(None, self.emojis):
-                    await self.message.remove_reaction(emoji)
-            except (discord.Forbidden, discord.NotFound):
-                pass
+            for emoji in filter(None, self.emojis):
+                try:
+                    await self.message.remove_reaction(emoji, self.message.guild.me)
+                except (discord.Forbidden, discord.NotFound):
+                    pass
 
     async def update(self):
         """
