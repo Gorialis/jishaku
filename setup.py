@@ -62,8 +62,10 @@ try:
         COMMIT_HASH, ERR = PROCESS.communicate()
 
         if COMMIT_HASH:
-            COMMIT_SUMMARY = COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
-            VERSION += ('' if VERSION.endswith(('a', 'b', 'rc')) else '.') + COMMIT_SUMMARY
+            if VERSION.endswith(('a', 'b', 'rc')):
+                VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
+            else:
+                VERSION += '.' + COMMIT_COUNT.decode('utf-8').strip()
 
 except FileNotFoundError:
     pass
