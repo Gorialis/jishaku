@@ -27,6 +27,7 @@ SOFTWARE.
 
 import pathlib
 import re
+import subprocess
 
 from setuptools import setup
 
@@ -42,23 +43,30 @@ if not VERSION:
     raise RuntimeError('version is not set')
 
 
-if VERSION.endswith(('a', 'b', 'rc')):
-    try:
-        import subprocess
+try:
+    PROCESS = subprocess.Popen(
+        ['git', 'rev-list', '--count', 'HEAD'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
-        PROCESS = subprocess.Popen(['git', 'rev-list', '--count', 'HEAD'],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        COMMIT_COUNT, ERR = PROCESS.communicate()
+    COMMIT_COUNT, ERR = PROCESS.communicate()
 
-        if COMMIT_COUNT:
-            PROCESS = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            COMMIT_HASH, ERR = PROCESS.communicate()
+    if COMMIT_COUNT:
+        PROCESS = subprocess.Popen(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
 
-            if COMMIT_HASH:
-                VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
-    except FileNotFoundError:
-        pass
+        COMMIT_HASH, ERR = PROCESS.communicate()
+
+        if COMMIT_HASH:
+            COMMIT_SUMMARY = COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
+            VERSION += ('' if VERSION.endswith(('a', 'b', 'rc')) else '.') + COMMIT_SUMMARY
+
+except FileNotFoundError:
+    pass
 
 
 with open(ROOT / 'README.rst', 'r', encoding='utf-8') as f:
@@ -113,6 +121,7 @@ setup(
 
     download_url='https://github.com/Gorialis/jishaku/archive/{}.tar.gz'.format(VERSION),
 
+    keywords='jishaku discord.py discord cog repl extension',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: AsyncIO',
