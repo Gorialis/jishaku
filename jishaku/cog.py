@@ -270,7 +270,9 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             # something bad happened, this is not a normal unload
             # load the current instance as a cog as a panic measure
             ctx.bot.add_cog(self)
-            ctx.bot.extensions["jishaku"] = types.ModuleType("jishaku")
+            fake_module = types.ModuleType("jishaku")
+            sys.modules["jishaku"] = fake_module
+            ctx.bot.extensions["jishaku"] = fake_module
 
             await ctx.send(
                 "Something went wrong, and Jishaku could not be reloaded. "
