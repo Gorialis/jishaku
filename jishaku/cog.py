@@ -23,6 +23,7 @@ import re
 import sys
 import time
 import traceback
+import types
 import typing
 
 import discord
@@ -243,6 +244,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         paginator = commands.Paginator(prefix='', suffix='')
+        jishaku_in_trouble = False
 
         for extension in itertools.chain(*extensions):
             load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
@@ -254,11 +256,27 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
                 paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+
+                if extension in ('jishaku', 'jishaku.cog'):
+                    # uh oh
+                    jishaku_in_trouble = True
             else:
                 paginator.add_line(f"{load_icon} `{extension}`", empty=True)
 
         for page in paginator.pages:
             await ctx.send(page)
+
+        if jishaku_in_trouble and 'Jishaku' not in ctx.bot.cogs:
+            # something bad happened, this is not a normal unload
+            # load the current instance as a cog as a panic measure
+            ctx.bot.add_cog(self)
+            ctx.bot.extensions["jishaku"] = types.ModuleType("jishaku")
+
+            await ctx.send(
+                "Something went wrong, and Jishaku could not be reloaded. "
+                "I have tried to recover by loading the currently loaded cog under a fake module. "
+                "Try to work out what happened, and reload Jishaku again."
+            )
 
     @jsk.command(name="unload")
     async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
