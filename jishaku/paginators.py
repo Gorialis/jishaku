@@ -78,7 +78,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         # pylint: disable=protected-access
         paginator_pages = list(self.paginator._pages)
         if len(self.paginator._current_page) > 1:
-            paginator_pages.append('\n'.join(self.paginator._current_page) + '\n' + self.paginator.suffix)
+            paginator_pages.append('\n'.join(self.paginator._current_page) + '\n' + (self.paginator.suffix or ''))
         # pylint: enable=protected-access
 
         return paginator_pages

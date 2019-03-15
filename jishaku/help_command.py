@@ -51,7 +51,7 @@ class MinimalPaginatorHelp(commands.MinimalHelpCommand):
     """
 
     def __init__(self, **options):
-        paginator = options.pop('paginator', commands.Paginator(max_size=1985))
+        paginator = options.pop('paginator', commands.Paginator(prefix=None, suffix=None, max_size=1985))
 
         super().__init__(paginator=paginator, **options)
 
