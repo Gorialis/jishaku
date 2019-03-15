@@ -30,12 +30,18 @@ async def _repl_coroutine({{0}}):
     import discord
     from discord.ext import commands
 
-    import jishaku
+    try:
+        import jishaku
+    except ImportError:
+        jishaku = None  # keep working even if in panic recovery mode
 
     try:
         pass
 {{1}}
     finally:
+        if not hasattr(jishaku, 'repl'):
+            return
+
         _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
         if _async_executor:
             _async_executor.scope.globals.update(locals())
@@ -66,7 +72,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     if sys.version_info >= (3, 7):
         try_block.body.extend(user_code.body)
     else:
-        ast.increment_lineno(mod, -12)  # bring line numbers back in sync with repl
+        ast.increment_lineno(mod, -16)  # bring line numbers back in sync with repl
 
     ast.fix_missing_locations(mod)
 
