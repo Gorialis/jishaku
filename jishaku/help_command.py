@@ -21,6 +21,14 @@ class DefaultPaginatorHelp(commands.DefaultHelpCommand):
     A subclass of :class:`commands.DefaultHelpCommand` that uses a PaginatorInterface for pages.
     """
 
+    def __init__(self, **options):
+        self.paginator = options.pop('paginator', None)
+
+        if self.paginator is None:
+            self.paginator = commands.Paginator(max_size=1985)
+
+        super().__init__(**options)
+
     async def send_pages(self):
         destination = self.get_destination()
 
@@ -44,6 +52,14 @@ class MinimalPaginatorHelp(commands.MinimalHelpCommand):
     """
     A subclass of :class:`commands.MinimalHelpCommand` that uses a PaginatorInterface for pages.
     """
+
+    def __init__(self, **options):
+        self.paginator = options.pop('paginator', None)
+
+        if self.paginator is None:
+            self.paginator = commands.Paginator(max_size=1985)
+
+        super().__init__(**options)
 
     async def send_pages(self):
         destination = self.get_destination()
