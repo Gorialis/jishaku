@@ -39,12 +39,10 @@ async def _repl_coroutine({{0}}):
         pass
 {{1}}
     finally:
-        if not hasattr(jishaku, 'repl'):
-            return
-
-        _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
-        if _async_executor:
-            _async_executor.scope.globals.update(locals())
+        if hasattr(jishaku, 'repl'):
+            _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
+            if _async_executor:
+                _async_executor.scope.globals.update(locals())
 """.format(import_expression.constants.IMPORTER)
 
 
