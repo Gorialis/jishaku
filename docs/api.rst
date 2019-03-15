@@ -57,3 +57,20 @@ Paginator-related tools
 
 .. autoclass:: WrappedPaginator
     :members:
+
+Help command classes
+--------------------
+
+.. currentmodule:: jishaku.help_command
+
+.. autoclass:: DefaultPaginatorHelp
+    :members:
+
+.. autoclass:: DefaultEmbedPaginatorHelp
+    :members:
+
+.. autoclass:: MinimalPaginatorHelp
+    :members:
+
+.. autoclass:: MinimalEmbedPaginatorHelp
+    :members:
