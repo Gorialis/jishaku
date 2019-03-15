@@ -63,7 +63,10 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         self.update_lock: asyncio.Lock = asyncio.Semaphore(value=kwargs.pop('update_max', 2))
 
         if self.page_size > self.max_page_size:
-            raise ValueError('Paginator passed has too large of a page size for this interface.')
+            raise ValueError(
+                f'Paginator passed has too large of a page size for this interface. '
+                f'({self.page_size} > {self.max_page_size})'
+            )
 
     @property
     def pages(self):

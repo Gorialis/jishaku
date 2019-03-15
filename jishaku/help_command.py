@@ -22,12 +22,9 @@ class DefaultPaginatorHelp(commands.DefaultHelpCommand):
     """
 
     def __init__(self, **options):
-        self.paginator = options.pop('paginator', None)
+        paginator = options.pop('paginator', commands.Paginator(max_size=1985))
 
-        if self.paginator is None:
-            self.paginator = commands.Paginator(max_size=1985)
-
-        super().__init__(**options)
+        super().__init__(paginator=paginator, **options)
 
     async def send_pages(self):
         destination = self.get_destination()
@@ -54,12 +51,9 @@ class MinimalPaginatorHelp(commands.MinimalHelpCommand):
     """
 
     def __init__(self, **options):
-        self.paginator = options.pop('paginator', None)
+        paginator = options.pop('paginator', commands.Paginator(max_size=1985))
 
-        if self.paginator is None:
-            self.paginator = commands.Paginator(max_size=1985)
-
-        super().__init__(**options)
+        super().__init__(paginator=paginator, **options)
 
     async def send_pages(self):
         destination = self.get_destination()
