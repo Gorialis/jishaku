@@ -273,9 +273,9 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             self.bot.load_extension('jishaku')
 
             await ctx.send(
-                "Something went wrong, and Jishaku could not be reloaded. "
+                "Something went wrong, and Jishaku could not be reloaded.\n"
                 "I have tried to recover by reinstating the current version of the module, "
-                "but while in this state some parts of the module may not work correctly or at all. "
+                "but while in this state some parts of the module may not work correctly or at all.\n"
                 "It is recommended to diagnose the problem and reload as soon as possible."
             )
 
