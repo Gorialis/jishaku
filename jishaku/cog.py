@@ -330,6 +330,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
 
         if alt_ctx.command is None:
+            if alt_ctx.invoked_with is None:
+                return await ctx.send('This bot has been hard-configured to ignore this user.')
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
 
         return await alt_ctx.command.invoke(alt_ctx)
