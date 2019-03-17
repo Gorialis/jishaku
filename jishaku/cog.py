@@ -272,7 +272,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             ctx.bot.add_cog(self)
             fake_module = types.ModuleType("jishaku")
             sys.modules["jishaku"] = fake_module
-            ctx.bot.extensions["jishaku"] = fake_module
+            ctx.bot._extensions["jishaku"] = fake_module  # pylint: disable=protected-access
 
             await ctx.send(
                 "Something went wrong, and Jishaku could not be reloaded. "
