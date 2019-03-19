@@ -243,41 +243,28 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         paginator = commands.Paginator(prefix='', suffix='')
-        jishaku_in_trouble = False
-        jishaku_mod = sys.modules['jishaku']
 
         for extension in itertools.chain(*extensions):
-            load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
-                        if extension in self.bot.extensions else "\N{INBOX TRAY}"
+            method, icon = (
+                (self.bot.reload_extension, "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}")
+                if extension in self.bot.extensions else
+                (self.bot.load_extension, "\N{INBOX TRAY}")
+            )
+
             try:
-                self.bot.unload_extension(extension)
-                self.bot.load_extension(extension)
+                method(extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
-
-                if extension in ('jishaku', 'jishaku.cog'):
-                    # uh oh
-                    jishaku_in_trouble = True
+                paginator.add_line(
+                    f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    empty=True
+                )
             else:
-                paginator.add_line(f"{load_icon} `{extension}`", empty=True)
+                paginator.add_line(f"{icon} `{extension}`", empty=True)
 
         for page in paginator.pages:
             await ctx.send(page)
-
-        if jishaku_in_trouble and 'Jishaku' not in ctx.bot.cogs:
-            # something bad happened, this is not a normal unload
-            # reinstate the old module and load_extension
-            sys.modules['jishaku'] = jishaku_mod
-            self.bot.load_extension('jishaku')
-
-            await ctx.send(
-                "Something went wrong, and Jishaku could not be reloaded.\n"
-                "I have tried to recover by reinstating the current version of the module, "
-                "but while in this state some parts of the module may not work correctly or at all.\n"
-                "It is recommended to diagnose the problem and reload as soon as possible."
-            )
 
     @jsk.command(name="unload")
     async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
@@ -288,6 +275,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         paginator = commands.Paginator(prefix='', suffix='')
+        icon = "\N{OUTBOX TRAY}"
 
         for extension in itertools.chain(*extensions):
             try:
@@ -295,9 +283,12 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+                paginator.add_line(
+                    f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    empty=True
+                )
             else:
-                paginator.add_line(f"\N{OUTBOX TRAY} `{extension}`", empty=True)
+                paginator.add_line(f"{icon} `{extension}`", empty=True)
 
         for page in paginator.pages:
             await ctx.send(page)
