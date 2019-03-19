@@ -250,12 +250,11 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
                         if extension in self.bot.extensions else "\N{INBOX TRAY}"
             try:
-                self.bot.unload_extension(extension)
-                self.bot.load_extension(extension)
+                self.bot.reload_extension(extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+                paginator.add_line(f"\N{WARNING SIGN} `{extension}` - Old extension still loaded\n```py\n{traceback_data}\n```", empty=True)
 
                 if extension in ('jishaku', 'jishaku.cog'):
                     # uh oh
