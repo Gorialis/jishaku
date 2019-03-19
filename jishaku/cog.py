@@ -240,7 +240,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Loads or reloads the given extension names.
 
         Reports any extensions that failed to load, but
-        keeps the old extension load
+        keeps the old extension loaded if the extension
+        was previously loaded.
         """
 
         paginator = commands.Paginator(prefix='', suffix='')
