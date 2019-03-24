@@ -10,9 +10,12 @@ jishaku.shell test
 """
 
 import asyncio
+import sys
 import unittest
 
 from jishaku.shell import ShellReader
+
+WINDOWS = sys.platform == "win32"
 
 
 class ShellTest(unittest.TestCase):
@@ -22,38 +25,52 @@ class ShellTest(unittest.TestCase):
         loop.run_until_complete(self.internal())
 
     async def internal(self):
-        return_data_1 = []
+        return_data = []
 
         with ShellReader("echo hi") as reader:
             async for result in reader:
-                return_data_1.append(result)
+                return_data.append(result)
 
-        self.assertEqual(len(return_data_1), 1)
-        self.assertEqual(return_data_1[0], "hi")
+        self.assertEqual(len(return_data), 1)
+        self.assertEqual(return_data[0], "hi")
 
-        return_data_2 = []
+        # Linux-only tests
+        if not WINDOWS:
+            return_data = []
 
-        with ShellReader(">&2 echo oops") as reader:
-            async for result in reader:
-                return_data_2.append(result)
+            with ShellReader(">&2 echo oops") as reader:
+                async for result in reader:
+                    return_data.append(result)
 
-        self.assertEqual(len(return_data_2), 1)
-        self.assertEqual(return_data_2[0], "[stderr] oops")
+            self.assertEqual(len(return_data), 1)
+            self.assertEqual(return_data[0], "[stderr] oops")
 
-        return_data_3 = []
+            return_data = []
 
-        with ShellReader("echo one; echo two") as reader:
-            async for result in reader:
-                return_data_3.append(result)
+            with ShellReader("echo one && echo two") as reader:
+                async for result in reader:
+                    return_data.append(result)
 
-        self.assertEqual(len(return_data_3), 2)
-        self.assertEqual(return_data_3[0], "one")
-        self.assertEqual(return_data_3[1], "two")
+            self.assertEqual(len(return_data), 2)
+            self.assertEqual(return_data[0], "one")
+            self.assertEqual(return_data[1], "two")
+
+        # Windows-only tests
+        if WINDOWS:
+            return_data = []
+
+            with ShellReader("cmd /c \"echo one && echo two\"") as reader:
+                async for result in reader:
+                    return_data.append(result)
+
+            self.assertEqual(len(return_data), 2)
+            self.assertEqual(return_data[0].strip(), "one")
+            self.assertEqual(return_data[1].strip(), "two")
 
         hit_exception = False
 
         try:
-            with ShellReader("echo one; sleep 10; echo two", timeout=5) as reader:
+            with ShellReader("sleep 10", timeout=5) as reader:
                 async for result in reader:
                     pass
         except asyncio.TimeoutError:

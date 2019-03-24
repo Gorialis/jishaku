@@ -1,0 +1,42 @@
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python36"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "32"
+
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Python37"
+      PYTHON_VERSION: "3.7.x"
+      PYTHON_ARCH: "32"
+
+    - PYTHON: "C:\\Python37-x64"
+      PYTHON_VERSION: "3.7.x"
+      PYTHON_ARCH: "64"
+
+install:
+  - ps: if (-not(Test-Path($env:PYTHON))) { & _appveyor\install.ps1 }
+
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+
+  - "python -m pip install -U pip"
+  - "python -m pip install -U coverage flake8 \"isort<4.3.5\" pylint pytest pytest-cov sphinx sphinxcontrib-asyncio"
+  - "%CMD_IN_ENV% pip install -r requirements/base.txt"
+
+test_script:
+  - "%CMD_IN_ENV% pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"
+  - "%CMD_IN_ENV% flake8 ."
+  - "%CMD_IN_ENV% pylint jishaku"
+  - "%CMD_IN_ENV% isort . --check-only --recursive"
+
+after_test:
+  - "%CMD_IN_ENV% python setup.py sdist bdist_egg bdist_wheel"
+
+artifacts:
+  - path: dist\*
