@@ -465,10 +465,18 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
     # Python evaluation/execution-related commands
     @jsk.command(name="retain")
-    async def jsk_retain(self, ctx: commands.Context, *, toggle: bool):
+    async def jsk_retain(self, ctx: commands.Context, *, toggle: bool = None):
         """
         Turn variable retention for REPL on or off.
+
+        Provide no argument for current status.
         """
+
+        if toggle is None:
+            if self.retain:
+                return await ctx.send("Variable retention is set to ON.")
+
+            return await ctx.send("Variable retention is set to OFF.")
 
         if toggle:
             if self.retain:
