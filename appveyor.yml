@@ -1,4 +1,6 @@
 
+build: off
+
 environment:
   matrix:
     - PYTHON: "C:\\Python36"
