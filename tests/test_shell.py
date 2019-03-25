@@ -67,13 +67,7 @@ class ShellTest(unittest.TestCase):
             self.assertEqual(return_data[0].strip(), "one")
             self.assertEqual(return_data[1].strip(), "two")
 
-        hit_exception = False
-
-        try:
+        with self.assertRaises(asyncio.TimeoutError, msg="Ensure shell timeouts work"):
             with ShellReader("sleep 10", timeout=5) as reader:
                 async for result in reader:
                     pass
-        except asyncio.TimeoutError:
-            hit_exception = True
-
-        self.assertTrue(hit_exception)

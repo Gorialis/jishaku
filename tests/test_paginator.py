@@ -53,34 +53,16 @@ class PaginatorTest(unittest.TestCase):
         self.assertEqual(pages[0], f"```python\n{base_text}\n```")
 
         # test without encoding hint
-        raised = False
-
-        try:
+        with self.assertRaises(UnicodeDecodeError, msg="Ensure bad unhinted encodings raise"):
             FilePaginator(BytesIO("\u3088\u308d\u3057\u304f".encode("cp932")))
-        except UnicodeDecodeError:
-            raised = True
-
-        self.assertTrue(raised)
 
         # test with wrong encoding hint
-        raised = False
-
-        try:
+        with self.assertRaises(UnicodeDecodeError, msg="Ensure wrong encoding hints raise"):
             FilePaginator(BytesIO("-*- coding: utf-8 -*-\n\u3088\u308d\u3057\u304f".encode("cp932")))
-        except UnicodeDecodeError:
-            raised = True
-
-        self.assertTrue(raised)
 
         # test OOB
-        raised = False
-
-        try:
+        with self.assertRaises(ValueError, msg="Ensure out of bounds line spans raise"):
             FilePaginator(BytesIO("one\ntwo\nthree\nfour".encode('utf-8')), line_span=(-1, 20))
-        except ValueError:
-            raised = True
-
-        self.assertTrue(raised)
 
     def test_wrapped_paginator(self):
         paginator = WrappedPaginator(max_size=200)
@@ -151,21 +133,9 @@ class PaginatorTest(unittest.TestCase):
         self.assertTrue(content.startswith(description))
 
         # check for raise on too large page size
-        raised = False
-
-        try:
+        with self.assertRaises(ValueError, msg="Ensure too large max_size on PaginatorInterface raises"):
             PaginatorInterface(None, commands.Paginator(max_size=2000))
-        except ValueError:
-            raised = True
-
-        self.assertTrue(raised)
 
         # check for raise on not-paginator
-        raised = False
-
-        try:
+        with self.assertRaises(TypeError, msg="Ensure passing non-Paginator to PaginatorInterface raises"):
             PaginatorInterface(None, 4)
-        except TypeError:
-            raised = True
-
-        self.assertTrue(raised)

@@ -124,14 +124,9 @@ class ReplAsyncExecutorTest(unittest.TestCase):
 
         scope.clean()
 
-        hit_exception = False
-        try:
+        with self.assertRaises(NameError, msg="Checking private locals removed"):
             async for result in AsyncCodeExecutor('_cool_data', scope):
                 pass
-        except NameError:
-            hit_exception = True
-
-        self.assertTrue(hit_exception, msg="Checking private locals removed")
 
         scope2 = Scope()
         scope2.update(scope)
