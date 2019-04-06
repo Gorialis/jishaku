@@ -13,7 +13,4 @@ script:
   - "pylint -j '$(nproc)' jishaku"
   - "isort . --check-only --recursive"
   - "python ./setup.py sdist bdist_egg bdist_wheel"
-  - "rm -rf jishaku"
-  - "find dist -name *.whl -exec pip install '{}' +"
-  - "pytest -vs"
   - "cd docs && make html"
