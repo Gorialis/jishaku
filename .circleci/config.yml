@@ -26,7 +26,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -U pip setuptools wheel
-            pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov sphinx sphinxcontrib-asyncio
+            pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
             pip install -U -r requirements/base.txt
 
       - save_cache:

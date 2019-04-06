@@ -29,7 +29,7 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   - "python -m pip install -U pip setuptools wheel"
-  - "python -m pip install -U coverage flake8 \"isort<4.3.5\" pylint pytest pytest-cov sphinx sphinxcontrib-asyncio"
+  - "python -m pip install -U coverage flake8 \"isort<4.3.5\" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio"
   - "%CMD_IN_ENV% pip install -r requirements/base.txt"
 
 test_script:
