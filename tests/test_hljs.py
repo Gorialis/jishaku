@@ -9,15 +9,20 @@ jishaku.hljs test
 
 """
 
-import unittest
+import pytest
 
 from jishaku.hljs import get_language
 
 
-class HighlightJSTest(unittest.TestCase):
-    def test_hljs(self):
-        self.assertEqual(get_language('base.py'), 'py')
-        self.assertEqual(get_language('config.yml'), 'yml')
-        self.assertEqual(get_language('requirements.txt'), '')
-        self.assertEqual(get_language('#!/usr/bin/env python'), 'python')
-        self.assertEqual(get_language('#!/usr/bin/unknown'), '')
+@pytest.mark.parametrize(
+    ("filename", "language"),
+    [
+        ('base.py', 'py'),
+        ('config.yml', 'yml'),
+        ('requirements.txt', ''),
+        ('#!/usr/bin/env python', 'python'),
+        ('#!/usr/bin/unknown', '')
+    ]
+)
+def test_hljs(filename, language):
+    assert get_language(filename) == language
