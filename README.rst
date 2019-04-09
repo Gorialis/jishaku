@@ -34,19 +34,6 @@ If in doubt, all commands have docstrings visible from the help command.
 Installing
 -----------
 
-+-------------------------------------------------------------------------------------------------------+
-| **This cog does not work without discord.py@rewrite**                                                 |
-|                                                                                                       |
-| **Not having it installed properly will make the cog fail to install**                                |
-|                                                                                                       |
-| Use the following to install ``discord.py@rewrite`` on the latest version:                            |
-|                                                                                                       |
-| .. code:: sh                                                                                          |
-|                                                                                                       |
-|     python3 -m pip install -U git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]  |
-+-------------------------------------------------------------------------------------------------------+
-
-
 This cog can be installed through the following command:
 
 .. code:: sh

@@ -33,11 +33,16 @@ from setuptools import setup
 
 ROOT = pathlib.Path(__file__).parent
 
-with open(ROOT / 'requirements' / 'pypi.txt', 'r', encoding='utf-8') as f:
-    REQUIREMENTS = f.read().splitlines()
-
 with open(ROOT / 'jishaku' / 'meta.py', 'r', encoding='utf-8') as f:
     VERSION = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+
+EXTRA_REQUIRES = {}
+
+for feature in (ROOT / 'requirements').glob('*.txt'):
+    with open(feature, 'r', encoding='utf-8') as f:
+        EXTRA_REQUIRES[feature.with_suffix('').name] = f.read().splitlines()
+
+REQUIREMENTS = EXTRA_REQUIRES.pop('_')
 
 if not VERSION:
     raise RuntimeError('version is not set')
@@ -96,30 +101,7 @@ setup(
     install_requires=REQUIREMENTS,
     python_requires='>=3.6.0',
 
-    extras_require={
-        'docs': [
-            'sphinx>=1.7.0',
-            'sphinxcontrib-asyncio'
-        ],
-
-        'test': [
-            'coverage',
-            'flake8',
-            'isort',
-            'pylint',
-            'pytest',
-            'pytest-cov'
-        ],
-
-        'voice': [
-            'PyNaCl',
-            'youtube-dl'
-        ],
-
-        'procinfo': [
-            'psutil'
-        ]
-    },
+    extras_require=EXTRA_REQUIRES,
 
     download_url='https://github.com/Gorialis/jishaku/archive/{}.tar.gz'.format(VERSION),
 

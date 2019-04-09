@@ -6,8 +6,7 @@ alpine 3.6:
   stage: build
   image: gorialis/discord.py:3.6-alpine-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -30,8 +29,7 @@ stretch 3.6:
   stage: build
   image: gorialis/discord.py:3.6-stretch-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -54,8 +52,7 @@ alpine 3.7:
   stage: build
   image: gorialis/discord.py:3.7-alpine-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -78,8 +75,7 @@ stretch 3.7:
   stage: build
   image: gorialis/discord.py:3.7-stretch-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -102,8 +98,7 @@ alpine 3.8:
   stage: build
   image: gorialis/discord.py:3.8-alpine-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -126,8 +121,7 @@ stretch 3.8:
   stage: build
   image: gorialis/discord.py:3.8-stretch-rewrite
   before_script:
-    - pip install -U coverage flake8 "isort<4.3.5" pylint pytest pytest-cov pytest-mock sphinx sphinxcontrib-asyncio
-    - pip install -r requirements/base.txt
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
