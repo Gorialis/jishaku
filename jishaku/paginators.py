@@ -361,17 +361,28 @@ class FilePaginator(commands.Paginator):
         A file-like (implements ``fp.read``) to read the data for this paginator from.
     line_span: Optional[Tuple[int, int]]
         A linespan to read from the file. If None, reads the whole file.
+    language_hints: Tuple[str]
+        A tuple of strings that may hint to the language of this file.
+        This could include filenames, MIME types, or shebangs.
+        A shebang present in the actual file will always be prioritized over this.
     """
 
     __encoding_regex = re.compile(br'coding[=:]\s*([-\w.]+)')
 
-    def __init__(self, fp, line_span=None, **kwargs):
+    def __init__(self, fp, line_span=None, language_hints=(), **kwargs):
         language = ''
 
-        try:
-            language = get_language(fp.name)
-        except AttributeError:
-            pass
+        for hint in language_hints:
+            language = get_language(hint)
+
+            if language:
+                break
+
+        if not language:
+            try:
+                language = get_language(fp.name)
+            except AttributeError:
+                pass
 
         raw_content = fp.read()
 
@@ -398,21 +409,19 @@ class FilePaginator(commands.Paginator):
 
         del raw_content
 
-        first_line = lines[0]
-
         # If the first line is a shebang,
-        if first_line.startswith('#!'):
+        if lines[0].startswith('#!'):
             # prioritize its declaration over the extension.
-            language = get_language(first_line) or language
+            language = get_language(lines[0]) or language
 
         super().__init__(prefix=f'```{language}', suffix='```', **kwargs)
 
-        line_number = len(lines)
-
         if line_span:
             line_span = sorted(line_span)
-            if min(line_span) < 1 or max(line_span) > line_number:
+
+            if min(line_span) < 1 or max(line_span) > len(lines):
                 raise ValueError("Linespan goes out of bounds.")
+
             lines = lines[line_span[0] - 1:line_span[1]]
 
         for line in lines:

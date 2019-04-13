@@ -211,6 +211,26 @@ Commands
 
     This command will wait for a previous invocation to finish before moving onto the next one.
 
+.. py:function:: jsk cat <file: str>
+
+    Reads out the data from a file, displaying it in a :class:`PaginatorInterface`.
+
+    This command will attempt to work out the appropriate highlight.js language from the shebang (if present) or file extension,
+    and will highlight the codeblock accordingly.
+
+    If the file has an encoding hint, it will be honored when trying to read it.
+
+    It is possible to specify a linespan by typing e.g. ``jsk cat file.py#L5-10``, which will only display lines 5 through 10 inclusive.
+
+.. py:function:: jsk curl <url: str>
+
+    Downloads a file from a URL, displaying the contents in a :class:`PaginatorInterface`.
+
+    This command will attempt to work out the appropriate highlight.js language from the MIME type or URL
+    and will highlight the codeblock accordingly.
+
+    If the file has an encoding hint, it will be honored when trying to read it.
+
 .. py:function:: jsk source <command_name: str>
 
     Shows the source for a command in a :class:`PaginatorInterface`.

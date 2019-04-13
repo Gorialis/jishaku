@@ -16,6 +16,7 @@ import collections
 import contextlib
 import datetime
 import inspect
+import io
 import itertools
 import os
 import os.path
@@ -25,12 +26,13 @@ import time
 import traceback
 import typing
 
+import aiohttp
 import discord
 import humanize
 from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, CodeblockConverter
-from jishaku.exception_handling import ReplResponseReactor
+from jishaku.exception_handling import ReactionProcedureTimer, ReplResponseReactor
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
 from jishaku.modules import ExtensionConverter, package_version
@@ -437,6 +439,39 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         await interface.send_to(ctx)
+
+    @jsk.command(name="curl")
+    async def jsk_curl(self, ctx: commands.Context, url: str):
+        """
+        Download and display a text file from the internet.
+
+        This command is similar to jsk cat, but accepts a URL.
+        """
+
+        # remove embed maskers if present
+        url = url.lstrip("<").rstrip(">")
+
+        async with ReactionProcedureTimer(ctx.message):
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    data = await response.read()
+                    hints = (
+                        response.content_type,
+                        url
+                    )
+
+            if not data:
+                return await ctx.send("HTTP response was empty.")
+
+            try:
+                paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1985)
+            except UnicodeDecodeError:
+                return await ctx.send("Couldn't determine the encoding of the response.")
+            except ValueError as exc:
+                return await ctx.send(f"Couldn't read response, {exc}")
+
+            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+            await interface.send_to(ctx)
 
     @jsk.command(name="source", aliases=["src"])
     async def jsk_source(self, ctx: commands.Context, *, command_name: str):
