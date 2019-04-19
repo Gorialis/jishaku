@@ -55,6 +55,8 @@ __all__ = (
 ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
 JISHAKU_HIDE = os.getenv("JISHAKU_HIDE", "").lower() in ENABLED_SYMBOLS
 JISHAKU_RETAIN = os.getenv("JISHAKU_RETAIN", "").lower() in ENABLED_SYMBOLS
+JISHAKU_NO_UNDERSCORE = os.getenv("JISHAKU_NO_UNDERSCORE", "").lower() in ENABLED_SYMBOLS
+SCOPE_PREFIX = '' if JISHAKU_NO_UNDERSCORE else '_'
 
 
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
@@ -534,7 +536,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Direct evaluation of Python code.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx)
+        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -582,7 +584,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Evaluation of Python code with inspect information.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx)
+        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
