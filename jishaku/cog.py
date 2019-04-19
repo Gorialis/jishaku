@@ -535,45 +535,46 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         arg_dict = get_var_dict_from_ctx(ctx)
+        arg_dict["_"] = self.last_result
 
         scope = self.scope
 
-        scope.clean()
-        arg_dict["_"] = self.last_result
+        try:
+            async with ReplResponseReactor(ctx.message):
+                with self.submit(ctx):
+                    async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                        if result is None:
+                            continue
 
-        async with ReplResponseReactor(ctx.message):
-            with self.submit(ctx):
-                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
-                    if result is None:
-                        continue
+                        self.last_result = result
 
-                    self.last_result = result
-
-                    if isinstance(result, discord.File):
-                        await ctx.send(file=result)
-                    elif isinstance(result, discord.Embed):
-                        await ctx.send(embed=result)
-                    elif isinstance(result, PaginatorInterface):
-                        await result.send_to(ctx)
-                    else:
-                        if not isinstance(result, str):
-                            # repr all non-strings
-                            result = repr(result)
-
-                        if len(result) > 2000:
-                            # inconsistency here, results get wrapped in codeblocks when they are too large
-                            #  but don't if they're not. probably not that bad, but noting for later review
-                            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-
-                            paginator.add_line(result)
-
-                            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                            await interface.send_to(ctx)
+                        if isinstance(result, discord.File):
+                            await ctx.send(file=result)
+                        elif isinstance(result, discord.Embed):
+                            await ctx.send(embed=result)
+                        elif isinstance(result, PaginatorInterface):
+                            await result.send_to(ctx)
                         else:
-                            if result.strip() == '':
-                                result = "\u200b"
+                            if not isinstance(result, str):
+                                # repr all non-strings
+                                result = repr(result)
 
-                            await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                            if len(result) > 2000:
+                                # inconsistency here, results get wrapped in codeblocks when they are too large
+                                #  but don't if they're not. probably not that bad, but noting for later review
+                                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+                                paginator.add_line(result)
+
+                                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                                await interface.send_to(ctx)
+                            else:
+                                if result.strip() == '':
+                                    result = "\u200b"
+
+                                await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+        finally:
+            scope.clear_intersection(arg_dict)
 
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
@@ -582,29 +583,30 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         arg_dict = get_var_dict_from_ctx(ctx)
+        arg_dict["_"] = self.last_result
 
         scope = self.scope
 
-        scope.clean()
-        arg_dict["_"] = self.last_result
+        try:
+            async with ReplResponseReactor(ctx.message):
+                with self.submit(ctx):
+                    async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                        self.last_result = result
 
-        async with ReplResponseReactor(ctx.message):
-            with self.submit(ctx):
-                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
-                    self.last_result = result
+                        header = repr(result).replace("``", "`\u200b`").replace(self.bot.http.token, "[token omitted]")
 
-                    header = repr(result).replace("``", "`\u200b`").replace(self.bot.http.token, "[token omitted]")
+                        if len(header) > 485:
+                            header = header[0:482] + "..."
 
-                    if len(header) > 485:
-                        header = header[0:482] + "..."
+                        paginator = WrappedPaginator(prefix=f"```prolog\n=== {header} ===\n", max_size=1985)
 
-                    paginator = WrappedPaginator(prefix=f"```prolog\n=== {header} ===\n", max_size=1985)
+                        for name, res in all_inspections(result):
+                            paginator.add_line(f"{name:16.16} :: {res}")
 
-                    for name, res in all_inspections(result):
-                        paginator.add_line(f"{name:16.16} :: {res}")
-
-                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                    await interface.send_to(ctx)
+                        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                        await interface.send_to(ctx)
+        finally:
+            scope.clear_intersection(arg_dict)
 
     # Shell-related commands
     @jsk.command(name="shell", aliases=["sh"])

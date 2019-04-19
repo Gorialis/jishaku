@@ -117,7 +117,8 @@ async def test_executor_advanced(code, expected, arg_dict, scope):
     for a, b in zip(return_data, expected):
         assert a == b
 
-    scope.clean()
+    if arg_dict:
+        scope.clear_intersection(arg_dict)
 
 
 @run_async
@@ -132,8 +133,6 @@ async def test_scope_copy(scope):
 
     assert 'e' in scope.locals, "Checking scope locals updated"
     assert 'e' not in scope2.locals, "Checking scope clone locals not updated"
-
-    scope.clean()
 
 
 @run_async
@@ -150,8 +149,6 @@ async def test_executor_builtins(scope):
     assert len(return_data) == 1
     assert return_data[0] is None
 
-    scope.clean()
-
     assert 'ensure_builtins' in scope.globals, "Checking function remains defined"
     assert callable(scope.globals['ensure_builtins']), "Checking defined is callable"
-    assert scope.globals['ensure_builtins']() == ValueError, "Checking defined retuurn consistent"
+    assert scope.globals['ensure_builtins']() == ValueError, "Checking defined return consistent"
