@@ -32,7 +32,7 @@ import humanize
 from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, CodeblockConverter
-from jishaku.exception_handling import ReactionProcedureTimer, ReplResponseReactor
+from jishaku.exception_handling import ReplResponseReactor
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
 from jishaku.modules import ExtensionConverter, package_version
@@ -451,7 +451,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         # remove embed maskers if present
         url = url.lstrip("<").rstrip(">")
 
-        async with ReactionProcedureTimer(ctx.message):
+        async with ReplResponseReactor(ctx.message):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     data = await response.read()
@@ -459,16 +459,17 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                         response.content_type,
                         url
                     )
+                    code = response.status
 
             if not data:
-                return await ctx.send("HTTP response was empty.")
+                return await ctx.send(f"HTTP response was empty (status code {code}).")
 
             try:
                 paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1985)
             except UnicodeDecodeError:
-                return await ctx.send("Couldn't determine the encoding of the response.")
+                return await ctx.send(f"Couldn't determine the encoding of the response. (status code {code})")
             except ValueError as exc:
-                return await ctx.send(f"Couldn't read response, {exc}")
+                return await ctx.send(f"Couldn't read response (status code {code}), {exc}")
 
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)
