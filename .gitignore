@@ -1,3 +1,5 @@
+# Devon's Ultimate Python gitignore Ver 1.0 (2019-04-28)
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -105,7 +107,27 @@ venv.bak/
 
 # IntelliJ
 .idea/
+.intellij/
 
 # Visual Studio Code
 .code/
 .vscode/
+
+# Visual Studio
+.vs/
+.visualstudio/
+
+# Configuration files
+config.json
+config.py
+config.toml
+config.yaml
+config.yml
+
+# Log folders
+logs/
+.logs/
+
+# Database or private storage files
+.data/
+.db/
