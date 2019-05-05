@@ -161,7 +161,6 @@ deploy:
     - TWINE_USERNAME="$(echo -e $TWINE_USERNAME)"
     - TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
   script:
-    - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
     - twine upload dist/*
   only:
     - tags@Gorialis/jishaku
