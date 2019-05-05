@@ -1,4 +1,4 @@
-# Devon's Ultimate Python gitignore Ver 1.0 (2019-04-28)
+# Devon's Ultimate Python gitignore Ver 1.2 (2019-04-28)
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -118,11 +118,11 @@ venv.bak/
 .visualstudio/
 
 # Configuration files
-config.json
-config.py
-config.toml
-config.yaml
-config.yml
+/config.json
+/config.py
+/config.toml
+/config.yaml
+/config.yml
 
 # Log folders
 logs/
@@ -131,3 +131,6 @@ logs/
 # Database or private storage files
 .data/
 .db/
+
+# Build outputs
+output/

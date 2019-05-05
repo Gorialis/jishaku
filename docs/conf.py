@@ -84,7 +84,7 @@ pygments_style = 'friendly'
 rst_prolog = """
 .. |tasked| replace:: This command submits itself to the |taskref|_.
 .. |taskref| replace:: *task queue*
-.. _taskref: Task system
+.. _taskref: cog.html#task-system
 """
 
 # -- Options for HTML output -------------------------------------------------
@@ -181,7 +181,7 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'discord': ('https://discordpy.readthedocs.io/en/rewrite', None)
+    'discord': ('https://discordpy.readthedocs.io/en/latest', None)
 }
 
 # -- Options for todo extension ----------------------------------------------

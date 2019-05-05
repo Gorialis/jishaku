@@ -44,9 +44,13 @@ class Scope:
         This allows cleanup of temporary variables that may have washed up into this
         Scope.
 
-        Arguments
-        ---------
-        other_dict: a :class:`dict` to be used to determine scope clearance.
+        Parameters
+        -----------
+        other_dict: :class:`dict`
+            The dictionary to be used to determine scope clearance.
+
+            If a key from this dict matches an entry in the globals or locals of this scope,
+            and the value is identical, it is removed from the scope.
 
         Returns
         -------
@@ -66,9 +70,10 @@ class Scope:
         """
         Updates this scope with the content of another scope.
 
-        Arguments
+        Parameters
         ---------
-        other: a :class:`Scope` instance.
+        other: :class:`Scope`
+            The scope to overlay onto this one.
 
         Returns
         -------
@@ -84,9 +89,10 @@ class Scope:
         """
         Updates this scope's globals with a dict.
 
-        Arguments
-        ---------
-        other: a :class:`dict` to be merged into this scope.
+        Parameters
+        -----------
+        other: :class:`dict`
+            The dictionary to be merged into this scope.
 
         Returns
         -------
@@ -101,9 +107,10 @@ class Scope:
         """
         Updates this scope's locals with a dict.
 
-        Arguments
-        ---------
-        other: a :class:`dict` to be merged into this scope.
+        Parameters
+        -----------
+        other: :class:`dict`
+            The dictionary to be merged into this scope.
 
         Returns
         -------

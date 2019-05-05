@@ -97,8 +97,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         A context-manager that submits the current task to jishaku's task list
         and removes it afterwards.
 
-        Arguments
-        ---------
+        Parameters
+        -----------
         ctx: commands.Context
             A Context object used to derive information about this command task.
         """
@@ -333,7 +333,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
     @jsk.command(name="in")
     async def jsk_in(self, ctx: commands.Context, channel: discord.TextChannel, *, command_string: str):
         """
-        Run a command as if it were in a different channel.
+        Run a command as if it were run in a different channel.
         """
 
         alt_ctx = await copy_context_with(ctx, channel=channel, content=ctx.prefix + command_string)
@@ -348,7 +348,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
         Run a command bypassing all checks and cooldowns.
 
-        This also bypasses permission checks so this has a high possibility of making a command raise.
+        This also bypasses permission checks so this has a high possibility of making commands raise exceptions.
         """
 
         alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
@@ -364,6 +364,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Runs a command multiple times in a row.
 
         This acts like the command was invoked several times manually, so it obeys cooldowns.
+        You can use this in conjunction with `jsk sudo` to bypass this.
         """
 
         with self.submit(ctx):  # allow repeats to be cancelled
@@ -616,7 +617,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         """
         Executes statements in the system shell.
 
-        This uses the bash shell. Execution can be cancelled by closing the paginator.
+        This uses the system shell as defined in $SHELL, or `/bin/bash` otherwise.
+        Execution can be cancelled by closing the paginator.
         """
 
         async with ReplResponseReactor(ctx.message):

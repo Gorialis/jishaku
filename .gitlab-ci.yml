@@ -1,10 +1,11 @@
 
 stages:
   - build
+  - deploy
 
 alpine 3.6:
   stage: build
-  image: gorialis/discord.py:3.6-alpine-rewrite
+  image: gorialis/discord.py:3.6-alpine-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -27,7 +28,7 @@ alpine 3.6:
 
 stretch 3.6:
   stage: build
-  image: gorialis/discord.py:3.6-stretch-rewrite
+  image: gorialis/discord.py:3.6-stretch-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -50,7 +51,7 @@ stretch 3.6:
 
 alpine 3.7:
   stage: build
-  image: gorialis/discord.py:3.7-alpine-rewrite
+  image: gorialis/discord.py:3.7-alpine-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -73,7 +74,7 @@ alpine 3.7:
 
 stretch 3.7:
   stage: build
-  image: gorialis/discord.py:3.7-stretch-rewrite
+  image: gorialis/discord.py:3.7-stretch-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -96,7 +97,7 @@ stretch 3.7:
 
 alpine 3.8:
   stage: build
-  image: gorialis/discord.py:3.8-alpine-rewrite
+  image: gorialis/discord.py:3.8-alpine-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -119,7 +120,7 @@ alpine 3.8:
 
 stretch 3.8:
   stage: build
-  image: gorialis/discord.py:3.8-stretch-rewrite
+  image: gorialis/discord.py:3.8-stretch-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
   script:
@@ -139,3 +140,28 @@ stretch 3.8:
     expire_in: 2 days
   retry: 1
   when: always
+
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - mv docs/_build public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+
+deploy:
+  stage: deploy
+  image: gorialis/discord.py:3.8-alpine-master
+  before_script:
+    - pip install -U twine
+    - ls dist
+    - TWINE_USERNAME="$(echo -e $TWINE_USERNAME)"
+    - TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
+  script:
+    - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    - twine upload dist/*
+  only:
+    - tags@Gorialis/jishaku

@@ -6,11 +6,17 @@ jishaku
 .. |license| image:: https://img.shields.io/pypi/l/jishaku.svg
   :target: https://github.com/Gorialis/jishaku/blob/master/LICENSE
 
+.. |status| image:: https://img.shields.io/pypi/status/jishaku.svg
+  :target: https://pypi.python.org/pypi/jishaku
+
 .. |travis| image:: https://img.shields.io/travis/Gorialis/jishaku/master.svg?label=TravisCI
   :target: https://travis-ci.org/Gorialis/jishaku
 
 .. |circle| image:: https://img.shields.io/circleci/project/github/Gorialis/jishaku/master.svg?label=CircleCI
   :target: https://circleci.com/gh/Gorialis/jishaku
+
+.. |appveyor| image:: https://img.shields.io/appveyor/ci/Gorialis/jishaku.svg?label=AppVeyorCI
+  :target: https://ci.appveyor.com/project/Gorialis/jishaku
 
 .. |issues| image:: https://img.shields.io/github/issues/Gorialis/jishaku.svg?colorB=3333ff
   :target: https://github.com/Gorialis/jishaku/issues
@@ -18,17 +24,16 @@ jishaku
 .. |commit| image:: https://img.shields.io/github/commit-activity/w/Gorialis/jishaku.svg
   :target: https://github.com/Gorialis/jishaku/commits
 
-.. |status| image:: https://img.shields.io/pypi/status/jishaku.svg
-  :target: https://pypi.python.org/pypi/jishaku
+|py| |license| |status|
+|travis| |circle| |appveyor|
+|issues| |commit|
 
-|py| |license| |travis| |circle| |issues| |commit| |status|
-
-jishaku is a debugging and experimenting cog for Discord bots using ``discord.py@rewrite``.
+jishaku is a debugging and experimenting cog for Discord bots using ``discord.py``.
 
 It is locked to Python 3.6+ and requirements will shift as new ``discord.py`` and Python versions release.
 This repo primarily exists for the purpose of example and usage in other bot projects.
 
-Documentation is available on `readthedocs <https://jishaku.readthedocs.io/en/latest/>`__, although incomplete.
+Some documentation is available on `readthedocs <https://jishaku.readthedocs.io/en/latest/>`__.
 If in doubt, all commands have docstrings visible from the help command.
 
 Installing
@@ -114,7 +119,9 @@ Variables available in REPL are:
 - ``_channel``: Shorthand for ``_ctx.channel``
 - ``_author``: Shorthand for ``_ctx.message.author``
 
-These variables are all local to the current context, and as such overwriting them won't affect future sessions.
+These variables are local and cleared between sessions, so they will not persist into other sessions.
+
+The underscore prefix is to help reduce accidental shadowing. If you don't want your variables to be prefixed, set ``JISHAKU_NO_UNDERSCORE=true`` in your environment variables.
 
 By default, variables are not shared at all between REPL contexts. You can use ``[jishaku|jsk] retain on`` to try and preserve locals between sessions.
 

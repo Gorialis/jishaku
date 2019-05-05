@@ -311,8 +311,8 @@ class WrappedPaginator(commands.Paginator):
 
     Delimiters are prioritized in the order of their tuple.
 
-    Arguments
-    ---------
+    Parameters
+    -----------
     wrap_on: tuple
         A tuple of wrapping delimiters.
     include_wrapped: bool
@@ -355,8 +355,8 @@ class FilePaginator(commands.Paginator):
     """
     A paginator of syntax-highlighted codeblocks, read from a file-like.
 
-    Arguments
-    ----------
+    Parameters
+    -----------
     fp
         A file-like (implements ``fp.read``) to read the data for this paginator from.
     line_span: Optional[Tuple[int, int]]
