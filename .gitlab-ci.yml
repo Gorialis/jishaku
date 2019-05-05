@@ -145,7 +145,7 @@ pages:
   stage: deploy
   image: alpine:latest
   script:
-    - mv docs/_build public
+    - mv docs/_build/html public
   artifacts:
     paths:
       - public
