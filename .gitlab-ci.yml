@@ -162,5 +162,8 @@ deploy:
     - TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
   script:
     - twine upload dist/*
+  artifacts:
+    paths:
+      - dist
   only:
     - tags@Gorialis/jishaku
