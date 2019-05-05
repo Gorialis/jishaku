@@ -158,8 +158,8 @@ deploy:
   before_script:
     - pip install -U twine
     - ls dist
-    - TWINE_USERNAME="$(echo -e $TWINE_USERNAME)"
-    - TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
+    - export TWINE_USERNAME="$(echo -e $TWINE_USERNAME)"
+    - export TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
   script:
     - twine upload dist/*
   artifacts:
