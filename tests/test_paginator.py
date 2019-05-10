@@ -9,6 +9,7 @@ jishaku converter test
 
 """
 
+import asyncio
 import inspect
 from io import BytesIO
 
@@ -16,6 +17,7 @@ import discord
 import pytest
 from discord.ext import commands
 
+import utils
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
 
 
@@ -69,8 +71,13 @@ def test_wrapped_paginator():
     paginator.add_line("abcde " * 50)
     assert len(paginator.pages) == 2
 
+    paginator = WrappedPaginator(max_size=200, include_wrapped=False)
+    paginator.add_line("abcde " * 50)
+    assert len(paginator.pages) == 2
 
-def test_paginator_interface():
+
+@utils.run_async
+async def test_paginator_interface():
     bot = commands.Bot('?')
 
     with open(__file__, 'rb') as fp:
@@ -99,7 +106,7 @@ def test_paginator_interface():
     # pages have been closed, so adding a line should make a new page
     old_page_count = interface.page_count
 
-    bot.loop.run_until_complete(interface.add_line('a' * 150))
+    await interface.add_line('a' * 150)
 
     assert interface.page_count > old_page_count
 
@@ -110,7 +117,7 @@ def test_paginator_interface():
     assert interface.pages == paginator.pages
 
     # page closed, so create new page
-    bot.loop.run_until_complete(interface.add_line('b' * 150))
+    await interface.add_line('b' * 150)
 
     # ensure page has followed tail
     assert interface.display_page > old_display_page
@@ -140,3 +147,181 @@ def test_paginator_interface():
     # check for raise on not-paginator
     with pytest.raises(TypeError):
         PaginatorInterface(None, 4)
+
+    paginator = commands.Paginator(max_size=100)
+    for _ in range(100):
+        paginator.add_line("test text")
+
+    # test interfacing
+    with utils.mock_ctx(bot) as ctx:
+        interface = PaginatorInterface(bot, paginator)
+
+        assert not interface.closed
+
+        await interface.send_to(ctx)
+
+        await asyncio.sleep(0.1)
+        await interface.add_line("test text")
+
+        assert interface.page_count > 1
+        assert not interface.closed
+
+        interface.message.id = utils.sentinel()
+
+        current_page = interface.display_page
+
+        # push right button
+        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
+            {
+                'message_id': interface.message.id,
+                'user_id': ctx.author.id,
+                'channel_id': ctx.channel.id,
+                'guild_id': ctx.guild.id
+            },
+            discord.PartialEmoji(
+                animated=False,
+                name="\N{BLACK RIGHT-POINTING TRIANGLE}",
+                id=None
+            )
+        ))
+
+        await asyncio.sleep(0.1)
+
+        assert interface.display_page > current_page
+        assert not interface.closed
+
+        current_page = interface.display_page
+
+        # push left button
+        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
+            {
+                'message_id': interface.message.id,
+                'user_id': ctx.author.id,
+                'channel_id': ctx.channel.id,
+                'guild_id': ctx.guild.id
+            },
+            discord.PartialEmoji(
+                animated=False,
+                name="\N{BLACK LEFT-POINTING TRIANGLE}",
+                id=None
+            )
+        ))
+
+        await asyncio.sleep(0.1)
+
+        assert interface.display_page < current_page
+        assert not interface.closed
+
+        # push last page button
+        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
+            {
+                'message_id': interface.message.id,
+                'user_id': ctx.author.id,
+                'channel_id': ctx.channel.id,
+                'guild_id': ctx.guild.id
+            },
+            discord.PartialEmoji(
+                animated=False,
+                name="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+                id=None
+            )
+        ))
+
+        await asyncio.sleep(0.1)
+
+        assert interface.display_page == interface.page_count - 1
+        assert not interface.closed
+
+        # push first page button
+        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
+            {
+                'message_id': interface.message.id,
+                'user_id': ctx.author.id,
+                'channel_id': ctx.channel.id,
+                'guild_id': ctx.guild.id
+            },
+            discord.PartialEmoji(
+                animated=False,
+                name="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+                id=None
+            )
+        ))
+
+        await asyncio.sleep(0.1)
+
+        assert interface.display_page == 0
+        assert not interface.closed
+
+        # push close button
+        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
+            {
+                'message_id': interface.message.id,
+                'user_id': ctx.author.id,
+                'channel_id': ctx.channel.id,
+                'guild_id': ctx.guild.id
+            },
+            discord.PartialEmoji(
+                animated=False,
+                name="\N{BLACK SQUARE FOR STOP}",
+                id=None
+            )
+        ))
+
+        await asyncio.sleep(0.1)
+
+        assert interface.closed
+        ctx.send.coro.return_value.delete.assert_called_once()
+
+    # test resend, no delete
+    with utils.mock_ctx(bot) as ctx:
+        interface = PaginatorInterface(bot, paginator)
+
+        assert not interface.closed
+
+        await interface.send_to(ctx)
+
+        await asyncio.sleep(0.1)
+        await interface.add_line("test text")
+
+        assert interface.page_count > 1
+        assert not interface.closed
+
+        # resend
+        await interface.send_to(ctx)
+
+        await asyncio.sleep(0.1)
+        await interface.add_line("test text")
+
+        ctx.send.coro.return_value.delete.assert_not_called()
+
+        interface.task.cancel()
+        await asyncio.sleep(0.1)
+
+        assert interface.closed
+
+    # test resend, delete
+    with utils.mock_ctx(bot) as ctx:
+        interface = PaginatorInterface(bot, paginator, delete_message=True)
+
+        assert not interface.closed
+
+        await interface.send_to(ctx)
+
+        await asyncio.sleep(0.1)
+        await interface.add_line("test text")
+
+        assert interface.page_count > 1
+        assert not interface.closed
+
+        # resend
+        await interface.send_to(ctx)
+
+        await asyncio.sleep(0.1)
+        await interface.add_line("test text")
+
+        ctx.send.coro.return_value.delete.assert_called_once()
+
+        interface.task.cancel()
+        await asyncio.sleep(0.1)
+
+        assert interface.closed

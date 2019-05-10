@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run pytest test suite",
+            "type": "shell",
+            "command": "pytest",
+            "args": [
+                "-vs",
+                ".",
+                "--cov=jishaku",
+                "--cov-report",
+                "term-missing:skip-covered"
+            ],
+            "group": "test"
+        }
+    ]
+}

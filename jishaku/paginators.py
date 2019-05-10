@@ -173,6 +173,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.task = self.bot.loop.create_task(self.wait_loop())
 
+        return self
+
     async def send_all_reactions(self):
         """
         Sends all reactions for this paginator, if any are missing.
@@ -212,9 +214,15 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
                 emoji = emoji.name
 
-            return payload.message_id == self.message.id and \
-                emoji and emoji in self.emojis and \
-                payload.user_id != self.bot.user.id and owner_check
+            tests = (
+                owner_check,
+                payload.message_id == self.message.id,
+                emoji,
+                emoji in self.emojis,
+                payload.user_id != self.bot.user.id
+            )
+
+            return all(tests)
 
         try:
             while not self.bot.is_closed():
@@ -244,7 +252,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 except discord.Forbidden:
                     pass
 
-        except asyncio.TimeoutError:
+        except (asyncio.CancelledError, asyncio.TimeoutError):
             if self.delete_message:
                 return await self.message.delete()
 

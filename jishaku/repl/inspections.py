@@ -107,13 +107,10 @@ def type_mro_inspection(obj):
 
 @add_inspection("Subclasses")
 def subclass_inspection(obj):
-    if not hasattr(obj, "__subclasses__"):
-        return
-
-    if isinstance(obj, type):
+    if isinstance(obj, type) and hasattr(obj, "__subclasses__"):
         subclasses = type.__subclasses__(obj)
     else:
-        subclasses = obj.__subclasses__()
+        return
 
     output = ', '.join(class_name(x) for x in subclasses[0:5])
 

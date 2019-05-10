@@ -15,8 +15,8 @@ import sys
 
 import pytest
 
-from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var
-from utils import run_async
+from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, get_var_dict_from_ctx
+from utils import mock_ctx, run_async
 
 
 def upper_method():
@@ -129,10 +129,24 @@ async def test_scope_copy(scope):
     assert scope.globals == scope2.globals, "Checking scope globals copied"
     assert scope.locals == scope2.locals, "Checking scope locals copied"
 
-    scope.update_locals({'e': 7})
+    insert_dict = {'e': 7}
+    scope.update_locals(insert_dict)
 
     assert 'e' in scope.locals, "Checking scope locals updated"
     assert 'e' not in scope2.locals, "Checking scope clone locals not updated"
+
+    scope.clear_intersection(insert_dict)
+
+    assert 'e' not in scope.locals, "Checking locals intersection cleared"
+
+    scope.update_globals(insert_dict)
+
+    assert 'e' in scope.globals, "Checking scope globals updated"
+    assert 'e' not in scope2.globals, "Checking scope clone globals not updated"
+
+    scope.clear_intersection(insert_dict)
+
+    assert 'e' not in scope.globals, "Checking globals intersection cleared"
 
 
 @run_async
@@ -152,3 +166,12 @@ async def test_executor_builtins(scope):
     assert 'ensure_builtins' in scope.globals, "Checking function remains defined"
     assert callable(scope.globals['ensure_builtins']), "Checking defined is callable"
     assert scope.globals['ensure_builtins']() == ValueError, "Checking defined return consistent"
+
+
+def test_var_dict(scope):
+    with mock_ctx() as ctx:
+        scope.update_globals(get_var_dict_from_ctx(ctx))
+
+        assert scope.globals['_ctx'] is ctx
+        assert scope.globals['_bot'] is ctx.bot
+        assert scope.globals['_message'] is ctx.message

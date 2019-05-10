@@ -211,7 +211,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                                f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        await interface.send_to(ctx)
+        return await interface.send_to(ctx)
 
     @jsk.command(name="cancel")
     async def jsk_cancel(self, ctx: commands.Context, *, index: int):

@@ -9,6 +9,8 @@ jishaku.cog loadability and functionality test
 
 """
 
+import asyncio
+
 import pytest
 from discord.ext import commands
 
@@ -148,6 +150,62 @@ async def test_commands(bot):
         ctx.send.assert_called_once()
         text = ctx.send.call_args[0][0]
         assert "already visible" in text
+
+    # test 'jsk tasks'
+    with utils.mock_ctx() as ctx:
+        await bot.get_command('jsk tasks').callback(cog, ctx)
+
+        ctx.send.assert_called_once()
+        text = ctx.send.call_args[0][0]
+        assert "No currently running tasks" in text
+
+    with utils.mock_ctx() as ctx:
+        with cog.submit(ctx):
+            interface = await bot.get_command('jsk tasks').callback(cog, ctx)
+
+            ctx.send.assert_called_once()
+
+            interface.task.cancel()
+
+    # test 'jsk cancel'
+    with utils.mock_ctx() as ctx:
+        # test explicit
+        with cog.submit(ctx) as command_task:
+            with pytest.raises(asyncio.CancelledError):
+                await bot.get_command('jsk cancel').callback(cog, ctx, index=command_task.index)
+                await asyncio.sleep(0.1)
+
+            ctx.send.assert_called_once()
+            text = ctx.send.call_args[0][0]
+            assert f"Cancelled task {command_task.index}" in text
+
+    with utils.mock_ctx() as ctx:
+        # test implicit
+        with cog.submit(ctx) as command_task:
+            with pytest.raises(asyncio.CancelledError):
+                await bot.get_command('jsk cancel').callback(cog, ctx, index=-1)
+                await asyncio.sleep(0.1)
+
+            ctx.send.assert_called_once()
+            text = ctx.send.call_args[0][0]
+            assert f"Cancelled task {command_task.index}" in text
+
+    with utils.mock_ctx() as ctx:
+        # test unknown task
+        with cog.submit(ctx) as command_task:
+            await bot.get_command('jsk cancel').callback(cog, ctx, index=123456789012345678)
+
+            ctx.send.assert_called_once()
+            text = ctx.send.call_args[0][0]
+            assert "Unknown task" in text
+
+    with utils.mock_ctx() as ctx:
+        # test no tasks
+        await bot.get_command('jsk cancel').callback(cog, ctx, index=123456789012345678)
+
+        ctx.send.assert_called_once()
+        text = ctx.send.call_args[0][0]
+        assert "No tasks" in text
 
     # test 'jsk retain'
     cog.retain = False
