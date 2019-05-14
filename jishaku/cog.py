@@ -308,7 +308,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
     # Command-invocation commands
     @jsk.command(name="su")
-    async def jsk_su(self, ctx: commands.Context, target: discord.User, *, command_string: str):
+    async def jsk_su(self, ctx: commands.Context, target: typing.Union[discord.Member, discord.User], *, command_string: str):
         """
         Run a command as someone else.
 
