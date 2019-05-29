@@ -246,7 +246,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Reports any extensions that failed to load.
         """
 
-        paginator = commands.Paginator(prefix='', suffix='')
+        paginator = WrappedPaginator(prefix='', suffix='')
 
         for extension in itertools.chain(*extensions):
             method, icon = (
@@ -278,7 +278,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         Reports any extensions that failed to unload.
         """
 
-        paginator = commands.Paginator(prefix='', suffix='')
+        paginator = WrappedPaginator(prefix='', suffix='')
         icon = "\N{OUTBOX TRAY}"
 
         for extension in itertools.chain(*extensions):
