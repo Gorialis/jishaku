@@ -17,8 +17,8 @@ import inspect
 import sys
 import textwrap
 
-from async_generator import async_generator, yield_, yield_from_
 import import_expression
+from async_generator import async_generator, yield_, yield_from_
 
 from .scope import Scope
 
