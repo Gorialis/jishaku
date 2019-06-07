@@ -166,7 +166,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         # if there is more than one page, and the reactions haven't been sent yet, send navigation emotes
         if not self.sent_page_reactions and self.page_count > 1:
-            await self.send_all_reactions()
+            self.bot.loop.create_task(self.send_all_reactions())
 
         if self.task:
             self.task.cancel()
@@ -183,7 +183,11 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         """
 
         for emoji in filter(None, self.emojis):
-            await self.message.add_reaction(emoji)
+            try:
+                await self.message.add_reaction(emoji)
+            except discord.NotFound:
+                # probably the interface has already been closed
+                break
         self.sent_page_reactions = True
 
     @property
