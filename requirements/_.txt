@@ -1,3 +1,4 @@
+async_generator
 discord.py>=1.0.0
 humanize
 import_expression<1.0.0,>=0.3.7

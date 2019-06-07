@@ -17,6 +17,7 @@ import inspect
 import sys
 import textwrap
 
+from async_generator import async_generator, yield_, yield_from_
 import import_expression
 
 from .scope import Scope
@@ -147,18 +148,17 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
         return self.traverse(func_def)
 
+    @async_generator
     async def traverse(self, func):
         """
         Traverses an async function or generator, yielding each result.
 
-        This function is private. The class should be used as an iterator instead of using this method.
+        This function is private. The class should be used as a generator instead of using this method.
         """
-
         # this allows the reference to be stolen
         async_executor = self
 
         if inspect.isasyncgenfunction(func):
-            async for result in func(*async_executor.args):
-                yield result
+            await yield_from_(func(*async_executor.args))
         else:
-            yield await func(*async_executor.args)
+            await yield_(await func(*async_executor.args))

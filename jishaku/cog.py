@@ -545,18 +545,26 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict).__aiter__()
+                    result = await executor.asend(None)
+
+                    while True:
                         if result is None:
+                            try:
+                                result = await executor.asend(None)
+                            except StopAsyncIteration:
+                                break
+
                             continue
 
                         self.last_result = result
 
                         if isinstance(result, discord.File):
-                            await ctx.send(file=result)
+                            msg = await ctx.send(file=result)
                         elif isinstance(result, discord.Embed):
-                            await ctx.send(embed=result)
+                            msg = await ctx.send(embed=result)
                         elif isinstance(result, PaginatorInterface):
-                            await result.send_to(ctx)
+                            msg = await result.send_to(ctx)
                         else:
                             if not isinstance(result, str):
                                 # repr all non-strings
@@ -570,12 +578,17 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                                 paginator.add_line(result)
 
                                 interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                                await interface.send_to(ctx)
+                                msg = await interface.send_to(ctx)
                             else:
                                 if result.strip() == '':
                                     result = "\u200b"
 
-                                await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                                msg = await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+
+                        try:
+                            result = await executor.asend(msg)
+                        except StopAsyncIteration:
+                            break
         finally:
             scope.clear_intersection(arg_dict)
 
