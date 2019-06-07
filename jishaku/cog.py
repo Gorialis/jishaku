@@ -558,32 +558,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                             continue
 
                         self.last_result = result
-
-                        if isinstance(result, discord.File):
-                            msg = await ctx.send(file=result)
-                        elif isinstance(result, discord.Embed):
-                            msg = await ctx.send(embed=result)
-                        elif isinstance(result, PaginatorInterface):
-                            msg = await result.send_to(ctx)
-                        else:
-                            if not isinstance(result, str):
-                                # repr all non-strings
-                                result = repr(result)
-
-                            if len(result) > 2000:
-                                # inconsistency here, results get wrapped in codeblocks when they are too large
-                                #  but don't if they're not. probably not that bad, but noting for later review
-                                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-
-                                paginator.add_line(result)
-
-                                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                                msg = await interface.send_to(ctx)
-                            else:
-                                if result.strip() == '':
-                                    result = "\u200b"
-
-                                msg = await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                        msg = await self._format_result(ctx, result)
 
                         try:
                             result = await executor.asend(msg)
@@ -591,6 +566,34 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                             break
         finally:
             scope.clear_intersection(arg_dict)
+
+    async def _format_result(self, ctx, result):
+        """format a result received from a repl coroutine and send it to the context as appropriate"""
+        if isinstance(result, discord.File):
+            return await ctx.send(file=result)
+        if isinstance(result, discord.Embed):
+            return await ctx.send(embed=result)
+        if isinstance(result, PaginatorInterface):
+            return await result.send_to(ctx)
+
+        if not isinstance(result, str):
+            # repr all non-strings
+            result = repr(result)
+
+        if len(result) > 2000:
+            # inconsistency here, results get wrapped in codeblocks when they are too large
+            #  but don't if they're not. probably not that bad, but noting for later review
+            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+            paginator.add_line(result)
+
+            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+            return await interface.send_to(ctx)
+
+        if result.strip() == '':
+            result = "\u200b"
+
+        return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
 
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
