@@ -24,10 +24,12 @@ async def copy_context_with(ctx: commands.Context, *, author=None, channel=None,
 
     # copy the message and update the attributes
     alt_message: discord.Message = copy.copy(ctx.message)
-    alt_message._update(channel or alt_message.channel, kwargs)  # pylint: disable=protected-access
+    alt_message._update(kwargs)  # pylint: disable=protected-access
 
     if author is not None:
         alt_message.author = author
+    if channel is not None:
+        alt_message.channel = channel
 
     # obtain and return a context of the same type
     return await ctx.bot.get_context(alt_message, cls=type(ctx))
