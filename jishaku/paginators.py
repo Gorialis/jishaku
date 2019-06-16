@@ -164,14 +164,14 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         # add the close reaction
         await self.message.add_reaction(self.emojis.close)
 
-        # if there is more than one page, and the reactions haven't been sent yet, send navigation emotes
-        if not self.sent_page_reactions and self.page_count > 1:
-            await self.send_all_reactions()
-
         if self.task:
             self.task.cancel()
 
         self.task = self.bot.loop.create_task(self.wait_loop())
+
+        # if there is more than one page, and the reactions haven't been sent yet, send navigation emotes
+        if not self.sent_page_reactions and self.page_count > 1:
+            await self.send_all_reactions()
 
         return self
 
