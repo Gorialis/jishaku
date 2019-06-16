@@ -19,7 +19,8 @@ import textwrap
 
 import import_expression
 
-from .scope import Scope
+from jishaku.functools import AsyncSender
+from jishaku.repl.scope import Scope
 
 CORO_CODE = """
 async def _repl_coroutine({{0}}):
@@ -158,7 +159,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         async_executor = self
 
         if inspect.isasyncgenfunction(func):
-            async for result in func(*async_executor.args):
-                yield result
+            async for send, result in AsyncSender(func(*async_executor.args)):
+                send((yield result))
         else:
             yield await func(*async_executor.args)

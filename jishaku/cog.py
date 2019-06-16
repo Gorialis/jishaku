@@ -33,6 +33,7 @@ from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor
+from jishaku.functools import AsyncSender
 from jishaku.meta import __version__
 from jishaku.models import copy_context_with
 from jishaku.modules import ExtensionConverter, package_version
@@ -545,18 +546,19 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
+                    async for send, result in AsyncSender(executor):
                         if result is None:
                             continue
 
                         self.last_result = result
 
                         if isinstance(result, discord.File):
-                            await ctx.send(file=result)
+                            send(await ctx.send(file=result))
                         elif isinstance(result, discord.Embed):
-                            await ctx.send(embed=result)
+                            send(await ctx.send(embed=result))
                         elif isinstance(result, PaginatorInterface):
-                            await result.send_to(ctx)
+                            send(await result.send_to(ctx))
                         else:
                             if not isinstance(result, str):
                                 # repr all non-strings
@@ -570,12 +572,12 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                                 paginator.add_line(result)
 
                                 interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                                await interface.send_to(ctx)
+                                send(await interface.send_to(ctx))
                             else:
                                 if result.strip() == '':
                                     result = "\u200b"
 
-                                await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                                send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
         finally:
             scope.clear_intersection(arg_dict)
 
@@ -593,7 +595,8 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
+                    async for send, result in AsyncSender(executor):
                         self.last_result = result
 
                         header = repr(result).replace("``", "`\u200b`").replace(self.bot.http.token, "[token omitted]")
@@ -607,7 +610,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                             paginator.add_line(f"{name:16.16} :: {res}")
 
                         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                        await interface.send_to(ctx)
+                        send(await interface.send_to(ctx))
         finally:
             scope.clear_intersection(arg_dict)
 
