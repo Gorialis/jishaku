@@ -183,7 +183,11 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         """
 
         for emoji in filter(None, self.emojis):
-            await self.message.add_reaction(emoji)
+            try:
+                await self.message.add_reaction(emoji)
+            except discord.NotFound:
+                # the paginator has probably already been closed
+                break
         self.sent_page_reactions = True
 
     @property
