@@ -66,7 +66,7 @@ def resolve_extensions(bot: commands.Bot, name: str) -> list:
 
         return find_extensions_in(path)
 
-    if name == '~':
+    if name in '~*':
         return list(bot.extensions.keys())
 
     return [name]
