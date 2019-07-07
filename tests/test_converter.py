@@ -9,24 +9,19 @@ jishaku converter test
 
 """
 
-import asyncio
 import inspect
 
-from jishaku.codeblocks import Codeblock, CodeblockConverter
+from jishaku.codeblocks import Codeblock, codeblock_converter
 
 
 def test_codeblock_converter():
-    loop = asyncio.get_event_loop()
-
-    conv = CodeblockConverter()
-
     text = """
     ```py
     one
     ```
     """
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == 'one'
@@ -38,7 +33,7 @@ def test_codeblock_converter():
     ```
     """
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == 'two'
@@ -50,7 +45,7 @@ def test_codeblock_converter():
     ```
     """
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == 'three'
@@ -62,20 +57,18 @@ def test_codeblock_converter():
     ```
     """
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == 'four'
-    assert codeblock.language == ''
     assert not codeblock.language
 
     text = "five"
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == 'five'
-    assert codeblock.language is None
     assert not codeblock.language
 
     text = """
@@ -83,18 +76,39 @@ def test_codeblock_converter():
     ```
     """
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
-    assert codeblock.content.strip() == 'six'
-    assert codeblock.language is None
+    assert codeblock.content.strip() == 'six\n```'
     assert not codeblock.language
 
     text = ""
 
-    codeblock = loop.run_until_complete(conv.convert(None, inspect.cleandoc(text)))
+    codeblock = codeblock_converter(inspect.cleandoc(text))
 
     assert isinstance(codeblock, Codeblock)
     assert codeblock.content.strip() == ''
-    assert codeblock.language is None
+    assert not codeblock.language
+
+    text = """
+    ```
+    se``ven
+    ```
+    """
+
+    codeblock = codeblock_converter(inspect.cleandoc(text))
+    assert isinstance(codeblock, Codeblock)
+    assert codeblock.content.strip() == 'se``ven'
+    assert not codeblock.language
+
+    text = "``ei`ght``"
+    codeblock = codeblock_converter(text)
+    assert isinstance(codeblock, Codeblock)
+    assert codeblock.content.strip() == 'ei`ght'
+    assert not codeblock.language
+
+    text = "`nine`"
+    codeblock = codeblock_converter(text)
+    assert isinstance(codeblock, Codeblock)
+    assert codeblock.content.strip() == 'nine'
     assert not codeblock.language
