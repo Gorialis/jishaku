@@ -31,7 +31,7 @@ import discord
 import humanize
 from discord.ext import commands
 
-from jishaku.codeblocks import Codeblock, CodeblockConverter
+from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.functools import AsyncSender
 from jishaku.meta import __version__
@@ -533,7 +533,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
         return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
 
     @jsk.command(name="py", aliases=["python"])
-    async def jsk_python(self, ctx: commands.Context, *, argument: CodeblockConverter):
+    async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Direct evaluation of Python code.
         """
@@ -582,7 +582,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
             scope.clear_intersection(arg_dict)
 
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
+    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Evaluation of Python code with inspect information.
         """
@@ -616,7 +616,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
 
     # Shell-related commands
     @jsk.command(name="shell", aliases=["sh"])
-    async def jsk_shell(self, ctx: commands.Context, *, argument: CodeblockConverter):
+    async def jsk_shell(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Executes statements in the system shell.
 
@@ -641,7 +641,7 @@ class Jishaku(commands.Cog):  # pylint: disable=too-many-public-methods
                 await interface.add_line(f"\n[status] Return code {reader.close_code}")
 
     @jsk.command(name="git")
-    async def jsk_git(self, ctx: commands.Context, *, argument: CodeblockConverter):
+    async def jsk_git(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Shortcut for 'jsk sh git'. Invokes the system shell.
         """
