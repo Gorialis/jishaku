@@ -21,6 +21,7 @@ import import_expression
 
 from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
+from jishaku.repl.walkers import KeywordTransformer
 
 CORO_CODE = """
 async def _repl_coroutine({{0}}):
@@ -75,7 +76,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     ast.fix_missing_locations(mod)
 
-    is_asyncgen = any(isinstance(node, ast.Yield) for node in ast.walk(try_block))
+    KeywordTransformer().generic_visit(try_block)
 
     last_expr = try_block.body[-1]
 
@@ -85,24 +86,15 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     # if the last expression is not a yield
     if not isinstance(last_expr.value, ast.Yield):
-        # copy the expression into a return/yield
-        if is_asyncgen:
-            # copy the value of the expression into a yield
-            yield_stmt = ast.Yield(last_expr.value)
-            ast.copy_location(yield_stmt, last_expr)
-            # place the yield into its own expression
-            yield_expr = ast.Expr(yield_stmt)
-            ast.copy_location(yield_expr, last_expr)
+        # copy the value of the expression into a yield
+        yield_stmt = ast.Yield(last_expr.value)
+        ast.copy_location(yield_stmt, last_expr)
+        # place the yield into its own expression
+        yield_expr = ast.Expr(yield_stmt)
+        ast.copy_location(yield_expr, last_expr)
 
-            # place the yield where the original expression was
-            try_block.body[-1] = yield_expr
-        else:
-            # copy the expression into a return
-            return_stmt = ast.Return(last_expr.value)
-            ast.copy_location(return_stmt, last_expr)
-
-            # place the return where the original expression was
-            try_block.body[-1] = return_stmt
+        # place the yield where the original expression was
+        try_block.body[-1] = yield_expr
 
     return mod
 
