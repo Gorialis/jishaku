@@ -92,13 +92,20 @@ class KeywordTransformer(ast.NodeTransformer):
         This thus makes deletions in retain mode work more-or-less as intended.
         """
 
-        return ast.If(
-            test=ast.NameConstant(
-                value=True,  # if True; aka unconditional, will be optimized out
-                lineno=node.lineno,
-                col_offset=node.col_offset
-            ),
-            body=[
+        body = []
+        for target in node.targets:  # for each target to be deleted, e.g. `del {x}, {y.z}, {z[1]}`
+            if not isinstance(target, ast.Name):
+                # if it's a subscript or attribute access, pass it through unmodified
+                body.append(
+                    ast.Delete(
+                        targets=[target],
+                        lineno=node.lineno,
+                        col_offset=node.col_offset
+                    )
+                )
+                continue
+
+            body.append(
                 ast.If(
                     # if 'x' in globals():
                     test=ast.Compare(
@@ -162,9 +169,15 @@ class KeywordTransformer(ast.NodeTransformer):
                     lineno=node.lineno,
                     col_offset=node.col_offset
                 )
-                # for each target to be deleted, e.g. `del {x}, {y}, {z}`
-                for target in node.targets
-            ],
+            )
+
+        return ast.If(
+            test=ast.NameConstant(
+                value=True,  # if True; aka unconditional, will be optimized out
+                lineno=node.lineno,
+                col_offset=node.col_offset
+            ),
+            body=body,
             orelse=[],
             lineno=node.lineno,
             col_offset=node.col_offset
