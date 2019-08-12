@@ -162,6 +162,12 @@ class KeywordTransformer(ast.NodeTransformer):
                     lineno=node.lineno,
                     col_offset=node.col_offset
                 )
+                if isinstance(target, ast.Name) else
+                ast.Delete(
+                    targets=[target],
+                    lineno=node.lineno,
+                    col_offset=node.col_offset
+                )
                 # for each target to be deleted, e.g. `del {x}, {y}, {z}`
                 for target in node.targets
             ],
