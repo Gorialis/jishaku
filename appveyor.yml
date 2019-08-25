@@ -29,7 +29,8 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   - "python -m pip install -U pip setuptools wheel"
-  - "%CMD_IN_ENV% pip install -U -r requirements/_.txt -r requirements/docs.txt -r requirements/test.txt"
+  - "%CMD_IN_ENV% pip install -U -r requirements/_.txt -r requirements/docs.txt -r requirements/procinfo.txt -r requirements/test.txt -r requirements/voice.txt"
+  - "%CMD_IN_ENV% pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid"
 
 test_script:
   - "%CMD_IN_ENV% pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"

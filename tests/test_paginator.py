@@ -80,8 +80,8 @@ def test_wrapped_paginator():
 async def test_paginator_interface():
     bot = commands.Bot('?')
 
-    with open(__file__, 'rb') as fp:
-        paginator = FilePaginator(fp, max_size=200)
+    with open(__file__, 'rb') as file:
+        paginator = FilePaginator(file, max_size=200)
 
     interface = PaginatorInterface(bot, paginator)
 
@@ -182,7 +182,8 @@ async def test_paginator_interface():
                 animated=False,
                 name="\N{BLACK RIGHT-POINTING TRIANGLE}",
                 id=None
-            )
+            ),
+            'REACTION_ADD'
         ))
 
         await asyncio.sleep(0.1)
@@ -204,7 +205,8 @@ async def test_paginator_interface():
                 animated=False,
                 name="\N{BLACK LEFT-POINTING TRIANGLE}",
                 id=None
-            )
+            ),
+            'REACTION_ADD'
         ))
 
         await asyncio.sleep(0.1)
@@ -224,7 +226,8 @@ async def test_paginator_interface():
                 animated=False,
                 name="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
                 id=None
-            )
+            ),
+            'REACTION_ADD'
         ))
 
         await asyncio.sleep(0.1)
@@ -244,7 +247,8 @@ async def test_paginator_interface():
                 animated=False,
                 name="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
                 id=None
-            )
+            ),
+            'REACTION_ADD'
         ))
 
         await asyncio.sleep(0.1)
@@ -264,7 +268,8 @@ async def test_paginator_interface():
                 animated=False,
                 name="\N{BLACK SQUARE FOR STOP}",
                 id=None
-            )
+            ),
+            'REACTION_ADD'
         ))
 
         await asyncio.sleep(0.1)
