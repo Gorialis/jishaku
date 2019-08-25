@@ -100,6 +100,7 @@ alpine 3.8:
   image: gorialis/discord.py:3.8-alpine-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+    - pip install -U git+https://github.com/PyCQA/astroid  # astroid broke
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -123,6 +124,7 @@ stretch 3.8:
   image: gorialis/discord.py:3.8-stretch-master
   before_script:
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+    - pip install -U git+https://github.com/PyCQA/astroid  # astroid broke
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
