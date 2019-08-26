@@ -85,7 +85,7 @@ def test_cog_attributes(bot):
 
 
 @utils.run_async
-async def test_cog_check(bot, mocker):
+async def test_cog_check(bot):
     cog = bot.get_cog("Jishaku")
 
     with utils.mock_ctx() as ctx:
