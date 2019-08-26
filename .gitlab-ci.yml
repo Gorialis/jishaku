@@ -27,9 +27,9 @@ alpine 3.6:
   retry: 1
   when: always
 
-stretch 3.6:
+buster 3.6:
   stage: build
-  image: gorialis/discord.py:3.6-stretch-master
+  image: gorialis/discord.py:3.6-buster-master
   before_script:
     - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
@@ -75,9 +75,9 @@ alpine 3.7:
   retry: 1
   when: always
 
-stretch 3.7:
+buster 3.7:
   stage: build
-  image: gorialis/discord.py:3.7-stretch-master
+  image: gorialis/discord.py:3.7-buster-master
   before_script:
     - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
@@ -123,9 +123,9 @@ alpine 3.8:
   retry: 1
   when: always
 
-stretch 3.8:
+buster 3.8:
   stage: build
-  image: gorialis/discord.py:3.8-stretch-master
+  image: gorialis/discord.py:3.8-buster-master
   before_script:
     - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
