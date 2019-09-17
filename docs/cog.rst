@@ -195,6 +195,9 @@ Commands
     Extensions can be specified en masse by typing e.g. ``cogs.*``.
     This searches for anything that looks like an extension in the folder and loads/reloads it.
 
+    Brace expansion works as well, such as ``foo.bar.cogs.{baz,quux,garply}`` to reload ``foo.bar.cogs.baz``,
+    ``foo.bar.cogs.quux``, and ``foo.bar.cogs.garply``.
+
     ``jsk reload ~`` will reload every extension the bot currently has loaded.
 
 

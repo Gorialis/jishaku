@@ -15,6 +15,7 @@ import pathlib
 import typing
 
 import pkg_resources
+from braceexpand import UnbalancedBracesError, braceexpand
 from discord.ext import commands
 
 __all__ = ('find_extensions_in', 'resolve_extensions', 'package_version', 'ExtensionConverter')
@@ -57,19 +58,18 @@ def resolve_extensions(bot: commands.Bot, name: str) -> list:
     Tries to resolve extension queries into a list of extension names.
     """
 
-    if name.endswith('.*'):
-        module_parts = name[:-2].split('.')
-        path = pathlib.Path(module_parts.pop(0))
+    exts = []
+    for ext in braceexpand(name):
+        if ext.endswith('.*'):
+            module_parts = ext[:-2].split('.')
+            path = pathlib.Path(*module_parts)
+            exts.extend(find_extensions_in(path))
+        elif ext == '~':
+            exts.extend(bot.extensions)
+        else:
+            exts.append(ext)
 
-        for part in module_parts:
-            path = path / part
-
-        return find_extensions_in(path)
-
-    if name == '~':
-        return list(bot.extensions.keys())
-
-    return [name]
+    return exts
 
 
 def package_version(package_name: str) -> typing.Optional[str]:
@@ -89,4 +89,7 @@ class ExtensionConverter(commands.Converter):  # pylint: disable=too-few-public-
     """
 
     async def convert(self, ctx: commands.Context, argument) -> list:
-        return resolve_extensions(ctx.bot, argument)
+        try:
+            return resolve_extensions(ctx.bot, argument)
+        except UnbalancedBracesError as exc:
+            raise commands.BadArgument(str(exc))
