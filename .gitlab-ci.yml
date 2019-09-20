@@ -3,12 +3,12 @@ stages:
   - build
   - deploy
 
-alpine 3.6:
-  stage: build
-  image: gorialis/discord.py:3.6-alpine-master
+install_dependencies: &install_dependencies
   before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
+    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+run_tests: &run_tests
   script:
     - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
     - flake8 .
@@ -19,6 +19,12 @@ alpine 3.6:
     - find dist -name *.whl -exec pip install '{}' +
     - pytest -vs
     - cd docs && make html
+
+alpine 3.6:
+  stage: build
+  image: gorialis/discord.py:3.6-alpine-master
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist
@@ -30,19 +36,8 @@ alpine 3.6:
 buster 3.6:
   stage: build
   image: gorialis/discord.py:3.6-buster-master
-  before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
-    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-  script:
-    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-    - flake8 .
-    - pylint -j "$(nproc)" jishaku
-    - isort . --check-only --recursive
-    - python ./setup.py sdist bdist_egg bdist_wheel
-    - rm -rf jishaku
-    - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
-    - cd docs && make html
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist
@@ -54,19 +49,8 @@ buster 3.6:
 alpine 3.7:
   stage: build
   image: gorialis/discord.py:3.7-alpine-master
-  before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
-    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-  script:
-    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-    - flake8 .
-    - pylint -j "$(nproc)" jishaku
-    - isort . --check-only --recursive
-    - python ./setup.py sdist bdist_egg bdist_wheel
-    - rm -rf jishaku
-    - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
-    - cd docs && make html
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist
@@ -78,19 +62,8 @@ alpine 3.7:
 buster 3.7:
   stage: build
   image: gorialis/discord.py:3.7-buster-master
-  before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
-    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-  script:
-    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-    - flake8 .
-    - pylint -j "$(nproc)" jishaku
-    - isort . --check-only --recursive
-    - python ./setup.py sdist bdist_egg bdist_wheel
-    - rm -rf jishaku
-    - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
-    - cd docs && make html
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist
@@ -102,19 +75,8 @@ buster 3.7:
 alpine 3.8:
   stage: build
   image: gorialis/discord.py:3.8-alpine-master
-  before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
-    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-  script:
-    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-    - flake8 .
-    - pylint -j "$(nproc)" jishaku
-    - isort . --check-only --recursive
-    - python ./setup.py sdist bdist_egg bdist_wheel
-    - rm -rf jishaku
-    - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
-    - cd docs && make html
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist
@@ -126,19 +88,8 @@ alpine 3.8:
 buster 3.8:
   stage: build
   image: gorialis/discord.py:3.8-buster-master
-  before_script:
-    - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
-    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-  script:
-    - PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-    - flake8 .
-    - pylint -j "$(nproc)" jishaku
-    - isort . --check-only --recursive
-    - python ./setup.py sdist bdist_egg bdist_wheel
-    - rm -rf jishaku
-    - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
-    - cd docs && make html
+  <<: *install_dependencies
+  <<: *run_tests
   artifacts:
     paths:
       - dist

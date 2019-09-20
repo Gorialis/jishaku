@@ -26,7 +26,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -U pip setuptools wheel
-            pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid
+            pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       - save_cache:

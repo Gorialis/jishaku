@@ -29,7 +29,7 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   - "python -m pip install -U pip setuptools wheel"
-  - "%CMD_IN_ENV% pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid"
+  - "%CMD_IN_ENV% pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint"
   - "%CMD_IN_ENV% pip install -U -r requirements/_.txt -r requirements/docs.txt -r requirements/procinfo.txt -r requirements/test.txt -r requirements/voice.txt"
 
 test_script:
