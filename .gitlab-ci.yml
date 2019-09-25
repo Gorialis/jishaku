@@ -3,7 +3,12 @@ stages:
   - build
   - deploy
 
-.install_dependencies: &install_dependencies
+.pypi_dependencies: &pypi_dependencies
+  before_script:
+    - pip install -U git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
+    - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+.git_dependencies: &git_dependencies
   before_script:
     - pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
     - pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
@@ -20,10 +25,10 @@ stages:
     - pytest -vs
     - cd docs && make html
 
-alpine 3.6:
+alpine 3.6 pypi:
   stage: build
   image: gorialis/discord.py:3.6-alpine-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
     paths:
@@ -33,10 +38,10 @@ alpine 3.6:
   retry: 1
   when: always
 
-buster 3.6:
+buster 3.6 pypi:
   stage: build
   image: gorialis/discord.py:3.6-buster-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
     paths:
@@ -46,10 +51,10 @@ buster 3.6:
   retry: 1
   when: always
 
-alpine 3.7:
+alpine 3.7 pypi:
   stage: build
   image: gorialis/discord.py:3.7-alpine-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
     paths:
@@ -59,10 +64,10 @@ alpine 3.7:
   retry: 1
   when: always
 
-buster 3.7:
+buster 3.7 pypi:
   stage: build
   image: gorialis/discord.py:3.7-buster-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
     paths:
@@ -72,10 +77,10 @@ buster 3.7:
   retry: 1
   when: always
 
-alpine 3.8:
+alpine 3.8 pypi:
   stage: build
   image: gorialis/discord.py:3.8-alpine-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
     paths:
@@ -85,10 +90,88 @@ alpine 3.8:
   retry: 1
   when: always
 
-buster 3.8:
+buster 3.8 pypi:
   stage: build
   image: gorialis/discord.py:3.8-buster-master
-  <<: *install_dependencies
+  <<: *pypi_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+alpine 3.6 git:
+  stage: build
+  image: gorialis/discord.py:3.6-alpine-master
+  <<: *git_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+buster 3.6 git:
+  stage: build
+  image: gorialis/discord.py:3.6-buster-master
+  <<: *git_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+alpine 3.7 git:
+  stage: build
+  image: gorialis/discord.py:3.7-alpine-master
+  <<: *git_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+buster 3.7 git:
+  stage: build
+  image: gorialis/discord.py:3.7-buster-master
+  <<: *git_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+alpine 3.8 git:
+  stage: build
+  image: gorialis/discord.py:3.8-alpine-master
+  <<: *git_dependencies
+  <<: *run_tests
+  artifacts:
+    paths:
+      - dist
+      - docs/_build
+    expire_in: 2 days
+  retry: 1
+  when: always
+
+buster 3.8 git:
+  stage: build
+  image: gorialis/discord.py:3.8-buster-master
+  <<: *git_dependencies
   <<: *run_tests
   artifacts:
     paths:
