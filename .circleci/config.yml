@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  buster 3.6 pypi:
     docker:
       - image: circleci/python:3.6-buster
 
@@ -16,9 +16,115 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements/all.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - v1-dependencies-3.6-pypi-{{ checksum "requirements/all.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -U pip setuptools wheel
+            pip install -U git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
+            pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-3.6-pypi-{{ checksum "requirements/all.txt" }}
+
+      # run tests
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            PYTHONPATH=$PYTHONPATH:$(pwd) pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            python3 ./setup.py sdist bdist_egg bdist_wheel
+            rm -rf jishaku
+            find dist -name *.whl -exec pip install '{}' +
+            pytest -vs
+
+      # build docs
+      - run:
+          name: build documentation
+          command: |
+            . venv/bin/activate
+            cd docs && make html
+
+      - store_artifacts:
+          path: dist
+          destination: distributions
+
+      - store_artifacts:
+          path: docs/_build
+          destination: documentation
+
+  buster 3.7 pypi:
+    docker:
+      - image: circleci/python:3.7-buster
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-3.7-pypi-{{ checksum "requirements/all.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -U pip setuptools wheel
+            pip install -U git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
+            pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-3.7-pypi-{{ checksum "requirements/all.txt" }}
+
+      # run tests
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            PYTHONPATH=$PYTHONPATH:$(pwd) pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            python3 ./setup.py sdist bdist_egg bdist_wheel
+            rm -rf jishaku
+            find dist -name *.whl -exec pip install '{}' +
+            pytest -vs
+
+      # build docs
+      - run:
+          name: build documentation
+          command: |
+            . venv/bin/activate
+            cd docs && make html
+
+      - store_artifacts:
+          path: dist
+          destination: distributions
+
+      - store_artifacts:
+          path: docs/_build
+          destination: documentation
+
+  buster 3.6 git:
+    docker:
+      - image: circleci/python:3.6-buster
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-3.6-git-{{ checksum "requirements/all.txt" }}
 
       - run:
           name: install dependencies
@@ -32,7 +138,61 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements/all.txt" }}
+          key: v1-dependencies-3.6-git-{{ checksum "requirements/all.txt" }}
+
+      # run tests
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            PYTHONPATH=$PYTHONPATH:$(pwd) pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            python3 ./setup.py sdist bdist_egg bdist_wheel
+            rm -rf jishaku
+            find dist -name *.whl -exec pip install '{}' +
+            pytest -vs
+
+      # build docs
+      - run:
+          name: build documentation
+          command: |
+            . venv/bin/activate
+            cd docs && make html
+
+      - store_artifacts:
+          path: dist
+          destination: distributions
+
+      - store_artifacts:
+          path: docs/_build
+          destination: documentation
+
+  buster 3.7 git:
+    docker:
+      - image: circleci/python:3.7-buster
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-3.7-git-{{ checksum "requirements/all.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -U pip setuptools wheel
+            pip install -U git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice] git+https://github.com/PyCQA/astroid@master#egg=astroid git+https://github.com/PyCQA/pylint@master#egg=pylint
+            pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-3.7-git-{{ checksum "requirements/all.txt" }}
 
       # run tests
       - run:
