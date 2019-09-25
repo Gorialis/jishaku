@@ -11,6 +11,7 @@ jishaku converter test
 
 import asyncio
 import inspect
+import re
 from io import BytesIO
 
 import discord
@@ -19,6 +20,19 @@ from discord.ext import commands
 
 import utils
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
+
+
+VERSION_MATCH = re.match(
+    r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?P<revision>a|b|rc)(?P<revver>\d+)?",
+    discord.__version__
+)
+VERSION_INFO = (
+    int(VERSION_MATCH.group('major')),
+    int(VERSION_MATCH.group('minor')),
+    int(VERSION_MATCH.group('patch')),
+    VERSION_MATCH.group('revision'),
+    int(VERSION_MATCH.group('revver')) if VERSION_MATCH.group('revver') else 0
+)
 
 
 def test_file_paginator():
@@ -170,21 +184,25 @@ async def test_paginator_interface():
 
         current_page = interface.display_page
 
+        payload = {
+            'message_id': interface.message.id,
+            'user_id': ctx.author.id,
+            'channel_id': ctx.channel.id,
+            'guild_id': ctx.guild.id
+        }
+
         # push right button
-        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
-            {
-                'message_id': interface.message.id,
-                'user_id': ctx.author.id,
-                'channel_id': ctx.channel.id,
-                'guild_id': ctx.guild.id
-            },
-            discord.PartialEmoji(
-                animated=False,
-                name="\N{BLACK RIGHT-POINTING TRIANGLE}",
-                id=None
-            ),
-            'REACTION_ADD'
-        ))
+        emoji = discord.PartialEmoji(
+            animated=False,
+            name="\N{BLACK RIGHT-POINTING TRIANGLE}",
+            id=None
+        )
+        bot.dispatch(
+            'raw_reaction_add',
+            discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
+            if VERSION_INFO >= (1, 3) else
+            discord.RawReactionActionEvent(payload, emoji)
+        )
 
         await asyncio.sleep(0.1)
 
@@ -194,20 +212,17 @@ async def test_paginator_interface():
         current_page = interface.display_page
 
         # push left button
-        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
-            {
-                'message_id': interface.message.id,
-                'user_id': ctx.author.id,
-                'channel_id': ctx.channel.id,
-                'guild_id': ctx.guild.id
-            },
-            discord.PartialEmoji(
-                animated=False,
-                name="\N{BLACK LEFT-POINTING TRIANGLE}",
-                id=None
-            ),
-            'REACTION_ADD'
-        ))
+        emoji = discord.PartialEmoji(
+            animated=False,
+            name="\N{BLACK LEFT-POINTING TRIANGLE}",
+            id=None
+        )
+        bot.dispatch(
+            'raw_reaction_add',
+            discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
+            if VERSION_INFO >= (1, 3) else
+            discord.RawReactionActionEvent(payload, emoji)
+        )
 
         await asyncio.sleep(0.1)
 
