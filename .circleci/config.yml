@@ -219,3 +219,12 @@ jobs:
       - store_artifacts:
           path: docs/_build
           destination: documentation
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - "buster 3.6 pypi"
+      - "buster 3.7 pypi"
+      - "buster 3.6 git"
+      - "buster 3.7 git"
