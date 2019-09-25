@@ -21,7 +21,6 @@ from discord.ext import commands
 import utils
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
 
-
 VERSION_MATCH = re.match(
     r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:(?P<revision>a|b|rc)(?P<revver>\d+))?",
     discord.__version__
