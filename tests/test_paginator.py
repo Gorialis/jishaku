@@ -230,20 +230,17 @@ async def test_paginator_interface():
         assert not interface.closed
 
         # push last page button
-        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
-            {
-                'message_id': interface.message.id,
-                'user_id': ctx.author.id,
-                'channel_id': ctx.channel.id,
-                'guild_id': ctx.guild.id
-            },
-            discord.PartialEmoji(
-                animated=False,
-                name="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
-                id=None
-            ),
-            'REACTION_ADD'
-        ))
+        emoji = discord.PartialEmoji(
+            animated=False,
+            name="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+            id=None
+        )
+        bot.dispatch(
+            'raw_reaction_add',
+            discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
+            if VERSION_INFO >= (1, 3) else
+            discord.RawReactionActionEvent(payload, emoji)
+        )
 
         await asyncio.sleep(0.1)
 
@@ -251,20 +248,17 @@ async def test_paginator_interface():
         assert not interface.closed
 
         # push first page button
-        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
-            {
-                'message_id': interface.message.id,
-                'user_id': ctx.author.id,
-                'channel_id': ctx.channel.id,
-                'guild_id': ctx.guild.id
-            },
-            discord.PartialEmoji(
-                animated=False,
-                name="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
-                id=None
-            ),
-            'REACTION_ADD'
-        ))
+        emoji = discord.PartialEmoji(
+            animated=False,
+            name="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+            id=None
+        )
+        bot.dispatch(
+            'raw_reaction_add',
+            discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
+            if VERSION_INFO >= (1, 3) else
+            discord.RawReactionActionEvent(payload, emoji)
+        )
 
         await asyncio.sleep(0.1)
 
@@ -272,20 +266,17 @@ async def test_paginator_interface():
         assert not interface.closed
 
         # push close button
-        bot.dispatch('raw_reaction_add', discord.RawReactionActionEvent(
-            {
-                'message_id': interface.message.id,
-                'user_id': ctx.author.id,
-                'channel_id': ctx.channel.id,
-                'guild_id': ctx.guild.id
-            },
-            discord.PartialEmoji(
-                animated=False,
-                name="\N{BLACK SQUARE FOR STOP}",
-                id=None
-            ),
-            'REACTION_ADD'
-        ))
+        emoji = discord.PartialEmoji(
+            animated=False,
+            name="\N{BLACK SQUARE FOR STOP}",
+            id=None
+        )
+        bot.dispatch(
+            'raw_reaction_add',
+            discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
+            if VERSION_INFO >= (1, 3) else
+            discord.RawReactionActionEvent(payload, emoji)
+        )
 
         await asyncio.sleep(0.1)
 
