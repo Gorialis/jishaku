@@ -27,7 +27,7 @@ stages:
 
 alpine 3.6 pypi:
   stage: build
-  image: gorialis/discord.py:3.6-alpine-master
+  image: gorialis/discord.py:3.6-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -40,7 +40,7 @@ alpine 3.6 pypi:
 
 buster 3.6 pypi:
   stage: build
-  image: gorialis/discord.py:3.6-buster-master
+  image: gorialis/discord.py:3.6-buster-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -53,7 +53,7 @@ buster 3.6 pypi:
 
 alpine 3.7 pypi:
   stage: build
-  image: gorialis/discord.py:3.7-alpine-master
+  image: gorialis/discord.py:3.7-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -66,7 +66,7 @@ alpine 3.7 pypi:
 
 buster 3.7 pypi:
   stage: build
-  image: gorialis/discord.py:3.7-buster-master
+  image: gorialis/discord.py:3.7-buster-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -79,7 +79,7 @@ buster 3.7 pypi:
 
 alpine 3.8 pypi:
   stage: build
-  image: gorialis/discord.py:3.8-alpine-master
+  image: gorialis/discord.py:3.8-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -92,7 +92,7 @@ alpine 3.8 pypi:
 
 buster 3.8 pypi:
   stage: build
-  image: gorialis/discord.py:3.8-buster-master
+  image: gorialis/discord.py:3.8-buster-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
