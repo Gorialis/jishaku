@@ -17,6 +17,8 @@ import inspect
 import os
 
 INSPECTIONS = []
+OBJECT_DICT = dir(object)
+MethodWrapperType = type((1).__le__)
 
 
 def add_inspection(name):
@@ -183,15 +185,32 @@ POSSIBLE_OPS = {
 }
 
 
+def check_not_object_inheritance(obj, attr):
+    """
+    Check that a given attribute isn't just inherited from `object`
+    """
+
+    if attr not in OBJECT_DICT:
+        return True
+
+    if isinstance(getattr(obj, attr), MethodWrapperType):
+        return getattr(type(obj), attr, None) is not getattr(object, attr)
+
+    return getattr(obj, attr, None) is not getattr(object, attr)
+
+
 @add_inspection("Operations")
 def compat_operation_inspection(obj):
-    obj_dict = dir(obj)
+    this_dict = dir(obj)
     operations = []
 
     for operation, member in POSSIBLE_OPS.items():
-        if f'__{member}__' in obj_dict or f'__r{member}__' in obj_dict:
+        if f'__{member}__' in this_dict and check_not_object_inheritance(obj, f'__{member}__'):
             operations.append(operation)
-        if f'__i{member}__' in obj_dict:
+        elif f'__r{member}__' in this_dict and check_not_object_inheritance(obj, f'r__{member}__'):
+            operations.append(operation)
+
+        if f'__i{member}__' in this_dict and check_not_object_inheritance(obj, f'i__{member}__'):
             operations.append(f'{operation}=')
 
     return ' '.join(operations)
