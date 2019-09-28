@@ -17,8 +17,8 @@ import inspect
 import os
 
 INSPECTIONS = []
-OBJECT_DICT = dir(object)
 MethodWrapperType = type((1).__le__)
+WrapperDescriptorType = type(int.__le__)
 
 
 def add_inspection(name):
@@ -185,18 +185,15 @@ POSSIBLE_OPS = {
 }
 
 
-def check_not_object_inheritance(obj, attr):
+def check_not_slot(obj, attr):
     """
-    Check that a given attribute isn't just inherited from `object`
+    Check that a given attribute isn't just an open slot for subclasses
     """
 
-    if attr not in OBJECT_DICT:
-        return True
+    if isinstance(getattr(obj, attr, None), MethodWrapperType):
+        return not isinstance(getattr(type(obj), attr, None), WrapperDescriptorType)
 
-    if isinstance(getattr(obj, attr), MethodWrapperType):
-        return getattr(type(obj), attr, None) is not getattr(object, attr)
-
-    return getattr(obj, attr, None) is not getattr(object, attr)
+    return not isinstance(getattr(obj, attr, None), WrapperDescriptorType)
 
 
 @add_inspection("Operations")
@@ -205,12 +202,12 @@ def compat_operation_inspection(obj):
     operations = []
 
     for operation, member in POSSIBLE_OPS.items():
-        if f'__{member}__' in this_dict and check_not_object_inheritance(obj, f'__{member}__'):
+        if f'__{member}__' in this_dict and check_not_slot(obj, f'__{member}__'):
             operations.append(operation)
-        elif f'__r{member}__' in this_dict and check_not_object_inheritance(obj, f'r__{member}__'):
+        elif f'__r{member}__' in this_dict and check_not_slot(obj, f'r__{member}__'):
             operations.append(operation)
 
-        if f'__i{member}__' in this_dict and check_not_object_inheritance(obj, f'i__{member}__'):
+        if f'__i{member}__' in this_dict and check_not_slot(obj, f'i__{member}__'):
             operations.append(f'{operation}=')
 
     return ' '.join(operations)
