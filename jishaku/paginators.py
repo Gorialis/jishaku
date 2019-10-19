@@ -60,6 +60,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         self.sent_page_reactions = False
 
         self.task: asyncio.Task = None
+        self.send_lock: asyncio.Event = asyncio.Event()
         self.update_lock: asyncio.Lock = asyncio.Semaphore(value=kwargs.pop('update_max', 2))
 
         if self.page_size > self.max_page_size:
@@ -163,6 +164,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         # add the close reaction
         await self.message.add_reaction(self.emojis.close)
+
+        self.send_lock.set()
 
         if self.task:
             self.task.cancel()
@@ -273,6 +276,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         if self.update_lock.locked():
             return
+
+        await self.send_lock.wait()
 
         async with self.update_lock:
             if self.update_lock.locked():
