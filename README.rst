@@ -28,9 +28,19 @@ jishaku
 |travis| |circle| |appveyor|
 |issues| |commit|
 
++--------------------------------------------------------------------------------------+
+|                                                                                      |
+| .. warning::                                                                         |
+|                                                                                      |
+|   Jishaku will stop supporting Python 3.6 on the 5th of January 2020 (2020-01-05).   |
+|                                                                                      |
+|   Please update your Python install or lock your requirements by this date.          |
+|                                                                                      |
++--------------------------------------------------------------------------------------+
+
 jishaku is a debugging and experimenting cog for Discord bots using ``discord.py``.
 
-It is locked to Python 3.6+ and requirements will shift as new ``discord.py`` and Python versions release.
+It is locked to Python 3.7+ and requirements will shift as new ``discord.py`` and Python versions release.
 This repo primarily exists for the purpose of example and usage in other bot projects.
 
 Some documentation is available on `readthedocs <https://jishaku.readthedocs.io/en/latest/>`__.
