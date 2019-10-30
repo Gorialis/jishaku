@@ -1,2 +1,7 @@
-include README.rst
 include LICENSE
+include README.rst
+include requirements/_.txt
+include requirements/docs.txt
+include requirements/procinfo.txt
+include requirements/test.txt
+include requirements/voice.txt
