@@ -207,7 +207,7 @@ async def test_paginator_interface():
         bot.dispatch(
             'raw_reaction_add',
             discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
-            if VERSION_INFO >= (1, 3) else
+            if discord.version_info >= (1, 3) else
             discord.RawReactionActionEvent(payload, emoji)
         )
 
@@ -225,7 +225,7 @@ async def test_paginator_interface():
         bot.dispatch(
             'raw_reaction_add',
             discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
-            if VERSION_INFO >= (1, 3) else
+            if discord.version_info >= (1, 3) else
             discord.RawReactionActionEvent(payload, emoji)
         )
 
@@ -243,7 +243,7 @@ async def test_paginator_interface():
         bot.dispatch(
             'raw_reaction_add',
             discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
-            if VERSION_INFO >= (1, 3) else
+            if discord.version_info >= (1, 3) else
             discord.RawReactionActionEvent(payload, emoji)
         )
 
@@ -261,7 +261,7 @@ async def test_paginator_interface():
         bot.dispatch(
             'raw_reaction_add',
             discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
-            if VERSION_INFO >= (1, 3) else
+            if discord.version_info >= (1, 3) else
             discord.RawReactionActionEvent(payload, emoji)
         )
 
