@@ -21,18 +21,6 @@ from discord.ext import commands
 import utils
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
 
-VERSION_MATCH = re.match(
-    r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:(?P<revision>a|b|rc)(?P<revver>\d+))?",
-    discord.__version__
-)
-VERSION_INFO = (
-    int(VERSION_MATCH.group('major')),
-    int(VERSION_MATCH.group('minor')),
-    int(VERSION_MATCH.group('patch')),
-    VERSION_MATCH.group('revision'),
-    int(VERSION_MATCH.group('revver')) if VERSION_MATCH.group('revver') else 0
-)
-
 
 def test_file_paginator():
 
@@ -199,7 +187,7 @@ async def test_paginator_interface():
         bot.dispatch(
             'raw_reaction_add',
             discord.RawReactionActionEvent(payload, emoji, 'REACTION_ADD')
-            if VERSION_INFO >= (1, 3) else
+            if discord.version_info >= (1, 3) else
             discord.RawReactionActionEvent(payload, emoji)
         )
 
