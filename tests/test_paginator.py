@@ -11,7 +11,6 @@ jishaku converter test
 
 import asyncio
 import inspect
-import re
 from io import BytesIO
 
 import discord
