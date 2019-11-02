@@ -16,9 +16,10 @@ You can also write your own extension file to modify or supplement commands:
 .. code:: python3
 
     from discord.ext import commands
-    from jishaku import Jishaku
+    from jishaku.cog import JishakuBase, jsk
+    from jishaku.metacog import GroupCogMeta
 
-    class Debugging(Jishaku):
+    class Debugging(JishakuBase, metaclass=GroupCogMeta, command_parent=jsk):
         ...
 
     def setup(bot: commands.Bot):

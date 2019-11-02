@@ -17,5 +17,7 @@ from jishaku.meta import *  # noqa: F401
 
 __all__ = (
     'Jishaku',
+    'JishakuBase',
+    'jsk',
     'setup'
 )

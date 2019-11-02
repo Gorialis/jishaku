@@ -28,8 +28,8 @@ __copyright__ = 'Copyright 2019 Devon (Gorialis) R'
 __docformat__ = 'restructuredtext en'
 __license__ = 'MIT'
 __title__ = 'jishaku'
-__version__ = '1.16.7'
+__version__ = '1.17.0'
 
 # pylint: disable=invalid-name
 VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
-version_info = VersionInfo(major=1, minor=16, micro=7, releaselevel='final', serial=0)
+version_info = VersionInfo(major=1, minor=17, micro=0, releaselevel='final', serial=0)
