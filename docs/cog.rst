@@ -22,6 +22,20 @@ You can also write your own extension file to modify or supplement commands:
     class Debugging(JishakuBase, metaclass=GroupCogMeta, command_parent=jsk):
         ...
 
+        @commands.command(name="debug", aliases=["dbg"])
+        async def jsk_debug(self, ctx: commands.Context, *, command_string: str):
+            """
+            This overwrites the `jsk debug` command!
+            """
+            ...
+
+        # Or add other, new commands
+        # Every @commands.command() in here will be parented to the command_parent,
+        # in this case the default jsk Group.
+        # You can also make your own Group and use it as the command_parent instead.
+        ...
+
+
     def setup(bot: commands.Bot):
         bot.add_cog(Debugging(bot))
 
