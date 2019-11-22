@@ -1,4 +1,4 @@
 braceexpand>=0.1.2
 discord.py>=1.2.3
 humanize
-import_expression<1.0.0,>=0.6.0
+import_expression>=1.0.0,<2.0.0
