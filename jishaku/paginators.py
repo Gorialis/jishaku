@@ -342,7 +342,7 @@ class WrappedPaginator(commands.Paginator):
         self.include_wrapped = include_wrapped
 
     def add_line(self, line='', *, empty=False):
-        true_max_size = self.max_size - len(self.prefix) - 2
+        true_max_size = self.max_size - self._prefix_len - self._suffix_len - 2
 
         while len(line) > true_max_size:
             search_string = line[0:true_max_size - 1]
