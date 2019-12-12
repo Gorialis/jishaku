@@ -41,10 +41,11 @@ async def _repl_coroutine({{0}}):
         pass
 {{1}}
     finally:
-        if hasattr(jishaku, 'repl'):
-            _async_executor = jishaku.repl.get_parent_var('async_executor', skip_frames=1)
-            if _async_executor:
-                _async_executor.scope.globals.update(locals())
+        try:
+            _async_executor.scope.globals.update(locals())
+        except NameError:
+            # this is not a required part of the runtime
+            pass
 """.format(import_expression.constants.IMPORTER)
 
 
@@ -122,8 +123,8 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
     __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope')
 
     def __init__(self, code: str, scope: Scope = None, arg_dict: dict = None, loop: asyncio.BaseEventLoop = None):
-        self.args = []
-        self.arg_names = []
+        self.args = [self]
+        self.arg_names = ['_async_executor']
 
         if arg_dict:
             for key, value in arg_dict.items():
@@ -147,11 +148,8 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         This function is private. The class should be used as an iterator instead of using this method.
         """
 
-        # this allows the reference to be stolen
-        async_executor = self
-
         if inspect.isasyncgenfunction(func):
-            async for send, result in AsyncSender(func(*async_executor.args)):
+            async for send, result in AsyncSender(func(*self.args)):
                 send((yield result))
         else:
-            yield await func(*async_executor.args)
+            yield await func(*self.args)

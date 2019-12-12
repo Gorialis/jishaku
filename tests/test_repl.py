@@ -10,17 +10,12 @@ jishaku.repl internal test
 """
 
 import inspect
-import random
 import sys
 
 import pytest
 
-from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor, Scope, get_var_dict_from_ctx
 from utils import mock_ctx, run_async
-
-
-def upper_method():
-    return get_parent_var('hidden_variable')
 
 
 async def add_numbers(one, two):
@@ -38,21 +33,6 @@ def scope():
             "placement_local": 18
         }
     )
-
-
-def test_scope_var():
-    for _ in range(10):
-        hidden_variable = random.randint(0, 1000000)
-        test = upper_method()
-
-        assert hidden_variable == test
-
-        del hidden_variable
-
-        test = upper_method()
-        assert test is None
-
-        assert get_parent_var('pytest', global_ok=True) == pytest
 
 
 @pytest.mark.parametrize(

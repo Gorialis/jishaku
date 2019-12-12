@@ -11,9 +11,6 @@ The Scope class and functions relating to it.
 
 """
 
-import inspect
-import typing
-
 
 class Scope:
     """
@@ -120,52 +117,3 @@ class Scope:
 
         self.locals.update(other)
         return self
-
-
-def get_parent_scope_from_var(name, global_ok=False, skip_frames=0) -> typing.Optional[Scope]:
-    """
-    Iterates up the frame stack looking for a frame-scope containing the given variable name.
-
-    Returns
-    --------
-    Optional[Scope]
-        The relevant :class:`Scope` or None
-    """
-
-    stack = inspect.stack()
-    try:
-        for frame_info in stack[skip_frames + 1:]:
-            frame = None
-
-            try:
-                frame = frame_info.frame
-
-                if name in frame.f_locals or (global_ok and name in frame.f_globals):
-                    return Scope(globals_=frame.f_globals, locals_=frame.f_locals)
-            finally:
-                del frame
-    finally:
-        del stack
-
-    return None
-
-
-def get_parent_var(name, global_ok=False, default=None, skip_frames=0):
-    """
-    Directly gets a variable from a parent frame-scope.
-
-    Returns
-    --------
-    Any
-        The content of the variable found by the given name, or None.
-    """
-
-    scope = get_parent_scope_from_var(name, global_ok=global_ok, skip_frames=skip_frames + 1)
-
-    if not scope:
-        return default
-
-    if name in scope.locals:
-        return scope.locals.get(name, default)
-
-    return scope.globals.get(name, default)
