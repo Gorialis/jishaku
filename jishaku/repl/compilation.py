@@ -41,11 +41,7 @@ async def _repl_coroutine({{0}}):
         pass
 {{1}}
     finally:
-        try:
-            _async_executor.scope.globals.update(locals())
-        except NameError:
-            # this is not a required part of the runtime
-            pass
+        _async_executor.scope.globals.update(locals())
 """.format(import_expression.constants.IMPORTER)
 
 
