@@ -6,7 +6,7 @@ jishaku.repl.compilation
 
 Constants, functions and classes related to classifying, compiling and executing Python code.
 
-:copyright: (c) 2019 Devon (Gorialis) R
+:copyright: (c) 2020 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """

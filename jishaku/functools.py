@@ -6,7 +6,7 @@ jishaku.functools
 
 Function-related tools for Jishaku.
 
-:copyright: (c) 2019 Devon (Gorialis) R
+:copyright: (c) 2020 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """

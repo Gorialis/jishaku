@@ -6,7 +6,7 @@ jishaku.cog_base
 
 The Jishaku cog base, which contains most of the actual functionality of Jishaku.
 
-:copyright: (c) 2019 Devon (Gorialis) R
+:copyright: (c) 2020 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """
