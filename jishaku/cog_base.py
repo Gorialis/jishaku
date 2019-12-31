@@ -593,8 +593,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
 
     # Voice-related commands
-    @commands.group(name="voice", aliases=["vc"])
-    @commands.check(vc_check)
+    @commands.group(name="voice", aliases=["vc"], invoke_without_command=True, ignore_extra=False)
     async def jsk_voice(self, ctx: commands.Context):
         """
         Voice-related commands.
@@ -602,8 +601,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         If invoked without subcommand, relays current voice state.
         """
 
-        # if using a subcommand, short out
-        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk_voice:
+        if await vc_check(ctx):
             return
 
         # give info about the current voice client if there is one
@@ -626,6 +624,9 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         Passing nothing will use the author's voice channel.
         """
 
+        if await vc_check(ctx):
+            return
+
         destination = destination or ctx.author
 
         if isinstance(destination, discord.Member):
@@ -644,11 +645,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Connected to {destination.name}.")
 
     @jsk_voice.command(name="disconnect", aliases=["dc"])
-    @commands.check(connected_check)
     async def jsk_vc_disconnect(self, ctx: commands.Context):
         """
         Disconnects from the voice channel in this guild, if there is one.
         """
+
+        if await connected_check(ctx):
+            return
 
         voice = ctx.guild.voice_client
 
@@ -656,11 +659,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Disconnected from {voice.channel.name}.")
 
     @jsk_voice.command(name="stop")
-    @commands.check(playing_check)
     async def jsk_vc_stop(self, ctx: commands.Context):
         """
         Stops running an audio source, if there is one.
         """
+
+        if await playing_check(ctx):
+            return
 
         voice = ctx.guild.voice_client
 
@@ -668,11 +673,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Stopped playing audio in {voice.channel.name}.")
 
     @jsk_voice.command(name="pause")
-    @commands.check(playing_check)
     async def jsk_vc_pause(self, ctx: commands.Context):
         """
         Pauses a running audio source, if there is one.
         """
+
+        if await playing_check(ctx):
+            return
 
         voice = ctx.guild.voice_client
 
@@ -683,11 +690,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Paused audio in {voice.channel.name}.")
 
     @jsk_voice.command(name="resume")
-    @commands.check(playing_check)
     async def jsk_vc_resume(self, ctx: commands.Context):
         """
         Resumes a running audio source, if there is one.
         """
+
+        if await playing_check(ctx):
+            return
 
         voice = ctx.guild.voice_client
 
@@ -698,11 +707,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Resumed audio in {voice.channel.name}.")
 
     @jsk_voice.command(name="volume")
-    @commands.check(playing_check)
     async def jsk_vc_volume(self, ctx: commands.Context, *, percentage: float):
         """
         Adjusts the volume of an audio source if it is supported.
         """
+
+        if await playing_check(ctx):
+            return
 
         volume = max(0.0, min(1.0, percentage / 100))
 
@@ -717,13 +728,15 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Volume set to {volume * 100:.2f}%")
 
     @jsk_voice.command(name="play", aliases=["play_local"])
-    @commands.check(connected_check)
     async def jsk_vc_play(self, ctx: commands.Context, *, uri: str):
         """
         Plays audio direct from a URI.
 
         Can be either a local file or an audio resource on the internet.
         """
+
+        if await connected_check(ctx):
+            return
 
         voice = ctx.guild.voice_client
 
@@ -737,11 +750,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         await ctx.send(f"Playing in {voice.channel.name}.")
 
     @jsk_voice.command(name="youtube_dl", aliases=["youtubedl", "ytdl", "yt"])
-    @commands.check(connected_check)
     async def jsk_vc_youtube_dl(self, ctx: commands.Context, *, url: str):
         """
         Plays audio from youtube_dl-compatible sources.
         """
+
+        if await connected_check(ctx):
+            return
 
         if not youtube_dl:
             return await ctx.send("youtube_dl is not installed.")

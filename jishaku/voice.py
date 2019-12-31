@@ -27,12 +27,10 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
     """
 
     if not discord.voice_client.has_nacl:
-        raise commands.CheckFailure("voice cannot be used because PyNaCl is not loaded")
+        return await ctx.send("Voice cannot be used because PyNaCl is not loaded.")
 
     if not discord.opus.is_loaded():
-        raise commands.CheckFailure("voice cannot be used because libopus is not loaded")
-
-    return True
+        return await ctx.send("Voice cannot be used because libopus is not loaded.")
 
 
 async def connected_check(ctx: commands.Context):
@@ -43,9 +41,7 @@ async def connected_check(ctx: commands.Context):
     voice = ctx.guild.voice_client
 
     if not voice or not voice.is_connected():
-        raise commands.CheckFailure("Not connected to VC in this guild")
-
-    return True
+        return await ctx.send("Not connected to a voice channel in this guild.")
 
 
 async def playing_check(ctx: commands.Context):
@@ -55,10 +51,12 @@ async def playing_check(ctx: commands.Context):
     This doubles up as a connection check.
     """
 
-    if await connected_check(ctx) and not ctx.guild.voice_client.is_playing():
-        raise commands.CheckFailure("The voice client in this guild is not playing anything.")
+    check = await connected_check(ctx)
+    if check:
+        return check
 
-    return True
+    if not ctx.guild.voice_client.is_playing():
+        return await ctx.send("The voice client in this guild is not playing anything.")
 
 
 BASIC_OPTS = {
