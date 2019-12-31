@@ -31,7 +31,7 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
 
     if not discord.opus.is_loaded():
         if hasattr(discord.opus, '_load_default'):
-            if not discord.opus._load_default():  # pylint: disable=protected-access
+            if not discord.opus._load_default():  # pylint: disable=protected-access,no-member
                 return await ctx.send(
                     "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
                 )
