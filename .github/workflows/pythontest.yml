@@ -3,7 +3,7 @@ name: Python package
 on: [push]
 
 jobs:
-  "discord.py pypi":
+  discord-py_pypi:
 
     runs-on: ubuntu-latest
     strategy:
@@ -42,7 +42,7 @@ jobs:
       run: |
         cd docs && make html
 
-  "discord.py git":
+  discord-py_git:
 
     runs-on: ubuntu-latest
     strategy:
