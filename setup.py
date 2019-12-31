@@ -35,7 +35,12 @@ from setuptools import setup
 ROOT = pathlib.Path(__file__).parent
 
 with open(ROOT / 'jishaku' / 'meta.py', 'r', encoding='utf-8') as f:
-    VERSION = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+    VERSION_MATCH = re.search(r'VersionInfo\(major=(\d+), minor=(\d+), micro=(\d+), .+\)', f.read(), re.MULTILINE)
+
+    if not VERSION_MATCH:
+        raise RuntimeError('version is not set or could not be located')
+
+    VERSION = '.'.join([VERSION_MATCH.group(1), VERSION_MATCH.group(2), VERSION_MATCH.group(3)])
 
 EXTRA_REQUIRES = {}
 
@@ -120,7 +125,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Topic :: Communications :: Chat',
