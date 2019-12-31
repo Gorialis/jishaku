@@ -29,10 +29,14 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
     if not discord.voice_client.has_nacl:
         return await ctx.send("Voice cannot be used because PyNaCl is not loaded.")
 
-    if not discord.opus.is_loaded() and not discord.opus._load_default():  # pylint: disable=protected-access
-        return await ctx.send(
-            "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
-        )
+    if not discord.opus.is_loaded():
+        if hasattr(discord.opus, '_load_default'):
+            if not discord.opus._load_default():  # pylint: disable=protected-access
+                return await ctx.send(
+                    "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
+                )
+        else:
+            return await ctx.send("Voice cannot be used because libopus is not loaded.")
 
 
 async def connected_check(ctx: commands.Context):
