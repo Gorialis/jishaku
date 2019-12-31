@@ -17,7 +17,8 @@ import discord
 import humanize
 from discord.ext import commands
 
-from jishaku.cog_base import JISHAKU_HIDE, JishakuBase
+from jishaku.cog_base import JishakuBase
+from jishaku.flags import JISHAKU_HIDE
 from jishaku.meta import __version__
 from jishaku.metacog import GroupCogMeta
 from jishaku.modules import package_version

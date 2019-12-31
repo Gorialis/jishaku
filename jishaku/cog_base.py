@@ -2,7 +2,7 @@
 
 """
 jishaku.cog_base
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 The Jishaku cog base, which contains most of the actual functionality of Jishaku.
 
@@ -31,6 +31,7 @@ from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
+from jishaku.flags import JISHAKU_RETAIN, SCOPE_PREFIX
 from jishaku.functools import AsyncSender
 from jishaku.models import copy_context_with
 from jishaku.modules import ExtensionConverter
@@ -42,12 +43,6 @@ from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, 
 __all__ = (
     "JishakuBase",
 )
-
-ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
-JISHAKU_HIDE = os.getenv("JISHAKU_HIDE", "").lower() in ENABLED_SYMBOLS
-JISHAKU_RETAIN = os.getenv("JISHAKU_RETAIN", "").lower() in ENABLED_SYMBOLS
-JISHAKU_NO_UNDERSCORE = os.getenv("JISHAKU_NO_UNDERSCORE", "").lower() in ENABLED_SYMBOLS
-SCOPE_PREFIX = '' if JISHAKU_NO_UNDERSCORE else '_'
 
 
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
