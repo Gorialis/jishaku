@@ -59,21 +59,24 @@ async def jsk(self, ctx: commands.Context):
     ]
 
     if psutil:
-        proc = psutil.Process()
+        try:
+            proc = psutil.Process()
 
-        with proc.oneshot():
-            mem = proc.memory_full_info()
-            summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
-                           f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                           f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+            with proc.oneshot():
+                mem = proc.memory_full_info()
+                summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
+                               f"{humanize.naturalsize(mem.vms)} virtual memory, "
+                               f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
 
-            name = proc.name()
-            pid = proc.pid
-            thread_count = proc.num_threads()
+                name = proc.name()
+                pid = proc.pid
+                thread_count = proc.num_threads()
 
-            summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
+                summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
 
-            summary.append("")  # blank line
+                summary.append("")  # blank line
+        except psutil.AccessDenied as e:
+            pass
 
     cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
 
