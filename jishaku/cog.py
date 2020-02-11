@@ -58,21 +58,43 @@ async def jsk(self, ctx: commands.Context):
         ""
     ]
 
+    if sys.version_info < (3, 7, 0):
+        summary.extend([
+            "Jishaku no longer has primary support for Python 3.6. While the cog will still work, some "
+            "features and bugfixes may be unavailable on this version.",
+            "It is recommended that you update to Python 3.7+ when possible so Jishaku can properly "
+            "leverage new language features.",
+            ""
+        ])
+
     if psutil:
-        proc = psutil.Process()
+        try:
+            proc = psutil.Process()
 
-        with proc.oneshot():
-            mem = proc.memory_full_info()
-            summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
-                           f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                           f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+            with proc.oneshot():
+                try:
+                    mem = proc.memory_full_info()
+                    summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
+                                   f"{humanize.naturalsize(mem.vms)} virtual memory, "
+                                   f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+                except psutil.AccessDenied:
+                    pass
 
-            name = proc.name()
-            pid = proc.pid
-            thread_count = proc.num_threads()
+                try:
+                    name = proc.name()
+                    pid = proc.pid
+                    thread_count = proc.num_threads()
 
-            summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
+                    summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
+                except psutil.AccessDenied:
+                    pass
 
+                summary.append("")  # blank line
+        except psutil.AccessDenied:
+            summary.append(
+                "psutil is installed, but this process does not have high enough access rights "
+                "to query process information."
+            )
             summary.append("")  # blank line
 
     cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"

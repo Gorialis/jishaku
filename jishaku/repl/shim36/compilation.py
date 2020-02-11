@@ -14,7 +14,6 @@ Constants, functions and classes related to classifying, compiling and executing
 import ast
 import asyncio
 import inspect
-import sys
 import textwrap
 
 import import_expression
@@ -39,6 +38,7 @@ async def _repl_coroutine({{0}}):
 
     try:
         pass
+{{1}}
     finally:
         _async_executor.scope.globals.update(locals())
 """.format(import_expression.constants.IMPORTER)
@@ -51,8 +51,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     Also adds inline import expression support.
     """
 
-    user_code = import_expression.parse(code, mode='exec')
-    mod = import_expression.parse(CORO_CODE.format(args), mode='exec')
+    mod = import_expression.parse(CORO_CODE.format(args, textwrap.indent(code, ' ' * 8)), mode='exec')
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -60,7 +59,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     try_block = definition.body[-1]  # try:
     assert isinstance(try_block, ast.Try)
 
-    try_block.body.extend(user_code.body)
+    ast.increment_lineno(mod, -16)  # bring line numbers back in sync with repl
 
     ast.fix_missing_locations(mod)
 

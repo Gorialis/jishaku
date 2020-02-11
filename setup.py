@@ -85,11 +85,6 @@ except FileNotFoundError:
 with open(ROOT / 'README.rst', 'r', encoding='utf-8') as f:
     README = f.read()
 
-if sys.version_info < (3, 7, 0):
-    print(
-        "WARNING: jishaku will stop supporting Python 3.6 on the 5th of January 2020 (2020-01-05)",
-        file=sys.stderr
-    )
 
 setup(
     name='jishaku',

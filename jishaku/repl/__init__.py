@@ -11,11 +11,17 @@ Repl-related operations and tools for Jishaku.
 
 """
 
+import sys
+
 import discord
 from discord.ext import commands
 
 # pylint: disable=wildcard-import
-from jishaku.repl.compilation import *  # noqa: F401
+if sys.version_info >= (3, 7):
+    from jishaku.repl.compilation import *  # noqa: F401
+else:
+    from jishaku.repl.shim36.compilation import *  # noqa: F401
+
 from jishaku.repl.inspections import all_inspections  # noqa: F401
 from jishaku.repl.scope import *  # noqa: F401
 
