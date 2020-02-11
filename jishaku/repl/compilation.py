@@ -14,8 +14,6 @@ Constants, functions and classes related to classifying, compiling and executing
 import ast
 import asyncio
 import inspect
-import sys
-import textwrap
 
 import import_expression
 
