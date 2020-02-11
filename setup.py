@@ -101,7 +101,7 @@ setup(
     },
 
     version=VERSION,
-    packages=['jishaku', 'jishaku.repl'],
+    packages=['jishaku', 'jishaku.repl', 'jishaku.repl.shim36'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
     python_requires='>=3.6.0',
