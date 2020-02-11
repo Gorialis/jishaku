@@ -1,6 +1,6 @@
 coverage
 flake8
-isort
+isort<4.3.5
 pylint
 pytest
 pytest-cov
