@@ -99,7 +99,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
             if cmdtask in self.tasks:
                 self.tasks.remove(cmdtask)
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: commands.Context):  # pylint: disable=invalid-overridden-method
         """
         Local check, makes all commands in this cog owner-only
         """
