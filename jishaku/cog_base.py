@@ -243,7 +243,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         Logs this bot out.
         """
 
-        await ctx.send("Logging out now..")
+        await ctx.send("Logging out now.")
         await ctx.bot.logout()
 
     # Command-invocation commands
