@@ -293,7 +293,12 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 self.bot.loop.create_task(self.send_all_reactions())
                 self.sent_page_reactions = True  # don't spawn any more tasks
 
-            await self.message.edit(**self.send_kwargs)
+            try:
+                await self.message.edit(**self.send_kwargs)
+            except discord.NotFound:
+                # something terrible has happened
+                if self.task:
+                    self.task.cancel()
 
 
 class PaginatorEmbedInterface(PaginatorInterface):
