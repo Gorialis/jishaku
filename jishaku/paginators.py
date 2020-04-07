@@ -265,7 +265,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
             for emoji in filter(None, self.emojis):
                 try:
-                    await self.message.remove_reaction(emoji, self.message.guild.me)
+                    await self.message.remove_reaction(emoji, self.bot.user)
                 except (discord.Forbidden, discord.NotFound):
                     pass
 
