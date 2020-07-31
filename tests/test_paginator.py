@@ -39,7 +39,7 @@ def test_file_paginator():
     pages = FilePaginator(BytesIO(base_text.encode("utf-8")), line_span=(2, 2)).pages
 
     assert len(pages) == 1
-    assert pages[0] == f"```python\n# -*- coding: utf-8 -*-\n```"
+    assert pages[0] == "```python\n# -*- coding: utf-8 -*-\n```"
 
     # test reception to encoding hint
     base_text = inspect.cleandoc("""

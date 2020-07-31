@@ -40,6 +40,7 @@ __all__ = (
 # This allows both the jishaku base command to be overridden (by metaclass argument) and for the
 #  subcommands to be overridden (by simply defining new ones in the subclass)
 
+
 @commands.group(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                 invoke_without_command=True, ignore_extra=False)
 async def jsk(self, ctx: commands.Context):
