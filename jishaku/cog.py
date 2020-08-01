@@ -60,6 +60,8 @@ async def jsk(self, ctx: commands.Context):
     ]
 
     if sys.version_info < (3, 7, 0):
+        # 3.6 support uses a shim now, due to being unable to compile asynchronous function bodies
+        #  outside of asynchronous functions.
         summary.extend([
             "Jishaku no longer has primary support for Python 3.6. While the cog will still work, some "
             "features and bugfixes may be unavailable on this version.",
@@ -68,6 +70,7 @@ async def jsk(self, ctx: commands.Context):
             ""
         ])
 
+    # detect if [procinfo] feature is installed
     if psutil:
         try:
             proc = psutil.Process()
@@ -100,6 +103,7 @@ async def jsk(self, ctx: commands.Context):
 
     cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
 
+    # Show shard settings to summary
     if isinstance(self.bot, discord.AutoShardedClient):
         summary.append(f"This bot is automatically sharded and can see {cache_summary}.")
     elif self.bot.shard_count:
@@ -107,6 +111,19 @@ async def jsk(self, ctx: commands.Context):
     else:
         summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
+    # pylint: disable=protected-access
+    presence_setting = "ON" if self.bot._connection.guild_subscriptions else "OFF"
+
+    if self.bot._connection.max_messages is None:
+        summary.append(f"Message cache is disabled and presence/typing events are {presence_setting}")
+    else:
+        summary.append(
+            f"Message cache capped at {self.bot._connection.max_messages} and "
+            f"presence/typing events are {presence_setting}"
+        )
+    # pylint: enable=protected-access
+
+    # Show websocket latency in milliseconds
     summary.append(f"Average websocket latency: {round(self.bot.latency * 1000, 2)}ms")
 
     await ctx.send("\n".join(summary))
