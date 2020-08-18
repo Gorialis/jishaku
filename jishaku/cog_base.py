@@ -90,7 +90,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         self.task_count += 1
-        cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
+        cmdtask = CommandTask(self.task_count, ctx, asyncio.current_task())
         self.tasks.append(cmdtask)
 
         try:
