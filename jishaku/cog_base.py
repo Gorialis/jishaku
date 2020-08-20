@@ -96,7 +96,16 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if sys.version_info < (3, 7, 0):
             cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
         else:
-            cmdtask = CommandTask(self.task_count, ctx, asyncio.current_task())
+            try:
+                current_task = asyncio.current_task()
+            except RuntimeError:
+                # asyncio.current_task doesn't document that it can raise RuntimeError, but it does.
+                # It propagates from asyncio.get_running_loop(), so it happens when there is no loop running.
+                # It's unclear if this is a regression or an intentional change, since in 3.6,
+                #  asyncio.Task.current_task() would have just returned None in this case.
+                current_task = None
+
+            cmdtask = CommandTask(self.task_count, ctx, current_task)
 
         self.tasks.append(cmdtask)
 
