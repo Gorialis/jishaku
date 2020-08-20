@@ -52,13 +52,13 @@ Or the development version:
 |                                                                                           |
 | .. code:: sh                                                                              |
 |                                                                                           |
-|     python3 -m pip install -U git+https://github.com/Gorialis/jishaku@master#egg=jishaku  |
+|     python3 -m pip install -U "jishaku @ git+https://github.com/Gorialis/jishaku@master"  |
 |                                                                                           |
 | From GitLab:                                                                              |
 |                                                                                           |
 | .. code:: sh                                                                              |
 |                                                                                           |
-|     python3 -m pip install -U git+https://gitlab.com/Gorialis/jishaku@master#egg=jishaku  |
+|     python3 -m pip install -U "jishaku @ git+https://gitlab.com/Gorialis/jishaku@master"  |
 |                                                                                           |
 +-------------------------------------------------------------------------------------------+
 
