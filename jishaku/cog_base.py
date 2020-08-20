@@ -21,6 +21,7 @@ import itertools
 import os
 import os.path
 import re
+import sys
 import time
 import traceback
 import typing
@@ -90,7 +91,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         self.task_count += 1
-        cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
+
+        # 3.6 shim
+        if sys.version_info < (3, 7, 0):
+            cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
+        else:
+            cmdtask = CommandTask(self.task_count, ctx, asyncio.current_task())
+
         self.tasks.append(cmdtask)
 
         try:
