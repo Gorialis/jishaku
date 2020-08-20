@@ -93,11 +93,14 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         self.task_count += 1
 
         # 3.6 shim
+        # As of current, pylint is unable to detect version_info checks to avoid linting for missing attributes.
+        # As such, we're going to have to ignore such warnings explicitly, else they prevent CI from passing.
+        # See https://github.com/PyCQA/pylint/labels/topic-control-flow
         if sys.version_info < (3, 7, 0):
-            cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())
+            cmdtask = CommandTask(self.task_count, ctx, asyncio.Task.current_task())  # pylint: disable=no-member
         else:
             try:
-                current_task = asyncio.current_task()
+                current_task = asyncio.current_task()  # pylint: disable=no-member
             except RuntimeError:
                 # asyncio.current_task doesn't document that it can raise RuntimeError, but it does.
                 # It propagates from asyncio.get_running_loop(), so it happens when there is no loop running.
