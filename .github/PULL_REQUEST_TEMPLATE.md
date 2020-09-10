@@ -1,12 +1,12 @@
-### Rationale
+## Rationale
 
 <!-- What is the reason behind this change? How does implementing it benefit end users or contributors? -->
 
-### Summary of changes made
+## Summary of changes made
 
 <!-- An explanation, in plain English, of your implementation of this change. -->
 
-### Checklist
+## Checklist
 
 <!-- To check a box, place an x in the box (with no spaces), like so: [x] -->
 
