@@ -96,7 +96,7 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
 
     async def __aenter__(self):
         self.handle = self.loop.create_task(do_after_sleep(1, attempt_add_reaction, self.message,
-                                                           "\N{BLACK RIGHT-POINTING TRIANGLE}"))
+                                                           "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"))
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -115,10 +115,10 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
             await attempt_add_reaction(self.message, "\N{ALARM CLOCK}")
         elif isinstance(exc_val, SyntaxError):
             # syntax error, single exclamation mark
-            await attempt_add_reaction(self.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
+            await attempt_add_reaction(self.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}\N{VARIATION SELECTOR-16}")
         else:
             # other error, double exclamation mark
-            await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}")
+            await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}\N{VARIATION SELECTOR-16}")
 
 
 class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-public-methods
