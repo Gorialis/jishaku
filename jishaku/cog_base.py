@@ -220,7 +220,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
                 paginator.add_line(
-                    f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    f"{icon}\N{WARNING SIGN}\N{VARIATION SELECTOR-16} `{extension}`\n```py\n{traceback_data}\n```",
                     empty=True
                 )
             else:
@@ -247,7 +247,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
                 traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
                 paginator.add_line(
-                    f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    f"{icon}\N{WARNING SIGN}\N{VARIATION SELECTOR-16} `{extension}`\n```py\n{traceback_data}\n```",
                     empty=True
                 )
             else:
