@@ -274,13 +274,17 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         This will try to resolve to a Member, but will use a User if it can't find one.
         """
 
+        author = target
         if ctx.guild:
             # Try to upgrade to a Member instance
             # This used to be done by a Union converter, but doing it like this makes
             #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
-            target = ctx.guild.get_member(target.id) or target
+            author = ctx.guild.get_member(target.id)
+            if author is None:
+                with contextlib.suppress(discord.HTTPException):
+                    author = await ctx.guild.fetch_member(target.id)
 
-        alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
+        alt_ctx = await copy_context_with(ctx, author=author, content=ctx.prefix + command_string)
 
         if alt_ctx.command is None:
             if alt_ctx.invoked_with is None:
