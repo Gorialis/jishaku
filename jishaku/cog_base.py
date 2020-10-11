@@ -278,7 +278,12 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
             # Try to upgrade to a Member instance
             # This used to be done by a Union converter, but doing it like this makes
             #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
-            target = ctx.guild.get_member(target.id) or target
+            target_member = None
+
+            with contextlib.suppress(discord.HTTPException):
+                target_member = ctx.guild.get_member(target.id) or await ctx.guild.fetch_member(target.id)
+
+            target = target_member or target
 
         alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
 
