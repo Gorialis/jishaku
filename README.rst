@@ -43,7 +43,7 @@ This cog can be installed through the following command:
 
 .. code:: sh
 
-    python3 -m pip install -U jishaku
+    python3 -m pip install -U "jishaku ~= 1.0"
 
 Or the development version:
 
@@ -52,13 +52,13 @@ Or the development version:
 |                                                                                           |
 | .. code:: sh                                                                              |
 |                                                                                           |
-|     python3 -m pip install -U "jishaku @ git+https://github.com/Gorialis/jishaku@master"  |
+|     python3 -m pip install -U "jishaku @ git+https://github.com/Gorialis/jishaku@v1"      |
 |                                                                                           |
 | From GitLab:                                                                              |
 |                                                                                           |
 | .. code:: sh                                                                              |
 |                                                                                           |
-|     python3 -m pip install -U "jishaku @ git+https://gitlab.com/Gorialis/jishaku@master"  |
+|     python3 -m pip install -U "jishaku @ git+https://gitlab.com/Gorialis/jishaku@v1"      |
 |                                                                                           |
 +-------------------------------------------------------------------------------------------+
 
