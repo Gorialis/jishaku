@@ -54,12 +54,15 @@ class ShellReader:
             if pathlib.Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe").exists():
                 sequence = ['powershell', code]
                 self.ps1 = "PS >"
+                self.highlight = "powershell"
             else:
                 sequence = ['cmd', '/c', code]
                 self.ps1 = "cmd >"
+                self.highlight = "cmd"
         else:
             sequence = [SHELL, '-c', code]
             self.ps1 = "$"
+            self.highlight = "sh"
 
         self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.close_code = None
