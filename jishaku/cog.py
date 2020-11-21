@@ -112,15 +112,18 @@ async def jsk(self, ctx: commands.Context):
         summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
     # pylint: disable=protected-access
-    presence_setting = "ON" if self.bot._connection.guild_subscriptions else "OFF"
+    message_cache = "Message cache is disabled" if self.bot._connection.max_messages else f"Message cache capped at {self.bot._connection.max_messages}"
 
-    if self.bot._connection.max_messages is None:
-        summary.append(f"Message cache is disabled and presence/typing events are {presence_setting}")
+    if discord.version_info >= (1, 5, 0):
+        presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"
+        members_intent = f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
+
+        summary.append(f"{message_cache}, {presence_intent} and {members_intent}.")
     else:
-        summary.append(
-            f"Message cache capped at {self.bot._connection.max_messages} and "
-            f"presence/typing events are {presence_setting}"
-        )
+        guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
+
+        summary.append(f"{message_cache} and {guild_subscriptions}.")
+
     # pylint: enable=protected-access
 
     # Show websocket latency in milliseconds
