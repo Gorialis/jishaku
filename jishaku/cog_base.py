@@ -589,13 +589,13 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
 
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
-                paginator = WrappedPaginator(prefix="```sh", max_size=1985)
-                paginator.add_line(f"$ {argument.content}\n")
-
-                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                self.bot.loop.create_task(interface.send_to(ctx))
-
                 with ShellReader(argument.content) as reader:
+                    paginator = WrappedPaginator(prefix="```sh", max_size=1985)
+                    paginator.add_line(f"{reader.ps1} {argument.content}\n")
+
+                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                    self.bot.loop.create_task(interface.send_to(ctx))
+
                     async for line in reader:
                         if interface.closed:
                             return

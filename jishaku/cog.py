@@ -112,7 +112,10 @@ async def jsk(self, ctx: commands.Context):
         summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
     # pylint: disable=protected-access
-    message_cache = "Message cache is disabled" if self.bot._connection.max_messages else f"Message cache capped at {self.bot._connection.max_messages}"
+    if self.bot._connection.max_messages:
+        message_cache = f"Message cache capped at {self.bot._connection.max_messages}"
+    else:
+        message_cache = "Message cache is disabled"
 
     if discord.version_info >= (1, 5, 0):
         presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"

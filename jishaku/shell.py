@@ -13,6 +13,7 @@ Tools related to interacting directly with the shell.
 
 import asyncio
 import os
+import pathlib
 import re
 import shlex
 import subprocess
@@ -50,9 +51,16 @@ class ShellReader:
 
     def __init__(self, code: str, timeout: int = 90, loop: asyncio.AbstractEventLoop = None):
         if WINDOWS:
-            sequence = shlex.split(code)
+            # Check for powershell
+            if pathlib.Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe").exists():
+                sequence = ['powershell', code]
+                self.ps1 = "PS >"
+            else:
+                sequence = ['cmd', '/c', code]
+                self.ps1 = "cmd >"
         else:
             sequence = [SHELL, '-c', code]
+            self.ps1 = "$"
 
         self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.close_code = None
