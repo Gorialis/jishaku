@@ -78,7 +78,8 @@ jobs:
       shell: bash
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" "astroid @ git+https://github.com/PyCQA/astroid"
+        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" --extra-index-url https://gorialis.github.io/pip/
+        pip install -U "astroid @ git+https://github.com/PyCQA/astroid"
         pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
     - name: Test from local directory
