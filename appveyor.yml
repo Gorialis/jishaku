@@ -20,7 +20,8 @@ environment:
     - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "36", PY_ARCH: "64"}
 
 install:
-  - ps: if (-not(Test-Path($env:PYTHON))) { & _appveyor\install.ps1 }
+  - set PYTHON=C:\Python%PY_VER%
+  - if %PY_ARCH%==64 (set PYTHON=%PYTHON%-x64)
 
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "%CMD_IN_ENV% SET PYTHONPATH=%CD%;%PYTHONPATH%"
