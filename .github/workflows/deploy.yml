@@ -15,6 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Expand shallow clone
+      run: git fetch --prune --unshallow
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -67,6 +70,9 @@ jobs:
     name: "Windows CPython ${{ matrix.python-version }} ${{ matrix.python-arch }} with ${{ matrix.discord-py.NAME }} discord.py"
     steps:
     - uses: actions/checkout@v2
+
+    - name: Expand shallow clone
+      run: git fetch --prune --unshallow
 
     - name: Set up Python ${{ matrix.python-version }} ${{ matrix.python-arch }}
       uses: actions/setup-python@v2
@@ -127,6 +133,9 @@ jobs:
     name: "macOS CPython ${{ matrix.python-version }} with ${{ matrix.discord-py.NAME }} discord.py"
     steps:
     - uses: actions/checkout@v2
+
+    - name: Expand shallow clone
+      run: git fetch --prune --unshallow
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
