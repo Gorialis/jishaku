@@ -148,7 +148,7 @@ jobs:
     - name: Lint repository
       run: |
         flake8 .
-        pylint -j "$(nproc)" jishaku
+        pylint jishaku
         isort . --check-only --recursive
 
     - name: Create distributions and install wheel
