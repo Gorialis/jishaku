@@ -578,7 +578,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
             scope.clear_intersection(arg_dict)
 
     # Shell-related commands
-    @commands.command(name="shell", aliases=["sh"])
+    @commands.command(name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd"])
     async def jsk_shell(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Executes statements in the system shell.
@@ -612,6 +612,14 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
+
+    @commands.command(name="pip")
+    async def jsk_pip(self, ctx: commands.Context, *, argument: codeblock_converter):
+        """
+        Shortcut for 'jsk sh pip'. Invokes the system shell.
+        """
+
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))
 
     # Voice-related commands
     @commands.group(name="voice", aliases=["vc"], invoke_without_command=True, ignore_extra=False)
