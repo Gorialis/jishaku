@@ -1,0 +1,187 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        discord-py:
+          - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
+          - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
+    name: "Linux CPython ${{ matrix.python-version }} with ${{ matrix.discord-py.NAME }} discord.py"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" "astroid @ git+https://github.com/PyCQA/astroid"
+        pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+    - name: Test from local directory
+      run: |
+        PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+
+    - name: Lint repository
+      run: |
+        flake8 .
+        pylint -j "$(nproc)" jishaku
+        isort . --check-only --recursive
+
+    - name: Create distributions and install wheel
+      run: |
+        python ./setup.py sdist bdist_egg bdist_wheel
+        rm -rf jishaku
+        find dist -name *.whl -exec pip install '{}' +
+
+    - name: Test from installed module
+      run: |
+        pytest -vs
+
+    - name: Build documentation
+      run: |
+        cd docs && make html
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: distributions
+        path: dist/*
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-arch: ['x86', 'x64']
+        discord-py:
+          - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
+          - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
+    name: "Windows CPython ${{ matrix.python-version }} ${{ matrix.python-arch }} with ${{ matrix.discord-py.NAME }} discord.py"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }} ${{ matrix.python-arch }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.python-arch }}
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" "astroid @ git+https://github.com/PyCQA/astroid"
+        pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+    - name: Test from local directory
+      shell: bash
+      run: |
+        PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+
+    - name: Lint repository
+      shell: bash
+      run: |
+        flake8 .
+        pylint -j "$(nproc)" jishaku
+        isort . --check-only --recursive
+
+    - name: Create distributions and install wheel
+      shell: bash
+      run: |
+        python ./setup.py sdist bdist_egg bdist_wheel
+        rm -rf jishaku
+        find dist -name *.whl -exec pip install '{}' +
+
+    - name: Test from installed module
+      shell: bash
+      run: |
+        pytest -vs
+
+    - name: Build documentation
+      shell: bash
+      run: |
+        cd docs && make html
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: distributions
+        path: dist/*
+
+  macos:
+    runs-on: macos-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        discord-py:
+          - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
+          - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
+    name: "macOS CPython ${{ matrix.python-version }} with ${{ matrix.discord-py.NAME }} discord.py"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" "astroid @ git+https://github.com/PyCQA/astroid"
+        pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
+
+    - name: Test from local directory
+      run: |
+        PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+
+    - name: Lint repository
+      run: |
+        flake8 .
+        pylint -j "$(nproc)" jishaku
+        isort . --check-only --recursive
+
+    - name: Create distributions and install wheel
+      run: |
+        python ./setup.py sdist bdist_egg bdist_wheel
+        rm -rf jishaku
+        find dist -name *.whl -exec pip install '{}' +
+
+    - name: Test from installed module
+      run: |
+        pytest -vs
+
+    - name: Build documentation
+      run: |
+        cd docs && make html
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: distributions
+        path: dist/*
+
+  upload_pypi:
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: distributions
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: ${{ secrets.pypi_username }}
+          password: ${{ secrets.pypi_password }}

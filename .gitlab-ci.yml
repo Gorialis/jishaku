@@ -243,19 +243,3 @@ pages:
       - public
   only:
     - master
-
-deploy:
-  stage: deploy
-  image: gorialis/discord.py:3.8-alpine-master
-  before_script:
-    - pip install -U twine
-    - ls dist
-    - export TWINE_USERNAME="$(echo -e $TWINE_USERNAME)"
-    - export TWINE_PASSWORD="$(echo -e $TWINE_PASSWORD)"
-  script:
-    - twine upload dist/*
-  artifacts:
-    paths:
-      - dist
-  only:
-    - tags@Gorialis/jishaku
