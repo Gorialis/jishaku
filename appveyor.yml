@@ -21,7 +21,7 @@ environment:
 
 install:
   - set PYTHON=C:\Python%PY_VER%
-  - if %PY_ARCH%==64 (set PYTHON=%PYTHON%-x64)
+  - if %PYTHON_ARCH%==64 (set PYTHON=%PYTHON%-x64)
 
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "SET PYTHONPATH=%CD%;%PYTHONPATH%"
