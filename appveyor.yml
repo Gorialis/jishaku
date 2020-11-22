@@ -10,37 +10,37 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see
     # https://www.appveyor.com/docs/windows-images-software/#python
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019, PY_VER: "39", PY_ARCH: "32"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019, PY_VER: "39", PY_ARCH: "64"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "38", PY_ARCH: "32"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "38", PY_ARCH: "64"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "37", PY_ARCH: "32"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "37", PY_ARCH: "64"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "36", PY_ARCH: "32"}
-    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "36", PY_ARCH: "64"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019, PY_VER: "39", PYTHON_VERSION: "3.9.x", PYTHON_ARCH: "32"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019, PY_VER: "39", PYTHON_VERSION: "3.9.x", PYTHON_ARCH: "64"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "38", PYTHON_VERSION: "3.8.x", PYTHON_ARCH: "32"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "38", PYTHON_VERSION: "3.8.x", PYTHON_ARCH: "64"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "37", PYTHON_VERSION: "3.7.x", PYTHON_ARCH: "32"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "37", PYTHON_VERSION: "3.7.x", PYTHON_ARCH: "64"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "36", PYTHON_VERSION: "3.6.x", PYTHON_ARCH: "32"}
+    - {APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015, PY_VER: "36", PYTHON_VERSION: "3.6.x", PYTHON_ARCH: "64"}
 
 install:
   - set PYTHON=C:\Python%PY_VER%
   - if %PY_ARCH%==64 (set PYTHON=%PYTHON%-x64)
 
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "%CMD_IN_ENV% SET PYTHONPATH=%CD%;%PYTHONPATH%"
+  - "SET PYTHONPATH=%CD%;%PYTHONPATH%"
 
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   - "python -m pip install -U pip setuptools wheel"
-  - "%CMD_IN_ENV% pip install -U \"discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master\" \"astroid @ git+https://github.com/PyCQA/astroid@master\" \"pylint @ git+https://github.com/PyCQA/pylint@master\""
-  - "%CMD_IN_ENV% pip install -U -r requirements/_.txt -r requirements/docs.txt -r requirements/procinfo.txt -r requirements/test.txt -r requirements/voice.txt"
+  - "pip install -U \"discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master\" \"astroid @ git+https://github.com/PyCQA/astroid@master\" \"pylint @ git+https://github.com/PyCQA/pylint@master\""
+  - "pip install -U -r requirements/_.txt -r requirements/docs.txt -r requirements/procinfo.txt -r requirements/test.txt -r requirements/voice.txt"
 
 test_script:
-  - "%CMD_IN_ENV% pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"
-  - "%CMD_IN_ENV% flake8 ."
-  - "%CMD_IN_ENV% pylint jishaku"
-  - "%CMD_IN_ENV% isort . --check-only --recursive"
+  - "pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"
+  - "flake8 ."
+  - "pylint jishaku"
+  - "isort . --check-only --recursive"
 
 after_test:
-  - "%CMD_IN_ENV% python setup.py sdist bdist_egg bdist_wheel"
+  - "python setup.py sdist bdist_egg bdist_wheel"
 
 artifacts:
   - path: dist\*
