@@ -117,7 +117,7 @@ async def jsk(self, ctx: commands.Context):
     else:
         message_cache = "Message cache is disabled"
 
-    if discord.version_info >= (1, 5, 0):
+    if hasattr(discord, 'Intents'):
         presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"
         members_intent = f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
 
