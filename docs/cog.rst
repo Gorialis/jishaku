@@ -3,6 +3,9 @@
 jishaku as a cog
 ================
 
+Custom cogs and the Feature framework
+--------------------------------------
+
 The jishaku cog contains commands for bot management, debugging and experimentation.
 
 The conventional way to add the cog is by using the module as an extension:
@@ -11,33 +14,121 @@ The conventional way to add the cog is by using the module as an extension:
 
     bot.load_extension('jishaku')
 
-You can also write your own extension file to modify or supplement commands:
+You could also create your own extension to load the ``Jishaku`` cog, but this is not recommended:
+
+.. code:: python3
+
+    from jishaku.cog import Jishaku
+
+    def setup(bot: commands.Bot):
+        # I don't recommend doing this!
+        bot.add_cog(Jishaku(bot=bot))
+
+If you wish to change or add to the functionality on jishaku for your specific bot, you must use the Features framework to create a new cog.
+
+The ``Jishaku`` cog is composited from multiple Features that implement various parts of its functionality.
+When the cog is instantiated, the inherited Features are used to compile the final command tree.
+
+.. image:: /images/features.png
+
+Here is an example of a simple custom cog using this setup:
 
 .. code:: python3
 
     from discord.ext import commands
-    from jishaku.cog import JishakuBase, jsk
-    from jishaku.metacog import GroupCogMeta
 
-    class Debugging(JishakuBase, metaclass=GroupCogMeta, command_parent=jsk):
-        ...
+    from jishaku.features.python import PythonFeature
+    from jishaku.features.root_command import RootCommand
 
-        @commands.command(name="debug", aliases=["dbg"])
-        async def jsk_debug(self, ctx: commands.Context, *, command_string: str):
-            """
-            This overwrites the `jsk debug` command!
-            """
-            ...
-
-        # Or add other, new commands
-        # Every @commands.command() in here will be parented to the command_parent,
-        # in this case the default jsk Group.
-        # You can also make your own Group and use it as the command_parent instead.
-        ...
-
+    class CustomDebugCog(PythonFeature, RootCommand):
+        pass
 
     def setup(bot: commands.Bot):
-        bot.add_cog(Debugging(bot))
+        bot.add_cog(CustomDebugCog(bot=bot))
+
+This example would give you a cog that includes the ``jsk`` command, the core task system, and the Python commands, but nothing else.
+
+Using this system, you can selectively include or exclude features you want on your custom Cogs.
+
+``STANDARD_FEATURES`` in ``jishaku.cog`` holds all the features that an installation of jishaku is guaranteed to have by default.
+Thus, you can make a cog without any optional features like so:
+
+.. code:: python3
+
+    from discord.ext import commands
+
+    from jishaku.cog import STANDARD_FEATURES
+
+    class CustomDebugCog(*STANDARD_FEATURES):
+        pass
+
+    def setup(bot: commands.Bot):
+        bot.add_cog(CustomDebugCog(bot=bot))
+
+``OPTIONAL_FEATURES``, by contrast, contains Features detected to be supported in this environment.
+The content of it may vary depending on what extras have been installed, or what platform jishaku is running on.
+
+To use these features as well, simply add them to your cog:
+
+.. code:: python3
+
+    from discord.ext import commands
+
+    from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
+
+    class CustomDebugCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+        pass
+
+    def setup(bot: commands.Bot):
+        bot.add_cog(CustomDebugCog(bot=bot))
+
+This will give you an almost identical cog to the standard Jishaku.
+
+Adding or changing commands
+----------------------------
+
+If you want to add or change commands in your custom cog, you can use ``Feature.Command``.
+
+This operates in a similar manner to ``commands.command``, but it allows command cross-referencing between different Features, and guarantees individual instances of jishaku cogs will have unique states.
+
+.. code:: python3
+
+    from jishaku.features.baseclass import Feature
+
+    class CustomDebugCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+        @Feature.Command(parent="jsk", name="foobar")
+        async def jsk_foobar(self, ctx: commands.Context):
+            await ctx.send("Hello there!")
+
+The ``parent`` argument refers to what command parents this one, and works across Features.
+The name used in it is the **function name of the callback for the command**, not the command's name itself, so please keep this in mind.
+
+If you need to check what the name of a command you want to parent against is, you can use ``jsk source jsk <whatever>``.
+
+Commands that have children when the cog is instantiated will be automatically turned into ``Group`` s, and this applies for subcommands of subcommands and etc.
+
+If you want to override existing commands, the process is moreorless the same:
+
+.. code:: python3
+
+    class CustomDebugCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+        @Feature.Command(parent="jsk", name="debug")
+        async def jsk_debug(self, ctx: commands.Context):
+            await ctx.send("Not so debuggy any more!")
+
+Like standard inheritance, this requires the **function name to be the same to work properly**, so keep this in mind.
+
+You can even override the jishaku base command using this method:
+
+.. code:: python3
+
+    class CustomDebugCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+        @Feature.Command(name="jishaku", aliases=["jsk"], invoke_without_command=True, ignore_extra=False)
+        async def jsk(self, ctx: commands.Context):
+            await ctx.send("I'm walking on a Star!")
+
+Changing who can use jishaku
+-----------------------------
 
 The ``jishaku`` command group has an owner check applied to it and all subcommands.
 To change who can use jishaku, you must change how the owner is determined in your own Bot:
@@ -51,6 +142,10 @@ To change who can use jishaku, you must change how the owner is determined in yo
 
             # Else fall back to the original
             return await super().is_owner(user)
+
+This is the **sole** supported method of changing who can use jishaku.
+
+jishaku is a powerful tool - giving people access to it is equivalent to giving them direct access to your computer - so you should make serious consideration for whether you should be overriding who can use it at all.
 
 Task system
 -----------
@@ -142,7 +237,10 @@ These variables are prefixed with underscores to try and reduce accidental shado
 If you don't want the underscores, you can set ``JISHAKU_NO_UNDERSCORE=true`` in your environment variables.
 
 These variables are bound to the local scope and are actively cleaned from the scope on command exit,
-so they should never persist between REPL sessions.
+so they don't persist between REPL sessions.
+
+If you want to change this behavior, you can set ``JISHAKU_RETAIN=true``, or,
+use the ``jsk retain on`` and ``jsk retain off`` commands to toggle variable retention.
 
 
 Commands

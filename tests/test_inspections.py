@@ -13,9 +13,9 @@ import collections  # for __iadd__ test
 
 import discord
 import pytest
+from utils import run_async
 
 from jishaku.repl.inspections import all_inspections
-from utils import run_async
 
 
 @pytest.mark.parametrize(

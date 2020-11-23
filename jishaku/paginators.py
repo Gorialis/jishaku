@@ -39,6 +39,38 @@ EMOJI_DEFAULT = EmojiSettings(
 class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
     """
     A message and reaction based interface for paginators.
+
+    This allows users to interactively navigate the pages of a Paginator, and supports live output.
+
+    An example of how to use this with a standard Paginator:
+
+    .. code:: python3
+
+        from discord.ext import commands
+
+        from jishaku.paginators import PaginatorInterface
+
+        # In a command somewhere...
+            # Paginators need to have a reduced max_size to accommodate the extra text added by the interface.
+            paginator = commands.Paginator(max_size=1900)
+
+            # Populate the paginator with some information
+            for line in range(100):
+                paginator.add_line(f"Line {line + 1}")
+
+            # Create and send the interface.
+            # The 'owner' field determines who can interact with this interface. If it's None, anyone can use it.
+            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+            await interface.send_to(ctx)
+
+            # send_to creates a task and returns control flow.
+            # It will raise if the interface can't be created, e.g., if there's no reaction permission in the channel.
+            # Once the interface has been sent, line additions have to be done asynchronously, so the interface can be updated.
+            await interface.add_line("My, the Earth sure is full of things!")
+
+            # You can also check if it's closed using the 'closed' property.
+            if not interface.closed:
+                await interface.add_line("I'm still here!")
     """
 
     def __init__(self, bot: commands.Bot, paginator: commands.Paginator, **kwargs):

@@ -74,14 +74,12 @@ try:
         if COMMIT_HASH:
             if VERSION.endswith(('a', 'b', 'rc')):
                 VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
-            else:
-                VERSION += '.' + COMMIT_COUNT.decode('utf-8').strip()
 
 except FileNotFoundError:
     pass
 
 
-with open(ROOT / 'README.rst', 'r', encoding='utf-8') as f:
+with open(ROOT / 'README.md', 'r', encoding='utf-8') as f:
     README = f.read()
 
 
@@ -93,7 +91,6 @@ setup(
     license='MIT',
     description='A discord.py extension including useful tools for bot development and debugging.',
     long_description=README,
-    long_description_content_type='text/x-rst',
     project_urls={
         'Documentation': 'https://jishaku.readthedocs.io/en/latest/',
         'Code': 'https://github.com/Gorialis/jishaku',
@@ -101,10 +98,10 @@ setup(
     },
 
     version=VERSION,
-    packages=['jishaku', 'jishaku.repl', 'jishaku.repl.shim36'],
+    packages=['jishaku', 'jishaku.features', 'jishaku.repl'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
-    python_requires='>=3.6.0',
+    python_requires='>=3.7.0',
 
     extras_require=EXTRA_REQUIRES,
 
@@ -121,6 +118,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Communications :: Chat',
         'Topic :: Internet',
         'Topic :: Software Development :: Debuggers',

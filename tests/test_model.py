@@ -10,6 +10,7 @@ jishaku.models tests
 """
 
 import utils
+
 from jishaku.models import copy_context_with
 
 

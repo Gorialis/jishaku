@@ -4,48 +4,6 @@
 #
 version: 2
 jobs:
-  buster 3.6 pypi:
-    docker:
-      - image: gorialis/discord.py:3.6-buster-pypi
-
-    working_directory: ~/repo
-
-    steps:
-      - checkout
-
-      - run:
-          name: install dependencies
-          command: |
-            pip install -U "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
-            pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-
-      # run tests
-      - run:
-          name: run tests
-          command: |
-            PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-            flake8 .
-            pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
-            python ./setup.py sdist bdist_egg bdist_wheel
-            rm -rf jishaku
-            find dist -name *.whl -exec pip install '{}' +
-            pytest -vs
-
-      # build docs
-      - run:
-          name: build documentation
-          command: |
-            cd docs && make html
-
-      - store_artifacts:
-          path: dist
-          destination: distributions
-
-      - store_artifacts:
-          path: docs/_build
-          destination: documentation
-
   buster 3.7 pypi:
     docker:
       - image: gorialis/discord.py:3.7-buster-pypi
@@ -58,7 +16,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -68,7 +25,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -100,7 +57,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -110,7 +66,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -142,7 +98,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -152,49 +107,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
-            python ./setup.py sdist bdist_egg bdist_wheel
-            rm -rf jishaku
-            find dist -name *.whl -exec pip install '{}' +
-            pytest -vs
-
-      # build docs
-      - run:
-          name: build documentation
-          command: |
-            cd docs && make html
-
-      - store_artifacts:
-          path: dist
-          destination: distributions
-
-      - store_artifacts:
-          path: docs/_build
-          destination: documentation
-
-  buster 3.6 git:
-    docker:
-      - image: gorialis/discord.py:3.6-buster-master
-
-    working_directory: ~/repo
-
-    steps:
-      - checkout
-
-      - run:
-          name: install dependencies
-          command: |
-            pip install -U "discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master" "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
-            pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
-
-      # run tests
-      - run:
-          name: run tests
-          command: |
-            PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
-            flake8 .
-            pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -226,7 +139,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master" "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -236,7 +148,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -268,7 +180,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master" "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -278,7 +189,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -310,7 +221,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip install -U "discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master" "astroid @ git+https://github.com/PyCQA/astroid@master" "pylint @ git+https://github.com/PyCQA/pylint@master"
             pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
       # run tests
@@ -320,7 +230,7 @@ jobs:
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
             flake8 .
             pylint -j "$(nproc)" jishaku
-            isort . --check-only --recursive
+            isort . --check-only
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -345,11 +255,9 @@ workflows:
   version: 2
   build:
     jobs:
-      - "buster 3.6 pypi"
       - "buster 3.7 pypi"
       - "buster 3.8 pypi"
       - "buster 3.9 pypi"
-      - "buster 3.6 git"
       - "buster 3.7 git"
       - "buster 3.8 git"
       - "buster 3.9 git"

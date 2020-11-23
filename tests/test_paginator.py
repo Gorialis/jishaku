@@ -15,9 +15,9 @@ from io import BytesIO
 
 import discord
 import pytest
+import utils
 from discord.ext import commands
 
-import utils
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
 
 

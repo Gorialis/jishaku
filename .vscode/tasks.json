@@ -13,6 +13,15 @@
                 "term-missing:skip-covered"
             ],
             "group": "test"
+        },
+        {
+            "label": "Build documentation",
+            "type": "shell",
+            "command": "docs/make",
+            "args": [
+                "html"
+            ],
+            "group": "build"
         }
     ]
 }

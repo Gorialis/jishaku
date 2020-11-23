@@ -13,9 +13,9 @@ import asyncio
 import sys
 
 import pytest
+from utils import run_async
 
 from jishaku.shell import ShellReader
-from utils import run_async
 
 
 @run_async

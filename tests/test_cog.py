@@ -12,9 +12,8 @@ jishaku.cog loadability and functionality test
 import asyncio
 
 import pytest
-from discord.ext import commands
-
 import utils
+from discord.ext import commands
 
 
 @pytest.fixture(

@@ -61,6 +61,18 @@ Paginator-related tools
 Help command classes
 --------------------
 
+These are classes you can use, or subclass yourself, for help commands.
+
+You can use them like this:
+
+.. code:: python3
+
+    from discord.ext import commands
+
+    from jishaku.help_command import MinimalPaginatorHelp
+
+    bot = commands.Bot('?', help_command=MinimalPaginatorHelp())
+
 .. currentmodule:: jishaku.help_command
 
 .. autoclass:: DefaultPaginatorHelp
