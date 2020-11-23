@@ -54,8 +54,8 @@ You can also import the module to use the command development utilities.
 
 <table>
     <tr>
-        <td>
-            <img align="left" width="50" src=".github/assets/python_logo.svg">
+        <td width="60px">
+            <img align="left" src=".github/assets/python_logo.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [py|python] &lt;argument&gt;</code></h4>
@@ -126,8 +126,8 @@ You can also import the module to use the command development utilities.
 
 <table>
     <tr>
-        <td>
-            <img align="left" width="50" src=".github/assets/terminal.svg">
+        <td width="60px">
+            <img align="left" src=".github/assets/terminal.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [sh|shell] &lt;argument&gt;</code></h4>
@@ -148,8 +148,8 @@ You can also import the module to use the command development utilities.
 
 <table>
     <tr>
-        <td>
-            <img align="left" width="50" src=".github/assets/extension.svg">
+        <td width="60px">
+            <img align="left" src=".github/assets/extension.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [load|reload] [extensions...]</code></h4>
@@ -172,8 +172,8 @@ You can also import the module to use the command development utilities.
 
 <table>
     <tr>
-        <td>
-            <img align="left" width="50" src=".github/assets/description.svg">
+        <td width="60px">
+            <img align="left" src=".github/assets/description.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku cat &lt;file&gt;</code></h4>
@@ -191,8 +191,8 @@ You can also import the module to use the command development utilities.
 
 <table>
     <tr>
-        <td>
-            <img align="left" width="50" src=".github/assets/chat.svg">
+        <td width="60px">
+            <img align="left" src=".github/assets/chat.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku sudo &lt;command string&gt;</code></h4>
