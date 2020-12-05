@@ -13,7 +13,7 @@
 - [ ] This PR changes the jishaku module/cog codebase
     - [ ] These changes add new functionality to the module/cog
     - [ ] These changes fix an issue or bug in the module/cog
-    - [ ] I have tested that these changes work on a production bot instance
+    - [ ] I have tested that these changes work on a production bot codebase
     - [ ] I have tested these changes against the CI/CD test suite
     - [ ] I have updated the documentation to reflect these changes
 - [ ] This PR changes the CI/CD test suite
