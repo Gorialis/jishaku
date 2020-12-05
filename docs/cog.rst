@@ -276,6 +276,17 @@ Commands
     else it is sent as a :class:`PaginatorInterface`.
 
 
+.. py:function:: jsk [disassemble|dis] <argument: str>
+
+    Compiles Python code in an asynchronous context, and returns the disassembly.
+
+    This operates in a similar manner to :func:`dis.dis`, but in a more accessible form, as it is in an implicit async context and doesn't send to stdout.
+
+    .. currentmodule:: jishaku.paginators
+
+    The output is always sent as a :class:`PaginatorInterface`.
+
+
 .. py:function:: jsk retain <toggle: bool>
 
     Toggles whether variables defined in REPL sessions are retained into future sessions. (OFF by default)

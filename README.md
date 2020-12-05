@@ -120,6 +120,11 @@ You can also import the module to use the command development utilities.
             <br>
             You can use <code>jishaku retain on</code> to change this behavior and retain variables, and <code>jishaku retain off</code> if you change your mind later.
             <br><br>
+            <h4>&gt; <code>jishaku [dis|disassemble] &lt;argument&gt;</code></h4>
+            This command compiles Python code in an asynchronous context, and then disassembles the resulting function into Python bytecode in the style of <code>dis.dis</code>.
+            <br><br>
+            This allows you to quickly and easily determine the bytecode that results from a given expression or piece of code. The code itself is not actually executed.
+            <br><br>
         </td>
     </tr>
 </table>
