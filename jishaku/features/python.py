@@ -20,7 +20,7 @@ from jishaku.features.baseclass import Feature
 from jishaku.flags import JISHAKU_RETAIN, SCOPE_PREFIX
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx, disassemble
 
 
 class PythonFeature(Feature):
@@ -156,3 +156,20 @@ class PythonFeature(Feature):
                         send(await interface.send_to(ctx))
         finally:
             scope.clear_intersection(arg_dict)
+
+    @Feature.Command(parent="jsk", name="dis", aliases=["disassemble"])
+    async def jsk_disassemble(self, ctx: commands.Context, *, argument: codeblock_converter):
+        """
+        Disassemble Python code into bytecode.
+        """
+
+        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+
+        async with ReplResponseReactor(ctx.message):
+            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+            for line in disassemble(argument.content, arg_dict=arg_dict):
+                paginator.add_line(line)
+
+            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+            await interface.send_to(ctx)
