@@ -234,6 +234,22 @@ If you'd like to test the latest versions of jishaku, you can do so by downloadi
 > pip install -U "jishaku @ git+https://gitlab.com/Gorialis/jishaku@master"
 > ```
 
+Please note that the new 2020 dependency resolver now no longer discounts git package sources from reinstall prevention,
+which means that if you are installing the jishaku development version multiple times within the same version target you may run into pip just discarding the update.
+
+If you run into such a problem, you can force jishaku to be reinstalled like this:
+
+> From GitHub:
+> ```bash
+> pip install -U --no-deps --force-reinstall "jishaku @ git+https://github.com/Gorialis/jishaku@master"
+> ```
+> From GitLab:
+> ```bash
+> pip install -U --no-deps --force-reinstall "jishaku @ git+https://gitlab.com/Gorialis/jishaku@master"
+> ```
+
+You **must** have installed jishaku with one of the commands above before doing this else you will probably end up with a broken installation.
+
 ## Acknowledgements
 
 The documentation and this README uses icons from the <a href="https://github.com/google/material-design-icons">Material Design Icon</a> library, which is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache License Version 2.0</a>.
