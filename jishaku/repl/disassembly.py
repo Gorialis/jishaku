@@ -59,7 +59,21 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     # We do not use the keyword transformer here, since it might produce misleading disassembly.
 
-    # We do not convert the last expression into a return here, since it might produce misleading disassembly.
+    is_asyncgen = any(isinstance(node, ast.Yield) for node in ast.walk(definition))
+    last_expr = definition.body[-1]
+
+    # if the last part isn't an expression, ignore it
+    if not isinstance(last_expr, ast.Expr):
+        return mod
+
+    # if this isn't a generator and the last expression is not a return
+    if not is_asyncgen and not isinstance(last_expr.value, ast.Return):
+        # copy the value of the expression into a return
+        return_stmt = ast.Return(last_expr.value)
+        ast.copy_location(return_stmt, last_expr)
+
+        # place the return where the original expression was
+        definition.body[-1] = return_stmt
 
     return mod
 
