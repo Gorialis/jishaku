@@ -12,23 +12,18 @@ Functions pertaining to the disassembly of Python code
 """
 
 import ast
-import asyncio
 import dis
-import inspect
 
 import import_expression
 
-from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
-from jishaku.repl.walkers import KeywordTransformer
 
 CORO_CODE = """
 import asyncio
-from importlib import import_module as {0}
 
-import aiohttp
 import discord
 from discord.ext import commands
+from importlib import import_module as {0}
 
 import jishaku
 

@@ -41,7 +41,7 @@ jobs:
       shell: bash
       run: |
         flake8 .
-        pylint -j "$(nproc)" jishaku
+        pylint jishaku
         isort . --check-only
 
     - name: Create distributions and install wheel
