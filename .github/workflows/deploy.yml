@@ -1,9 +1,9 @@
 name: Python package
 
 on:
-  - push
-  - pull_request:
-      types: [ opened, edited ]
+  push:
+  pull_request:
+    types: [ opened, edited ]
 
 jobs:
   build-dists:
