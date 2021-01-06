@@ -6,7 +6,7 @@ jishaku.models
 
 Functions for modifying or interfacing with discord.py models.
 
-:copyright: (c) 2020 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """

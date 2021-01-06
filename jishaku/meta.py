@@ -6,7 +6,7 @@ jishaku.meta
 
 Meta information about jishaku.
 
-:copyright: (c) 2020 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -28,7 +28,7 @@ VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
 version_info = VersionInfo(major=2, minor=0, micro=0, releaselevel='final', serial=0)
 
 __author__ = 'Gorialis'
-__copyright__ = 'Copyright 2020 Devon (Gorialis) R'
+__copyright__ = 'Copyright 2021 Devon (Gorialis) R'
 __docformat__ = 'restructuredtext en'
 __license__ = 'MIT'
 __title__ = 'jishaku'

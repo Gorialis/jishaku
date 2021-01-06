@@ -22,7 +22,7 @@
 from jishaku.meta import __version__
 
 project = 'jishaku'
-copyright = '2020, Gorialis'
+copyright = '2021, Gorialis'
 author = 'Gorialis'
 
 # The short X.Y version

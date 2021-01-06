@@ -6,7 +6,7 @@ jishaku.features.baseclass
 
 The base Feature class that serves as the superclass of all feature components.
 
-:copyright: (c) 2020 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """

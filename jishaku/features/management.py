@@ -6,7 +6,7 @@ jishaku.features.management
 
 The jishaku extension and bot control commands.
 
-:copyright: (c) 2020 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (Gorialis) R
 :license: MIT, see LICENSE for more details.
 
 """
