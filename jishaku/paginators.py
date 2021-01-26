@@ -264,8 +264,16 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             return all(tests)
 
         try:
-            while not self.bot.is_closed():
-                payload = await self.bot.wait_for('raw_reaction_add', check=check, timeout=self.timeout)
+                tasks = [
+                    asyncio.ensure_future(self.bot.wait_for('raw_reaction_add', check=check)),
+                    asyncio.ensure_future(self.bot.wait_for('raw_reaction_remove', check=check))
+                ]
+                done, pending = await asyncio.wait(tasks, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED)
+                for task in pending:
+                    task.cancel()
+                if len(done) == 0:
+                    raise asyncio.TimeoutError()
+                payload = done.pop().result()
 
                 emoji = payload.emoji
                 if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
