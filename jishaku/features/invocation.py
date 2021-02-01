@@ -143,7 +143,7 @@ class InvocationFeature(Feature):
 
         paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
         for line in source_lines:
-            paginator.add_line(line)
+            paginator.add_line(discord.utils.escape_markdown(line))
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         await interface.send_to(ctx)
