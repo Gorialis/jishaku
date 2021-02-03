@@ -235,7 +235,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             return False
         return self.task.done()
 
-    async def wait_loop(self):
+    async def wait_loop(self): # pylint: disable=R0912
         """
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """
@@ -265,7 +265,6 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         try:
             while not self.bot.is_closed():
-                # pylint: disable=R0912
                 tasks = [
                     asyncio.ensure_future(self.bot.wait_for('raw_reaction_add', check=check)),
                     asyncio.ensure_future(self.bot.wait_for('raw_reaction_remove', check=check))
