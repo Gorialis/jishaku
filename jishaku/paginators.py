@@ -264,8 +264,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             return all(tests)
 
         try:
-           # pylint: disable=Too many branches
             while not self.bot.is_closed():
+                # pylint: disable=R0912
                 tasks = [
                     asyncio.ensure_future(self.bot.wait_for('raw_reaction_add', check=check)),
                     asyncio.ensure_future(self.bot.wait_for('raw_reaction_remove', check=check))
