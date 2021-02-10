@@ -22,6 +22,7 @@ from jishaku.flags import JISHAKU_HIDE
 from jishaku.meta import __version__
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
+import typing
 
 try:
     import psutil
@@ -161,7 +162,7 @@ class RootCommand(Feature):
         return await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="cancel")
-    async def jsk_cancel(self, ctx: commands.Context, *, index: int):
+    async def jsk_cancel(self, ctx: commands.Context, *, index: typing.Union[int, str]):
         """
         Cancels a task with the given index.
 
@@ -173,6 +174,11 @@ class RootCommand(Feature):
 
         if index == -1:
             task = self.tasks.pop()
+        elif index == '~':
+            for task in enumerate(list(self.tasks)):
+                self.tasks.remove(task[1])
+                task[1].task.cancel()
+            return await ctx.send('Cancelled all tasks')
         else:
             task = discord.utils.get(self.tasks, index=index)
             if task:
