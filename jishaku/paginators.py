@@ -294,12 +294,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                     self._display_page += 1
 
                 self.bot.loop.create_task(self.update())
-
-                try:
-                    await self.message.remove_reaction(payload.emoji, discord.Object(id=payload.user_id))
-                except discord.Forbidden:
-                    pass
-
+                      
         except (asyncio.CancelledError, asyncio.TimeoutError):
             if self.delete_message:
                 return await self.message.delete()
