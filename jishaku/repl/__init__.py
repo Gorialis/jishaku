@@ -18,24 +18,5 @@ from discord.ext import commands
 from jishaku.repl.compilation import *  # noqa: F401
 from jishaku.repl.disassembly import disassemble  # noqa: F401
 from jishaku.repl.inspections import all_inspections  # noqa: F401
+from jishaku.repl.repl_builtins import get_var_dict_from_ctx  # noqa: F401
 from jishaku.repl.scope import *  # noqa: F401
-
-
-def get_var_dict_from_ctx(ctx: commands.Context, prefix: str = '_'):
-    """
-    Returns the dict to be used in REPL for a given Context.
-    """
-
-    raw_var_dict = {
-        'author': ctx.author,
-        'bot': ctx.bot,
-        'channel': ctx.channel,
-        'ctx': ctx,
-        'find': discord.utils.find,
-        'get': discord.utils.get,
-        'guild': ctx.guild,
-        'message': ctx.message,
-        'msg': ctx.message
-    }
-
-    return {f'{prefix}{k}': v for k, v in raw_var_dict.items()}
