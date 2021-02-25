@@ -95,6 +95,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         self.send_lock: asyncio.Event = asyncio.Event()
         self.update_lock: asyncio.Lock = asyncio.Semaphore(value=kwargs.pop('update_max', 2))
 
+        self.close_exception: Exception = None
+
         if self.page_size > self.max_page_size:
             raise ValueError(
                 f'Paginator passed has too large of a page size for this interface. '
@@ -291,7 +293,13 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 except discord.Forbidden:
                     pass
 
-        except (asyncio.CancelledError, asyncio.TimeoutError):
+        except (asyncio.CancelledError, asyncio.TimeoutError) as exception:
+            self.close_exception = exception
+
+            if self.bot.is_closed():
+                # Can't do anything about the messages, so just close out to avoid noisy error
+                return
+
             if self.delete_message:
                 return await self.message.delete()
 
