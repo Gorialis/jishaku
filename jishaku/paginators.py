@@ -184,7 +184,9 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         if display_page + 1 == page_count:
             # To keep position fixed on the end, update position to new last page and update message.
             self._display_page = new_page_count
-            self.send_lock.set()
+
+        # Unconditionally set send lock to try and guarantee page updates on unfocused pages
+        self.send_lock.set()
 
     async def send_to(self, destination: discord.abc.Messageable):
         """
