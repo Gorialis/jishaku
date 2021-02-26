@@ -41,8 +41,11 @@ jobs:
     - name: Lint repository
       shell: bash
       run: |
+        echo "flake8:"
         flake8 .
+        echo "pylint:"
         pylint jishaku
+        echo "isort:"
         isort . --check-only
 
     - name: Create distributions and install wheel

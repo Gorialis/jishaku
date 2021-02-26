@@ -236,7 +236,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             return False
         return self.task.done()
 
-    async def wait_loop(self):
+    async def wait_loop(self): # pylint: disable=too-many-branches,too-many-statements
         """
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """
@@ -272,7 +272,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             }
         ]
 
-        try:
+        try: # pylint: disable=too-many-nested-blocks
             last_kwargs = None
 
             while not self.bot.is_closed():
