@@ -308,11 +308,6 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                             task_list.append(self.bot.loop.create_task(
                                 self.bot.wait_for('raw_reaction_remove', check=check)
                             ))
-
-                        try:
-                            await self.message.remove_reaction(payload.emoji, discord.Object(id=payload.user_id))
-                        except discord.Forbidden:
-                            pass
                     else:
                         # Send lock was released
                         task_list.append(self.bot.loop.create_task(self.send_lock.wait()))
