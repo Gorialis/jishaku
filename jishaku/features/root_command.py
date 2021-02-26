@@ -177,7 +177,8 @@ class RootCommand(Feature):
 
             for task in self.tasks:
                 task.task.cancel()
-                self.tasks.remove(task)
+
+            self.tasks.clear()
 
             return await ctx.send(f"Cancelled {task_count} tasks.")
 
