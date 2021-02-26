@@ -317,6 +317,10 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                         # Send lock was released
                         task_list.append(self.bot.loop.create_task(self.send_lock.wait()))
 
+                if not self.sent_page_reactions and self.page_count > 1:
+                    self.bot.loop.create_task(self.send_all_reactions())
+                    self.sent_page_reactions = True  # don't spawn any more tasks
+
                 if self.send_kwargs != last_kwargs:
                     try:
                         await self.message.edit(**self.send_kwargs)
