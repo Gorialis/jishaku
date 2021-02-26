@@ -236,7 +236,18 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             return False
         return self.task.done()
 
-    async def wait_loop(self): # pylint: disable=too-many-branches,too-many-statements
+    async def send_lock_delayed(self):
+        """
+        A coroutine that returns 1 second after the send lock has been released
+        This helps reduce release spam that hits rate limits quickly
+        """
+
+        gathered = await self.send_lock.wait()
+        self.send_lock.clear()
+        await asyncio.sleep(1)
+        return gathered
+
+    async def wait_loop(self):  # pylint: disable=too-many-branches,too-many-statements
         """
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """
@@ -268,11 +279,11 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             self.bot.loop.create_task(coro) for coro in {
                 self.bot.wait_for('raw_reaction_add', check=check),
                 self.bot.wait_for('raw_reaction_remove', check=check),
-                self.send_lock.wait()
+                self.send_lock_delayed()
             }
         ]
 
-        try: # pylint: disable=too-many-nested-blocks
+        try:  # pylint: disable=too-many-nested-blocks
             last_kwargs = None
 
             while not self.bot.is_closed():
@@ -310,7 +321,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                             ))
                     else:
                         # Send lock was released
-                        task_list.append(self.bot.loop.create_task(self.send_lock.wait()))
+                        task_list.append(self.bot.loop.create_task(self.send_lock_delayed()))
 
                 if not self.sent_page_reactions and self.page_count > 1:
                     self.bot.loop.create_task(self.send_all_reactions())
