@@ -291,6 +291,9 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             while not self.bot.is_closed():
                 done, _ = await asyncio.wait(task_list, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED)
 
+                if not done:
+                    raise asyncio.TimeoutError
+
                 for task in done:
                     task_list.remove(task)
                     payload = task.result()
