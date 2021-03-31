@@ -13,6 +13,8 @@ The jishaku command invocation related commands.
 
 import contextlib
 import inspect
+import io
+import pathlib
 import time
 
 import discord
@@ -138,12 +140,28 @@ class InvocationFeature(Feature):
         except (TypeError, OSError):
             return await ctx.send(f"Was unable to retrieve the source for `{command}` for some reason.")
 
+        filename = "source.py"
+
+        try:
+            filename = pathlib.Path(inspect.getfile(command.callback)).name
+        except (TypeError, OSError):
+            pass
+
         # getsourcelines for some reason returns WITH line endings
-        source_lines = ''.join(source_lines).split('\n')
+        source_text = ''.join(source_lines)
 
-        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-        for line in source_lines:
-            paginator.add_line(discord.utils.escape_markdown(line))
+        # Guild's advertised limit minus 1KiB for the HTTP content
+        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
 
-        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        await interface.send_to(ctx)
+        if len(source_text) < filesize_threshold:
+            await ctx.send(file=discord.File(
+                filename=filename,
+                fp=io.BytesIO(source_text.encode('utf-8'))
+            ))
+        else:
+            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+            paginator.add_line(source_text.replace('```', '``\N{zero width space}`'))
+
+            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+            await interface.send_to(ctx)
