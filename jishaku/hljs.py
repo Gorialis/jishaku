@@ -384,7 +384,7 @@ def guess_file_traits(data: bytes) -> typing.Tuple[str, str, typing.Optional[str
 
         try:
             encoding = encoding.decode('utf-8')
-            content = data.decode(encoding).split('\n')
+            content = data.decode(encoding)
         except UnicodeDecodeError as exc2:
             raise exc2 from exc
 
