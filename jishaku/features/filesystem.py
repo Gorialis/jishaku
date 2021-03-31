@@ -16,10 +16,12 @@ import os
 import re
 
 import aiohttp
+import discord
 from discord.ext import commands
 
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
+from jishaku.hljs import get_language
 from jishaku.paginators import PaginatorInterface, WrappedFilePaginator
 
 
@@ -60,19 +62,28 @@ class FilesystemFeature(Feature):
             return await ctx.send(f"`{path}`: Cowardly refusing to read a file with no size stat"
                                   f" (it may be empty, endless or inaccessible).")
 
-        if size > 50 * (1024 ** 2):
-            return await ctx.send(f"`{path}`: Cowardly refusing to read a file >50MB.")
+        if size > 128 * (1024 ** 2):
+            return await ctx.send(f"`{path}`: Cowardly refusing to read a file >128MB.")
+
+        # Guild's advertised limit minus 1KiB for the HTTP content
+        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
 
         try:
             with open(path, "rb") as file:
-                paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1985)
+                if size < filesize_threshold:
+                    await ctx.send(file=discord.File(
+                        filename=file.name,
+                        fp=file
+                    ))
+                else:
+                    paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1985)
+                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                    await interface.send_to(ctx)
         except UnicodeDecodeError:
             return await ctx.send(f"`{path}`: Couldn't determine the encoding of this file.")
         except ValueError as exc:
             return await ctx.send(f"`{path}`: Couldn't read this file, {exc}")
 
-        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="curl")
     async def jsk_curl(self, ctx: commands.Context, url: str):
@@ -98,12 +109,30 @@ class FilesystemFeature(Feature):
             if not data:
                 return await ctx.send(f"HTTP response was empty (status code {code}).")
 
-            try:
-                paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1985)
-            except UnicodeDecodeError:
-                return await ctx.send(f"Couldn't determine the encoding of the response. (status code {code})")
-            except ValueError as exc:
-                return await ctx.send(f"Couldn't read response (status code {code}), {exc}")
+            # Guild's advertised limit minus 1KiB for the HTTP content
+            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
 
-            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-            await interface.send_to(ctx)
+            if len(data) < filesize_threshold:
+                # Shallow language detection
+                language = None
+
+                for hint in hints:
+                    language = get_language(hint)
+
+                    if language:
+                        break
+
+                await ctx.send(file=discord.File(
+                    filename=f"response.{language or 'txt'}",
+                    fp=io.BytesIO(data)
+                ))
+            else:
+                try:
+                    paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1985)
+                except UnicodeDecodeError:
+                    return await ctx.send(f"Couldn't determine the encoding of the response. (status code {code})")
+                except ValueError as exc:
+                    return await ctx.send(f"Couldn't read response (status code {code}), {exc}")
+
+                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                await interface.send_to(ctx)

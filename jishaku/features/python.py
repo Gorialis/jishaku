@@ -11,6 +11,8 @@ The jishaku Python evaluation/execution commands.
 
 """
 
+import io
+
 import discord
 from discord.ext import commands
 
@@ -107,7 +109,27 @@ class PythonFeature(Feature):
                                 # repr all non-strings
                                 result = repr(result)
 
-                            if len(result) > 2000:
+                            # Guild's advertised limit minus 1KiB for the HTTP content
+                            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
+
+                            if len(result) <= 2000:
+                                if result.strip() == '':
+                                    result = "\u200b"
+
+                                send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
+
+                            elif len(result) < filesize_threshold:
+                                # Discord's desktop and web client now supports an interactive file content
+                                #  display for files encoded in UTF-8.
+                                # Since this avoids escape issues and is more intuitive than pagination for
+                                #  long results, it will now be prioritized over PaginatorInterface if the
+                                #  resultant content is below the filesize threshold
+                                send(await ctx.send(file=discord.File(
+                                    filename="output.py",
+                                    fp=io.BytesIO(result.encode('utf-8'))
+                                )))
+
+                            else:
                                 # inconsistency here, results get wrapped in codeblocks when they are too large
                                 #  but don't if they're not. probably not that bad, but noting for later review
                                 paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
@@ -116,11 +138,7 @@ class PythonFeature(Feature):
 
                                 interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                                 send(await interface.send_to(ctx))
-                            else:
-                                if result.strip() == '':
-                                    result = "\u200b"
 
-                                send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
         finally:
             scope.clear_intersection(arg_dict)
 
@@ -147,13 +165,28 @@ class PythonFeature(Feature):
                         if len(header) > 485:
                             header = header[0:482] + "..."
 
-                        paginator = WrappedPaginator(prefix=f"```prolog\n=== {header} ===\n", max_size=1985)
+                        lines = [f"=== {header} ===", ""]
 
                         for name, res in all_inspections(result):
-                            paginator.add_line(f"{name:16.16} :: {res}")
+                            lines.append(f"{name:16.16} :: {res}")
 
-                        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                        send(await interface.send_to(ctx))
+                        text = "\n".join(lines)
+
+                        # Guild's advertised limit minus 1KiB for the HTTP content
+                        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
+
+                        if len(text) < filesize_threshold:
+                            send(await ctx.send(file=discord.File(
+                                filename="inspection.prolog",
+                                fp=io.BytesIO(text.encode('utf-8'))
+                            )))
+                        else:
+                            paginator = WrappedPaginator(prefix="```prolog", max_size=1985)
+
+                            paginator.add_line(text)
+
+                            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                            send(await interface.send_to(ctx))
         finally:
             scope.clear_intersection(arg_dict)
 
@@ -166,10 +199,20 @@ class PythonFeature(Feature):
         arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
 
         async with ReplResponseReactor(ctx.message):
-            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+            text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
-            for line in disassemble(argument.content, arg_dict=arg_dict):
-                paginator.add_line(line)
+            # Guild's advertised limit minus 1KiB for the HTTP content
+            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
 
-            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-            await interface.send_to(ctx)
+            if len(text) < filesize_threshold:
+                await ctx.send(file=discord.File(
+                    filename="dis.py",
+                    fp=io.BytesIO(text.encode('utf-8'))
+                ))
+            else:
+                paginator = WrappedPaginator(prefix='```py', max_size=1985)
+
+                paginator.add_line(text)
+
+                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                await interface.send_to(ctx)
