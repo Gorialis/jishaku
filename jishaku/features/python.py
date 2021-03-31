@@ -143,7 +143,7 @@ class PythonFeature(Feature):
             scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):  # pylint: disable=too-many-locals
         """
         Evaluation of Python code with inspect information.
         """
