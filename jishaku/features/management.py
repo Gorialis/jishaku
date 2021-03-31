@@ -38,6 +38,10 @@ class ManagementFeature(Feature):
 
         paginator = WrappedPaginator(prefix='', suffix='')
 
+        # 'jsk reload' on its own just reloads jishaku
+        if ctx.invoked_with == 'reload' and not extensions:
+            extensions = 'jishaku'
+
         for extension in itertools.chain(*extensions):
             method, icon = (
                 (self.bot.reload_extension, "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}")
