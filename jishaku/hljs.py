@@ -14,7 +14,6 @@ Constants and functions related to syntax highlighting with highlight.js
 import re
 import typing
 
-
 __all__ = (
     'get_language',
     'guess_file_traits',
