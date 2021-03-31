@@ -13,6 +13,7 @@ The jishaku filesystem-related commands.
 
 import io
 import os
+import pathlib
 import re
 
 import aiohttp
@@ -77,12 +78,12 @@ class FilesystemFeature(Feature):
                         lines = content.split('\n')[line_span[0] - 1:line_span[1]]
 
                         await ctx.send(file=discord.File(
-                            filename=file.name,
+                            filename=pathlib.Path(file.name).name,
                             fp=io.BytesIO('\n'.join(lines).encode('utf-8'))
                         ))
                     else:
                         await ctx.send(file=discord.File(
-                            filename=file.name,
+                            filename=pathlib.Path(file.name).name,
                             fp=file
                         ))
                 else:
