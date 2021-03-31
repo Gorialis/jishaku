@@ -11,9 +11,13 @@ Constants and functions related to syntax highlighting with highlight.js
 
 """
 
+import re
+import typing
+
 
 __all__ = (
     'get_language',
+    'guess_file_traits',
     'LANGUAGES'
 )
 
@@ -346,3 +350,47 @@ def get_language(query: str) -> str:
         if query.endswith(language):
             return language
     return ''
+
+
+ENCODING_REGEX = re.compile(br'coding[=:]\s*([-\w.]+)')
+
+
+def guess_file_traits(data: bytes) -> typing.Tuple[str, str, typing.Optional[str]]:
+    """
+    Given the content of a file, attempts to guess its encoding and language.
+
+    Returns as a tuple of (content, encoding, language),
+    where language may be None.
+
+    Raises UnicodeDecodeError if the encoding cannot be guessed.
+    """
+
+    try:
+        content = data.decode('utf-8')
+        encoding = 'utf-8'
+    except UnicodeDecodeError as exc:
+        # This file isn't UTF-8.
+
+        #  By Python and text-editor convention,
+        # there may be a hint as to what the actual encoding is
+        # near the start of the file.
+
+        encoding_match = ENCODING_REGEX.search(data[:128])
+
+        if encoding_match:
+            encoding = encoding_match.group(1)
+        else:
+            raise exc
+
+        try:
+            encoding = encoding.decode('utf-8')
+            content = data.decode(encoding).split('\n')
+        except UnicodeDecodeError as exc2:
+            raise exc2 from exc
+
+    language = None
+
+    if content.startswith('#!') and '\n' in content:
+        language = get_language(content[:content.find('\n')]) or language
+
+    return content, encoding, language

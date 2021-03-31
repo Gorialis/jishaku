@@ -21,7 +21,7 @@ from discord.ext import commands
 
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
-from jishaku.hljs import get_language
+from jishaku.hljs import get_language, guess_file_traits
 from jishaku.paginators import PaginatorInterface, WrappedFilePaginator
 
 
@@ -71,10 +71,20 @@ class FilesystemFeature(Feature):
         try:
             with open(path, "rb") as file:
                 if size < filesize_threshold:
-                    await ctx.send(file=discord.File(
-                        filename=file.name,
-                        fp=file
-                    ))
+                    if line_span:
+                        content, *_ = guess_file_traits(file.read())
+
+                        lines = content.split('\n')[line_span[0] - 1:line_span[1]]
+
+                        await ctx.send(file=discord.File(
+                            filename=file.name,
+                            fp=io.BytesIO('\n'.join(lines).encode('utf-8'))
+                        ))
+                    else:
+                        await ctx.send(file=discord.File(
+                            filename=file.name,
+                            fp=file
+                        ))
                 else:
                     paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1985)
                     interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)

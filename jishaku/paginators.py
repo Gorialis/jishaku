@@ -18,7 +18,7 @@ import re
 import discord
 from discord.ext import commands
 
-from jishaku.hljs import get_language
+from jishaku.hljs import get_language, guess_file_traits
 
 __all__ = ('EmojiSettings', 'PaginatorInterface', 'PaginatorEmbedInterface',
            'WrappedPaginator', 'FilePaginator')
@@ -480,35 +480,10 @@ class FilePaginator(commands.Paginator):
             except AttributeError:
                 pass
 
-        raw_content = fp.read()
+        content, _, file_language = guess_file_traits(fp.read())
 
-        try:
-            lines = raw_content.decode('utf-8').split('\n')
-        except UnicodeDecodeError as exc:
-            # This file isn't UTF-8.
-
-            #  By Python and text-editor convention,
-            # there may be a hint as to what the actual encoding is
-            # near the start of the file.
-
-            encoding_match = self.__encoding_regex.search(raw_content[:128])
-
-            if encoding_match:
-                encoding = encoding_match.group(1)
-            else:
-                raise exc
-
-            try:
-                lines = raw_content.decode(encoding.decode('utf-8')).split('\n')
-            except UnicodeDecodeError as exc2:
-                raise exc2 from exc
-
-        del raw_content
-
-        # If the first line is a shebang,
-        if lines[0].startswith('#!'):
-            # prioritize its declaration over the extension.
-            language = get_language(lines[0]) or language
+        language = file_language or language
+        lines = content.split('\n')
 
         super().__init__(prefix=f'```{language}', suffix='```', **kwargs)
 
