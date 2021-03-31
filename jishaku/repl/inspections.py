@@ -175,7 +175,7 @@ POSSIBLE_OPS = {
     '@': 'matmul',
     '/': 'truediv',
     '//': 'floordiv',
-    '\uFF05': 'mod',  # fake percent to avoid prolog comment
+    '%': 'mod',
     '**': 'pow',
     '<<': 'lshift',
     '>>': 'rshift',
