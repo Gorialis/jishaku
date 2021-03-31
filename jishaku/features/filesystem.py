@@ -84,7 +84,6 @@ class FilesystemFeature(Feature):
         except ValueError as exc:
             return await ctx.send(f"`{path}`: Couldn't read this file, {exc}")
 
-
     @Feature.Command(parent="jsk", name="curl")
     async def jsk_curl(self, ctx: commands.Context, url: str):
         """
