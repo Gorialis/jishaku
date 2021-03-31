@@ -40,7 +40,7 @@ class ManagementFeature(Feature):
 
         # 'jsk reload' on its own just reloads jishaku
         if ctx.invoked_with == 'reload' and not extensions:
-            extensions = 'jishaku'
+            extensions = ['jishaku']
 
         for extension in itertools.chain(*extensions):
             method, icon = (
