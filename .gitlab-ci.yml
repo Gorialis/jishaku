@@ -76,32 +76,6 @@ buster 3.8 pypi:
   retry: 1
   when: always
 
-buster 3.7 git:
-  stage: build
-  image: gorialis/discord.py:3.7-buster-master
-  <<: *git_dependencies
-  <<: *run_tests
-  artifacts:
-    paths:
-      - dist
-      - docs/_build
-    expire_in: 2 days
-  retry: 1
-  when: always
-
-buster 3.7 pypi:
-  stage: build
-  image: gorialis/discord.py:3.7-buster-pypi
-  <<: *pypi_dependencies
-  <<: *run_tests
-  artifacts:
-    paths:
-      - dist
-      - docs/_build
-    expire_in: 2 days
-  retry: 1
-  when: always
-
 alpine 3.9 git:
   stage: build
   image: gorialis/discord.py:3.9-alpine-master
@@ -144,32 +118,6 @@ alpine 3.8 git:
 alpine 3.8 pypi:
   stage: build
   image: gorialis/discord.py:3.8-alpine-pypi
-  <<: *pypi_dependencies
-  <<: *run_tests
-  artifacts:
-    paths:
-      - dist
-      - docs/_build
-    expire_in: 2 days
-  retry: 1
-  when: always
-
-alpine 3.7 git:
-  stage: build
-  image: gorialis/discord.py:3.7-alpine-master
-  <<: *git_dependencies
-  <<: *run_tests
-  artifacts:
-    paths:
-      - dist
-      - docs/_build
-    expire_in: 2 days
-  retry: 1
-  when: always
-
-alpine 3.7 pypi:
-  stage: build
-  image: gorialis/discord.py:3.7-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
