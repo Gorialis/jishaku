@@ -98,7 +98,7 @@ class ManagementFeature(Feature):
         """
 
         await ctx.send("Logging out now\N{HORIZONTAL ELLIPSIS}")
-        await ctx.bot.logout()
+        await ctx.bot.close()
 
     @Feature.Command(parent="jsk", name="rtt", aliases=["ping"])
     async def jsk_rtt(self, ctx: commands.Context):
