@@ -42,7 +42,7 @@ def bot(request):
     yield b
 
     b.unload_extension(request.param[0])
-    b.loop.run_until_complete(b.logout())
+    b.loop.run_until_complete(b.close())
 
 
 def test_loads(bot):
