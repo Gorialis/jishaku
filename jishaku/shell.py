@@ -64,7 +64,7 @@ class ShellReader:
             self.ps1 = "$"
             self.highlight = "sh"
 
-        self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # pylint: disable=consider-using-with
         self.close_code = None
 
         self.loop = loop or asyncio.get_event_loop()
