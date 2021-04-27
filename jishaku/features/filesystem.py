@@ -66,12 +66,9 @@ class FilesystemFeature(Feature):
         if size > 128 * (1024 ** 2):
             return await ctx.send(f"`{path}`: Cowardly refusing to read a file >128MB.")
 
-        # Guild's advertised limit minus 1KiB for the HTTP content
-        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
         try:
             with open(path, "rb") as file:
-                if size < filesize_threshold:
+                if size < 50_000:  # File "full content" preview limit
                     if line_span:
                         content, *_ = guess_file_traits(file.read())
 
@@ -119,10 +116,7 @@ class FilesystemFeature(Feature):
             if not data:
                 return await ctx.send(f"HTTP response was empty (status code {code}).")
 
-            # Guild's advertised limit minus 1KiB for the HTTP content
-            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
-            if len(data) < filesize_threshold:
+            if len(data) < 50_000:  # File "full content" preview limit
                 # Shallow language detection
                 language = None
 

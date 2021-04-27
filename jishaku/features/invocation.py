@@ -150,10 +150,7 @@ class InvocationFeature(Feature):
         # getsourcelines for some reason returns WITH line endings
         source_text = ''.join(source_lines)
 
-        # Guild's advertised limit minus 1KiB for the HTTP content
-        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
-        if len(source_text) < filesize_threshold:
+        if len(source_text) < 50_000:  # File "full content" preview limit
             await ctx.send(file=discord.File(
                 filename=filename,
                 fp=io.BytesIO(source_text.encode('utf-8'))

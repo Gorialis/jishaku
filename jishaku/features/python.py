@@ -109,16 +109,13 @@ class PythonFeature(Feature):
                                 # repr all non-strings
                                 result = repr(result)
 
-                            # Guild's advertised limit minus 1KiB for the HTTP content
-                            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
                             if len(result) <= 2000:
                                 if result.strip() == '':
                                     result = "\u200b"
 
                                 send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
 
-                            elif len(result) < filesize_threshold:
+                            elif len(result) < 50_000:  # File "full content" preview limit
                                 # Discord's desktop and web client now supports an interactive file content
                                 #  display for files encoded in UTF-8.
                                 # Since this avoids escape issues and is more intuitive than pagination for
@@ -172,10 +169,7 @@ class PythonFeature(Feature):
 
                         text = "\n".join(lines)
 
-                        # Guild's advertised limit minus 1KiB for the HTTP content
-                        filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
-                        if len(text) < filesize_threshold:
+                        if len(text) < 50_000:  # File "full content" preview limit
                             send(await ctx.send(file=discord.File(
                                 filename="inspection.prolog",
                                 fp=io.BytesIO(text.encode('utf-8'))
@@ -201,10 +195,7 @@ class PythonFeature(Feature):
         async with ReplResponseReactor(ctx.message):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
-            # Guild's advertised limit minus 1KiB for the HTTP content
-            filesize_threshold = (ctx.guild.filesize_limit if ctx.guild else 8 * 1024 * 1024) - 1024
-
-            if len(text) < filesize_threshold:
+            if len(text) < 50_000:  # File "full content" preview limit
                 await ctx.send(file=discord.File(
                     filename="dis.py",
                     fp=io.BytesIO(text.encode('utf-8'))
