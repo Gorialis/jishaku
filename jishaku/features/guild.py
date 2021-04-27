@@ -58,7 +58,7 @@ class GuildFeature(Feature):
     async def jsk_permtrace(
         self, ctx: commands.Context,
         channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
-        *, targets: typing.Union[discord.Member, discord.Role]
+        *targets: typing.Union[discord.Member, discord.Role]
     ):  # pylint: disable=too-many-locals, too-many-branches
         """
         Calculates the source of granted or rejected permissions.
