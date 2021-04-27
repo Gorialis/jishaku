@@ -159,4 +159,4 @@ class GuildFeature(Feature):
         for chunk in self.chunks(sorted(allows) + sorted(denies), 8):
             embed.add_field(name="...", value="\n".join(chunk), inline=False)
 
-        await ctx.send(embed)
+        await ctx.send(embed=embed)
