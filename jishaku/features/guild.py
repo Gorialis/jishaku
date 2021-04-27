@@ -52,14 +52,14 @@ class GuildFeature(Feature):
         Should probably be in utils, honestly.
         """
         for i in range(0, len(array), chunk_size):
-            yield array[i : i + chunk_size]
+            yield array[i:i + chunk_size]
 
     @Feature.Command(parent="jsk", name="permtrace")
     async def jsk_permtrace(
         self, ctx: commands.Context,
         channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
-        target: typing.Union[discord.Member, commands.Greedy[discord.Role]]
-    ):
+        *, targets: typing.Union[discord.Member, discord.Role]
+    ):  # pylint: disable=too-many-locals, too-many-branches
         """
         Calculates the source of granted or rejected permissions.
 
@@ -67,24 +67,32 @@ class GuildFeature(Feature):
         It calculates permissions the same way Discord does, while keeping track of the source.
         """
 
-        is_member = isinstance(target, discord.Member)
-        roles = target.roles if is_member else target
+        member_ids = {target.id: target for target in targets if isinstance(target, discord.Member)}
+        roles = []
+
+        for target in targets:
+            if isinstance(target, discord.Member):
+                roles.extend(list(target.roles))
+            else:
+                roles.append(target)
+
+        # Remove duplicates
+        roles = list(set(roles))
 
         # Dictionary to store the current permission state and reason
         # Stores <perm name>: (<perm allowed>, <reason>)
         permissions: typing.Dict[str, typing.Tuple[bool, str]] = {}
 
-        if is_member and channel.guild.owner_id == target.id:
+        if member_ids and channel.guild.owner_id in member_ids:
             # Is owner, has all perms
             for key in dict(discord.Permissions.all()).keys():
-                permissions[key] = (True, "this user owns the server")
+                permissions[key] = (True, f"{channel.guild.owner.mention} owns the server")
         else:
             # Otherwise, either not a member or not the guild owner, calculate perms manually
 
             # Handle guild-level perms first
             for key, value in dict(channel.guild.default_role.permissions).items():
-                # Escaping shouldn't be necessary here, it is going in an embed, but just to be sure
-                permissions[key] = (value, "it is the server-wide @\u200beveryone permission")
+                permissions[key] = (value, "it is the server-wide @everyone permission")
 
             for role in roles:
                 for key, value in dict(role.permissions).items():
@@ -100,7 +108,7 @@ class GuildFeature(Feature):
             try:
                 maybe_everyone = channel._overwrites[0]
                 if maybe_everyone.id == channel.guild.default_role.id:
-                    self.apply_overwrites(permissions, allow=maybe_everyone.allow, deny=maybe_everyone.deny, name="@\u200beveryone")
+                    self.apply_overwrites(permissions, allow=maybe_everyone.allow, deny=maybe_everyone.deny, name="@everyone")
                     remaining_overwrites = channel._overwrites[1:]
                 else:
                     remaining_overwrites = channel._overwrites
@@ -108,32 +116,29 @@ class GuildFeature(Feature):
                 remaining_overwrites = channel._overwrites
             # pylint: enable=protected-access
 
-            member_role_lookup = {r.id: r for r in roles}
+            role_lookup = {r.id: r for r in roles}
 
             # Denies are applied BEFORE allows, always
             # Handle denies
             for overwrite in remaining_overwrites:
-                if overwrite.type == 'role' and overwrite.id in member_role_lookup:
-                    self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=member_role_lookup[overwrite.id].name)
+                if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=role_lookup[overwrite.id].name)
 
             # Handle allows
             for overwrite in remaining_overwrites:
-                if overwrite.type == 'role' and overwrite.id in member_role_lookup:
-                    self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=member_role_lookup[overwrite.id].name)
+                if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=role_lookup[overwrite.id].name)
 
-            if is_member:
+            if member_ids:
                 # Handle member-specific overwrites
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'member' and overwrite.id == target.id:
-                        self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name="&member")
+                    if overwrite.type == 'member' and overwrite.id in member_ids:
+                        self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name=f"{member_ids[overwrite.id].mention}")
                         break
 
         # Construct embed
-        if is_member:
-            description = f"This is the permissions calculation for {target.mention} in {channel.mention}."
-        else:
-            description = f"This is the permissions calculation for a member with the following roles in {channel.mention}:\n"
-            description += "\n".join(f"- {role.name} [{role.id}]" for role in roles)
+        description = f"This is the permissions calculation for the following targets in {channel.mention}:\n"
+        description += "\n".join(f"- {target.mention}" for target in targets)
 
         description += (
             "\nPlease note the reasons shown are the **most fundamental** reason why a permission is as it is. "
