@@ -31,19 +31,28 @@ class GuildFeature(Feature):
         based on an allow and deny mask.
         """
 
+        allow: discord.Permissions = discord.Permissions(allow)
+        deny: discord.Permissions = discord.Peremissions(deny)
+
         # Denies first..
-        for key, value in dict(discord.Permissions(deny)).items():
+        for key, value in dict(deny).items():
             # Check that this is denied and it is not already denied
             # (we want to show the lowest-level reason for the denial)
             if value and permissions[key][0]:
                 permissions[key] = (False, f"it is the channel's {name} overwrite")
 
         # Then allows
-        for key, value in dict(discord.Permissions(allow)).items():
+        for key, value in dict(allow).items():
             # Check that this is allowed and it is not already allowed
             # (we want to show the lowest-level reason for the allowance)
             if value and not permissions[key][0]:
                 permissions[key] = (True, f"it is the channel's {name} overwrite")
+
+        # Then finally, Administrator handling
+        if allow.administrator:
+            for key in dict(discord.Permissions.all()).keys():
+                if not permissions[key][0]:
+                    permissions[key] = (True, f"it is granted by Administrator on the channel's {name} overwrite")
 
     @staticmethod
     def chunks(array: list, chunk_size: int):
@@ -100,6 +109,12 @@ class GuildFeature(Feature):
                     # Denying a permission does nothing if a lower role allows it
                     if value and not permissions[key][0]:
                         permissions[key] = (value, f"it is the server-wide {role.name} permission")
+
+                # Then administrator handling
+                if role.permissions.administrator:
+                    for key in dict(discord.Permissions.all()).keys():
+                        if not permissions[key][0]:
+                            permissions[key] = (True, f"it is granted by Administrator on the server-wide {role.name} permission")
 
             # Now channel-level permissions
 
