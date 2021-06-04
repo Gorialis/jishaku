@@ -49,6 +49,7 @@ class GuildFeature(Feature):
                 permissions[key] = (True, f"it is the channel's {name} overwrite")
 
         # Then finally, Administrator handling
+        # This should be impossible, generally speaking
         if allow.administrator:
             for key in dict(discord.Permissions.all()).keys():
                 if not permissions[key][0]:
@@ -98,6 +99,7 @@ class GuildFeature(Feature):
                 permissions[key] = (True, f"{channel.guild.owner.mention} owns the server")
         else:
             # Otherwise, either not a member or not the guild owner, calculate perms manually
+            is_administrator = False
 
             # Handle guild-level perms first
             for key, value in dict(channel.guild.default_role.permissions).items():
@@ -112,44 +114,48 @@ class GuildFeature(Feature):
 
                 # Then administrator handling
                 if role.permissions.administrator:
+                    is_administrator = True
+
                     for key in dict(discord.Permissions.all()).keys():
                         if not permissions[key][0]:
                             permissions[key] = (True, f"it is granted by Administrator on the server-wide {role.name} permission")
 
-            # Now channel-level permissions
+            # If Administrator was granted, there is no reason to even do channel permissions
+            if not is_administrator:
+                # Now channel-level permissions
 
-            # Special case for @everyone
-            # pylint: disable=protected-access
-            try:
-                maybe_everyone = channel._overwrites[0]
-                if maybe_everyone.id == channel.guild.default_role.id:
-                    self.apply_overwrites(permissions, allow=maybe_everyone.allow, deny=maybe_everyone.deny, name="@everyone")
-                    remaining_overwrites = channel._overwrites[1:]
-                else:
+                # Special case for @everyone
+                # pylint: disable=protected-access
+                try:
+                    maybe_everyone = channel._overwrites[0]
+                    if maybe_everyone.id == channel.guild.default_role.id:
+                        self.apply_overwrites(permissions, allow=maybe_everyone.allow, deny=maybe_everyone.deny, name="@everyone")
+                        remaining_overwrites = channel._overwrites[1:]
+                    else:
+                        remaining_overwrites = channel._overwrites
+                except IndexError:
                     remaining_overwrites = channel._overwrites
-            except IndexError:
-                remaining_overwrites = channel._overwrites
-            # pylint: enable=protected-access
+                # pylint: enable=protected-access
 
-            role_lookup = {r.id: r for r in roles}
+                role_lookup = {r.id: r for r in roles}
 
-            # Denies are applied BEFORE allows, always
-            # Handle denies
-            for overwrite in remaining_overwrites:
-                if overwrite.type == 'role' and overwrite.id in role_lookup:
-                    self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=role_lookup[overwrite.id].name)
-
-            # Handle allows
-            for overwrite in remaining_overwrites:
-                if overwrite.type == 'role' and overwrite.id in role_lookup:
-                    self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=role_lookup[overwrite.id].name)
-
-            if member_ids:
-                # Handle member-specific overwrites
+                # Denies are applied BEFORE allows, always
+                # Handle denies
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'member' and overwrite.id in member_ids:
-                        self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name=f"{member_ids[overwrite.id].mention}")
-                        break
+                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                        self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=role_lookup[overwrite.id].name)
+
+                # Handle allows
+                for overwrite in remaining_overwrites:
+                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                        self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=role_lookup[overwrite.id].name)
+
+                if member_ids:
+                    # Handle member-specific overwrites
+                    for overwrite in remaining_overwrites:
+                        if overwrite.type == 'member' and overwrite.id in member_ids:
+                            self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name=f"{member_ids[overwrite.id].mention}")
+                            break
 
         # Construct embed
         description = f"This is the permissions calculation for the following targets in {channel.mention}:\n"
