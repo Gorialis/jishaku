@@ -48,13 +48,6 @@ class GuildFeature(Feature):
             if value and not permissions[key][0]:
                 permissions[key] = (True, f"it is the channel's {name} overwrite")
 
-        # Then finally, Administrator handling
-        # This should be impossible, generally speaking
-        if allow.administrator:
-            for key in dict(discord.Permissions.all()).keys():
-                if not permissions[key][0]:
-                    permissions[key] = (True, f"it is granted by Administrator on the channel's {name} overwrite")
-
     @staticmethod
     def chunks(array: list, chunk_size: int):
         """
