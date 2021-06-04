@@ -69,7 +69,7 @@ class GuildFeature(Feature):
         self, ctx: commands.Context,
         channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
         *targets: typing.Union[discord.Member, discord.Role]
-    ):  # pylint: disable=too-many-locals, too-many-branches
+    ):  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         """
         Calculates the source of granted or rejected permissions.
 
