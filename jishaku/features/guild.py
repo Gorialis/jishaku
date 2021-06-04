@@ -32,7 +32,7 @@ class GuildFeature(Feature):
         """
 
         allow: discord.Permissions = discord.Permissions(allow)
-        deny: discord.Permissions = discord.Peremissions(deny)
+        deny: discord.Permissions = discord.Permissions(deny)
 
         # Denies first..
         for key, value in dict(deny).items():
