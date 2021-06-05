@@ -1,3 +1,4 @@
+click
 coverage
 flake8
 isort
