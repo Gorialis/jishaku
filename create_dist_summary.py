@@ -26,12 +26,11 @@ SOFTWARE.
 """
 
 import os
-import pkg_resources
 
+import pkg_resources
 from jinja2 import Environment
 from jinja2.environment import Template
 from jinja2.loaders import BaseLoader
-
 
 ENVIRONMENT = Environment(loader=BaseLoader())
 
