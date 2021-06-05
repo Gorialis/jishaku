@@ -1,0 +1,18 @@
+jishaku {{ package.version }}
+
+https://pypi.org/project/jishaku/{{ package.version }}/
+https://github.com/Gorialis/jishaku/tree/{{ env('tag_name') }}
+
+It is advised that you install jishaku directly through the pip package manager.
+
+Install the latest version of jishaku:
+```bash
+pip install -U jishaku
+```
+
+Install specifically this version of jishaku (not recommended):
+```bash
+pip install -U jishaku=={{ package.version }}
+```
+
+Artifacts are included with this release for debugging convenience.

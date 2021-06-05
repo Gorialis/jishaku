@@ -66,6 +66,12 @@ jobs:
       run: |
         cd docs && make html
 
+    - name: Create distribution manifest
+      shell: bash
+      run: |
+        export tag_name="${GITHUB_REF##*/}"
+        python create_dist_summary.py
+
     - uses: actions/upload-artifact@v2
       with:
         name: distributions
@@ -82,7 +88,23 @@ jobs:
           name: distributions
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@master
+      - name: Publish wheels as release artifacts on GitHub
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          assets=()
+          for asset in ./dist/*.{whl,egg,tar.gz}; do
+            assets+=("-a" "$asset")
+          done
+          tag_name="${GITHUB_REF##*/}"
+          hub release create "${assets[@]}" -F ./dist/DIST_SUMMARY.md "$tag_name"
+          rm ./dist/*.md
+
+      - name: Publish packages to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: ${{ secrets.pypi_username }}
           password: ${{ secrets.pypi_password }}
+
