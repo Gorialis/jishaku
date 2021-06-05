@@ -74,12 +74,15 @@ class Feature(commands.Cog):
 
         # Try to associate every parented command with its parent
         for key, cmd in command_set:
+            cmd.parent_instance = None
+            cmd.depth = 0
+
             if cmd.parent and isinstance(cmd.parent, str):
                 if cmd.standalone_ok:
-                    cmd.parent = command_lookup.get(cmd.parent, None)
+                    cmd.parent_instance = command_lookup.get(cmd.parent, None)
                 else:
                     try:
-                        cmd.parent = command_lookup[cmd.parent]
+                        cmd.parent_instance = command_lookup[cmd.parent]
                     except KeyError as exception:
                         raise RuntimeError(
                             f"Couldn't associate feature command {key} with its parent {cmd.parent}"
@@ -90,12 +93,12 @@ class Feature(commands.Cog):
 
         # Assign depth and has_children
         for key, cmd in command_set:
-            parent = cmd.parent
+            parent = cmd.parent_instance
             # Recurse parents increasing depth until we reach the top
             while parent:
                 parent.has_children = True
                 cmd.depth += 1
-                parent = parent.parent
+                parent = parent.parent_instance
 
         # Sort by depth
         command_set.sort(key=lambda c: c[1].depth)
@@ -105,7 +108,7 @@ class Feature(commands.Cog):
 
         for key, cmd in command_set:
             if cmd.parent:
-                parent = association_map[cmd.parent]
+                parent = association_map[cmd.parent_instance]
                 command_type = parent.group if cmd.has_children else parent.command
             else:
                 command_type = commands.group if cmd.has_children else commands.command
