@@ -59,7 +59,7 @@ jobs:
     - name: Test from installed module
       shell: bash
       run: |
-        pytest -vs
+        PYTHONPATH="$(pwd)" pytest -vs
 
     - name: Build documentation
       shell: bash
