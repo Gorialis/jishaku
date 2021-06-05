@@ -25,7 +25,6 @@ import typing
 import click
 from discord.ext import commands
 
-
 LOADABLES = (
     ('j!1 ', 'tests.subclassed_module_1'),
     ('j!2 ', 'tests.subclassed_module_2'),
