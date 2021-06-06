@@ -19,6 +19,7 @@ import traceback
 from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
+from jishaku.flags import JISHAKU_USE_BRAILLE_J
 from jishaku.modules import ExtensionConverter
 from jishaku.paginators import WrappedPaginator
 
@@ -97,7 +98,9 @@ class ManagementFeature(Feature):
         Logs this bot out.
         """
 
-        await ctx.send("Logging out now\N{HORIZONTAL ELLIPSIS}")
+        ellipse_character = "\N{BRAILLE PATTERN DOTS-356}" if JISHAKU_USE_BRAILLE_J else "\N{HORIZONTAL ELLIPSIS}"
+
+        await ctx.send(f"Logging out now{ellipse_character}")
         await ctx.bot.close()
 
     @Feature.Command(parent="jsk", name="rtt", aliases=["ping"])
