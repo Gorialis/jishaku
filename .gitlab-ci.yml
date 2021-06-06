@@ -21,7 +21,7 @@ stages:
     - python ./setup.py sdist bdist_egg bdist_wheel
     - rm -rf jishaku
     - find dist -name *.whl -exec pip install '{}' +
-    - pytest -vs
+    - PYTHONPATH="$(pwd)" pytest -vs
     - cd docs && make html
 
 buster 3.9 git:
