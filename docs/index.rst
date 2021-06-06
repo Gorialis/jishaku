@@ -16,6 +16,7 @@ The documentation is split up into categories. Please see the index below.
    :maxdepth: 2
    :caption: Contents:
 
+   whatsnew
    cog
    api
 
