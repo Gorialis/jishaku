@@ -91,6 +91,7 @@ setup(
     license='MIT',
     description='A discord.py extension including useful tools for bot development and debugging.',
     long_description=README,
+    long_description_content_type='text/markdown',
     project_urls={
         'Documentation': 'https://jishaku.readthedocs.io/en/latest/',
         'Code': 'https://github.com/Gorialis/jishaku',
