@@ -12,6 +12,16 @@ div.body p {
   text-align: justify;
 }
 
+h1.logo > a:before {
+  background-image: url('jishaku_logo.svg');
+  background-size: 0.7em 0.7em;
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.25em;
+  content: "";
+}
+
 dl.describe > dt,
 dl.function > dt,
 dl.attribute > dt,
