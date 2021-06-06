@@ -6,6 +6,11 @@ What's new?
 Version 2.0.0
 --------------
 
+Python version changes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Python version 3.7 has been dropped. Jishaku 2.0 requires Python 3.8 or greater.
+
 New commands
 ~~~~~~~~~~~~~
 
