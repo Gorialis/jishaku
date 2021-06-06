@@ -72,7 +72,8 @@ jobs:
         export tag_name="${GITHUB_REF##*/}"
         python create_dist_summary.py
 
-    - uses: actions/upload-artifact@v2
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
       with:
         name: distributions
         path: dist/*
@@ -83,7 +84,8 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/download-artifact@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
         with:
           name: distributions
           path: dist
