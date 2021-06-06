@@ -13,6 +13,8 @@ Meta information about jishaku.
 
 from collections import namedtuple
 
+import pkg_resources
+
 __all__ = (
     '__author__',
     '__copyright__',
@@ -33,3 +35,6 @@ __docformat__ = 'restructuredtext en'
 __license__ = 'MIT'
 __title__ = 'jishaku'
 __version__ = '.'.join(map(str, (version_info.major, version_info.minor, version_info.micro)))
+
+# This ensures that when jishaku is reloaded, pkg_resources requeries it to provide correct version info
+del pkg_resources.working_set.by_key['jishaku']
