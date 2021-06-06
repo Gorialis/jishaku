@@ -84,6 +84,12 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
