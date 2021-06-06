@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import os
 import pathlib
 import re
 import subprocess
@@ -72,8 +73,10 @@ try:
         COMMIT_HASH, ERR = PROCESS.communicate()
 
         if COMMIT_HASH:
-            if VERSION.endswith(('a', 'b', 'rc')):
-                VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
+            match = re.match(r'(\d).(\d).(\d)(a|b|rc)?', os.getenv('tag_name') or "")
+
+            if (match and match[4]) or not match:
+                VERSION += ('' if match else 'a') + COMMIT_COUNT.decode('utf-8').strip() + '+g' + COMMIT_HASH.decode('utf-8').strip()
 
 except FileNotFoundError:
     pass

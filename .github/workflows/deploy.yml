@@ -52,6 +52,7 @@ jobs:
     - name: Create distributions and install wheel
       shell: bash
       run: |
+        export tag_name="${GITHUB_REF##*/}"
         python ./setup.py sdist bdist_egg bdist_wheel
         rm -rf jishaku
         find dist -name *.whl -exec pip install '{}' +

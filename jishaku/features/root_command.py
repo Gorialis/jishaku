@@ -20,7 +20,6 @@ from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import JISHAKU_HIDE
-from jishaku.meta import __version__
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
 
@@ -46,7 +45,7 @@ class RootCommand(Feature):
         """
 
         summary = [
-            f"Jishaku v{__version__}, discord.py `{package_version('discord.py')}`, "
+            f"Jishaku v{package_version('jishaku')}, discord.py `{package_version('discord.py')}`, "
             f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded {humanize.naturaltime(self.load_time)}, "
             f"cog was loaded {humanize.naturaltime(self.start_time)}.",
