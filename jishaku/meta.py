@@ -37,4 +37,4 @@ __title__ = 'jishaku'
 __version__ = '.'.join(map(str, (version_info.major, version_info.minor, version_info.micro)))
 
 # This ensures that when jishaku is reloaded, pkg_resources requeries it to provide correct version info
-del pkg_resources.working_set.by_key['jishaku']
+pkg_resources.working_set.by_key.pop('jishaku', None)
