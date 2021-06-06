@@ -34,6 +34,11 @@ Command improvements
     Large results that fit within the Discord preview threshold are now uploaded as files,
     for better navigability.
 
+- ``jsk sh``
+    Timeout has been increased from 90 seconds from invocation, to 120 seconds from the last output.
+
+    This should reduce the chance of termination from long-running installs or other processes.
+
 - ``jsk source``
     Triple backticks inside of source files no longer cause the file content to spill outside of its codeblock.
 

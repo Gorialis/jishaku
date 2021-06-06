@@ -143,6 +143,9 @@ You can also import the module to use the command development utilities.
             On Windows, jishaku will use PowerShell if it's detected, otherwise, it will use Command Prompt.
             <br><br>
             The results from the commands you pass in are returned through a paginator interface live as the command runs. If you need to stop a command, you can press the stop button reaction, or use <code>jsk cancel</code>.
+            <br><br>
+            The execution will terminate automatically if no output is produced for 120 seconds.
+            <br><br>
             <h4>&gt; <code>jishaku git &lt;argument&gt;</code></h4>
             <h4>&gt; <code>jishaku pip &lt;argument&gt;</code></h4>
             These commands act as shortcuts to the shell command, so you can save typing a word if you use these frequently.

@@ -307,6 +307,8 @@ Commands
 
     As with any code evaluation, use of this command may freeze your bot or damage your system. Choose what you enter carefully.
 
+    If no output is produced by the command for 120 seconds, a :class:`asyncio.TimeoutException` will be raised and the shell process will be terminated.
+
 
 .. py:function:: jsk [load|reload] [extensions...]
 

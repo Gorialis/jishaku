@@ -48,7 +48,7 @@ class ShellReader:
                 print(x)
     """
 
-    def __init__(self, code: str, timeout: int = 90, loop: asyncio.AbstractEventLoop = None):
+    def __init__(self, code: str, timeout: int = 120, loop: asyncio.AbstractEventLoop = None):
         if WINDOWS:
             # Check for powershell
             if pathlib.Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe").exists():
@@ -132,13 +132,16 @@ class ShellReader:
         return self
 
     async def __anext__(self):
-        start_time = time.perf_counter()
+        last_output = time.perf_counter()
 
         while not self.closed or not self.queue.empty():
             try:
-                return await asyncio.wait_for(self.queue.get(), timeout=1)
+                item = await asyncio.wait_for(self.queue.get(), timeout=1)
             except asyncio.TimeoutError as exception:
-                if time.perf_counter() - start_time >= self.timeout:
+                if time.perf_counter() - last_output >= self.timeout:
                     raise exception
+            else:
+                last_output = time.perf_counter()
+                return item
 
         raise StopAsyncIteration()
