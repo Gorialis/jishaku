@@ -37,7 +37,7 @@ class RootCommand(Feature):
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: commands.Context):  # pylint: disable=too-many-branches
         """
         The Jishaku debug and diagnostic commands.
 

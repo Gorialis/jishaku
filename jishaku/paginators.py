@@ -249,7 +249,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         await asyncio.sleep(1)
         return gathered
 
-    async def wait_loop(self):  # pylint: disable=too-many-branches,too-many-statements
+    async def wait_loop(self):  # pylint: disable=too-many-branches, too-many-statements
         """
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """
