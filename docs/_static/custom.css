@@ -2,11 +2,14 @@
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans+JP|Roboto');
 
 body,
-div.body p,
 div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6,
 div.sphinxsidebar h3, div.sphinxsidebar h4, div.sphinxsidebar input {
   font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+}
+
+div.body p {
   hyphens: manual;
+  text-align: justify;
 }
 
 dl.describe > dt,
