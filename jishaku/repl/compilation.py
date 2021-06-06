@@ -14,6 +14,7 @@ Constants, functions and classes related to classifying, compiling and executing
 import ast
 import asyncio
 import inspect
+import linecache
 
 import import_expression
 
@@ -105,7 +106,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         print(total)
     """
 
-    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope')
+    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope', 'source')
 
     def __init__(self, code: str, scope: Scope = None, arg_dict: dict = None, loop: asyncio.BaseEventLoop = None):
         self.args = [self]
@@ -116,6 +117,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 self.arg_names.append(key)
                 self.args.append(value)
 
+        self.source = code
         self.code = wrap_code(code, args=', '.join(self.arg_names))
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
@@ -133,8 +135,19 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         This function is private. The class should be used as an iterator instead of using this method.
         """
 
-        if inspect.isasyncgenfunction(func):
-            async for send, result in AsyncSender(func(*self.args)):
-                send((yield result))
-        else:
-            yield await func(*self.args)
+        try:
+            if inspect.isasyncgenfunction(func):
+                async for send, result in AsyncSender(func(*self.args)):
+                    send((yield result))
+            else:
+                yield await func(*self.args)
+        except Exception:  # pylint: disable=broad-except
+            # Falsely populate the linecache to make the REPL line appear in tracebacks
+            linecache.cache['<repl>'] = (
+                len(self.source),  # Source length
+                None,  # Time modified (None bypasses expunge)
+                [line + '\n' for line in self.source.splitlines()],  # Line list
+                '<repl>'  # 'True' filename
+            )
+
+            raise
