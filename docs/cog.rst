@@ -359,6 +359,13 @@ Commands
 
     This forces the relevant callbacks to be triggered, and can be used to let you bypass any large cooldowns or conditions you have set.
 
+.. py:function:: jsk permtrace <channel> [targets...]
+
+    Emulates Discord's permission calculation system to create a breakdown of where certain permissions for a member come from.
+
+    Targets can either be a member, or a list of roles (to emulate a member with those roles).
+    The command will take into account guild permissions and the overwrites for the roles (and member, if applicable) to produce the resulting effective permissions.
+
 .. py:function:: jsk debug <command: str>
 
     Runs a command using ``jsk python``-style timing and exception reporting.
@@ -403,3 +410,10 @@ Commands
     Shows the source for a command in a :class:`PaginatorInterface`.
 
     This is similar to doing ``jsk cat`` on the source file, limited to the line span of the command.
+
+.. py:function:: jsk rtt
+
+    Calculates the round trip time between your bot and the API, using message sends and edits.
+    The latency for each pass will be shown, as well as an average and standard deviation.
+
+    This command will also output the websocket latency.

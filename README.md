@@ -166,8 +166,10 @@ You can also import the module to use the command development utilities.
             <code>jsk reload ~</code> will reload all extensions on your bot.
             <br><br>
             You can load, reload, or unload multiple extensions at once: <code>jsk reload cogs.one cogs.two</code>
+            <br><br>
             <h4>&gt; <code>jishaku shutdown</code></h4>
             This command gracefully shuts down your bot.
+            <br><br>
             <h4>&gt; <code>jishaku rtt</code></h4>
             This command calculates <a href="https://en.wikipedia.org/wiki/Round-trip_delay">Round-Trip Time</a> for your bot to the API. It does this by calculating response time samples, so you can tell if your bot is being slow or not.
             <br><br>
@@ -216,6 +218,11 @@ You can also import the module to use the command development utilities.
             <code>jishaku debug</code> executes a command with an exception wrapper and a timer. This allows you to quickly get feedback on reproducable command errors and slowdowns.
             <br><br>
             <code>jishaku repeat</code> repeats a command a number of times.
+            <br><br>
+            <h4>&gt; <code>jishaku permtrace &lt;channel&gt; [targets...]</code></h4>
+            This command allows you to investigate the source of expressed permissions in a given channel. Targets can be either a member, or a list of roles (to simulate a member with those roles). 
+            <br><br>
+            It will read all of the guild permissions and channel overwrites for the given member or roles in the channel, and provide a breakdown containing whether the permission is granted, and the most fundamental reason why.
             <br><br>
         </td>
     </tr>
