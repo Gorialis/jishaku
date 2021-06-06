@@ -70,7 +70,7 @@ jobs:
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
-            pytest -vs
+            PYTHONPATH="$(pwd)" pytest -vs
 
       # build docs
       - run:
@@ -111,7 +111,7 @@ jobs:
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
-            pytest -vs
+            PYTHONPATH="$(pwd)" pytest -vs
 
       # build docs
       - run:
@@ -152,7 +152,7 @@ jobs:
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
-            pytest -vs
+            PYTHONPATH="$(pwd)" pytest -vs
 
       # build docs
       - run:
