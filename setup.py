@@ -78,6 +78,18 @@ try:
             if (match and match[4]) or not match:
                 VERSION += ('' if match else 'a') + COMMIT_COUNT.decode('utf-8').strip() + '+g' + COMMIT_HASH.decode('utf-8').strip()
 
+                # Also attempt to retrieve a branch, when applicable
+                PROCESS = subprocess.Popen(
+                    ['git', 'symbolic-ref', '-q', '--short', 'HEAD'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+
+                COMMIT_BRANCH, ERR = PROCESS.communicate()
+
+                if COMMIT_BRANCH:
+                    VERSION += "." + COMMIT_BRANCH.decode('utf-8').strip()
+
 except FileNotFoundError:
     pass
 
