@@ -88,7 +88,7 @@ try:
                 COMMIT_BRANCH, ERR = PROCESS.communicate()
 
                 if COMMIT_BRANCH:
-                    VERSION += "." + COMMIT_BRANCH.decode('utf-8').replace('/', '.').strip()
+                    VERSION += "." + re.sub('[^a-zA-Z0-9.]', '.', COMMIT_BRANCH.decode('utf-8').strip())
 
 except FileNotFoundError:
     pass
