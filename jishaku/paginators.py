@@ -335,6 +335,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         message = self.message
         self.message = None
         self.task.cancel()
+        self.stop()
         await message.delete()
 
 
