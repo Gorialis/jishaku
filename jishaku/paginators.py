@@ -93,7 +93,6 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
         self.task: asyncio.Task = None
         self.send_lock: asyncio.Event = asyncio.Event()
-        self.interaction_lock: asyncio.Event = asyncio.Event()
 
         self.close_exception: Exception = None
 
@@ -239,38 +238,16 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         gathered = await self.send_lock.wait()
         self.send_lock.clear()
         await asyncio.sleep(1)
-        return gathered + 2
+        return gathered
 
     async def wait_loop(self):  # pylint: disable=too-many-branches, too-many-statements
         """
         Waits on a loop for updates to the interface. This should not be called manually - it is handled by `send_to`.
         """
 
-        task_list = [
-            self.bot.loop.create_task(coro) for coro in {
-                self.interaction_lock.wait(),
-                self.send_lock_delayed()
-            }
-        ]
-
         try:  # pylint: disable=too-many-nested-blocks
             while not self.bot.is_closed():
-                done, _ = await asyncio.wait(task_list, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED)
-
-                if not done:
-                    raise asyncio.TimeoutError
-
-                for task in done:
-                    task_list.remove(task)
-                    value = task.result()
-
-                    if value >= 2:
-                        # Send lock was released
-                        task_list.append(self.bot.loop.create_task(self.send_lock_delayed()))
-                    else:
-                        # Interaction lock was released
-                        self.interaction_lock.clear()
-                        task_list.append(self.bot.loop.create_task(self.interaction_lock.wait()))
+                await asyncio.wait_for(self.send_lock_delayed(), timeout=self.timeout)
 
                 self.update_view()
 
@@ -297,6 +274,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
                 await self.message.edit(view=None)
 
     def owner_interaction_check(self, user):
+        """Check that determines whether this interaction should be honored"""
         return not self.owner or user.id == self.owner.id
 
     @ui.button(label="1 \u200b \N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}", style=discord.ButtonStyle.secondary)
@@ -306,7 +284,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             return
 
         self._display_page = 0
-        self.interaction_lock.set()
+        await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK LEFT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
     async def button_previous(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -315,7 +293,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             return
 
         self._display_page -= 1
-        self.interaction_lock.set()
+        await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="1", style=discord.ButtonStyle.primary)
     async def button_current(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -323,7 +301,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         if not self.owner_interaction_check(interaction.user):
             return
 
-        self.interaction_lock.set()
+        await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK RIGHT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
     async def button_next(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -332,7 +310,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             return
 
         self._display_page += 1
-        self.interaction_lock.set()
+        await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR} \u200b 1", style=discord.ButtonStyle.secondary)
     async def button_last(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -341,7 +319,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             return
 
         self._display_page = self.page_count - 1
-        self.interaction_lock.set()
+        await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
     async def button_close(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
