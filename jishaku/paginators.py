@@ -15,6 +15,7 @@ import asyncio
 import collections
 
 import discord
+from discord import ui
 from discord.ext import commands
 
 from jishaku.hljs import get_language, guess_file_traits
@@ -35,7 +36,7 @@ EMOJI_DEFAULT = EmojiSettings(
 )
 
 
-class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
+class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
     """
     A message and reaction based interface for paginators.
 
@@ -92,6 +93,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.task: asyncio.Task = None
         self.send_lock: asyncio.Event = asyncio.Event()
+        self.interaction_lock: asyncio.Event = asyncio.Event()
 
         self.close_exception: Exception = None
 
@@ -100,6 +102,8 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 f'Paginator passed has too large of a page size for this interface. '
                 f'({self.page_size} > {self.max_page_size})'
             )
+
+        super().__init__(timeout=self.timeout)
 
     @property
     def pages(self):
@@ -162,10 +166,21 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         it should be a dict containing 'content', 'embed' or both.
         """
 
-        display_page = self.display_page
-        page_num = f'\nPage {display_page + 1}/{self.page_count}'
-        content = self.pages[display_page] + page_num
-        return {'content': content}
+        content = self.pages[self.display_page]
+        return {'content': content, 'view': self}
+
+    def update_view(self):
+        """
+        Updates view buttons to correspond to current interface state.
+        This is used internally.
+        """
+
+        self.button_start.label = f"1 \u200b {self.emojis.start}"
+        self.button_previous.label = self.emojis.back
+        self.button_current.label = str(self.display_page + 1)
+        self.button_next.label = self.emojis.forward
+        self.button_last.label = f"{self.emojis.end} \u200b {self.page_count}"
+        self.button_close.label = f"{self.emojis.close} \u200b Close paginator"
 
     async def add_line(self, *args, **kwargs):
         """
@@ -196,9 +211,6 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.message = await destination.send(**self.send_kwargs)
 
-        # add the close reaction
-        await self.message.add_reaction(self.emojis.close)
-
         self.send_lock.set()
 
         if self.task:
@@ -206,26 +218,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.task = self.bot.loop.create_task(self.wait_loop())
 
-        # if there is more than one page, and the reactions haven't been sent yet, send navigation emotes
-        if not self.sent_page_reactions and self.page_count > 1:
-            await self.send_all_reactions()
-
         return self
-
-    async def send_all_reactions(self):
-        """
-        Sends all reactions for this paginator, if any are missing.
-
-        This method is generally for internal use only.
-        """
-
-        for emoji in filter(None, self.emojis):
-            try:
-                await self.message.add_reaction(emoji)
-            except discord.NotFound:
-                # the paginator has probably already been closed
-                break
-        self.sent_page_reactions = True
 
     @property
     def closed(self):
@@ -246,47 +239,21 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         gathered = await self.send_lock.wait()
         self.send_lock.clear()
         await asyncio.sleep(1)
-        return gathered
+        return gathered + 2
 
     async def wait_loop(self):  # pylint: disable=too-many-branches, too-many-statements
         """
-        Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
+        Waits on a loop for updates to the interface. This should not be called manually - it is handled by `send_to`.
         """
-
-        start, back, forward, end, close = self.emojis
-
-        def check(payload: discord.RawReactionActionEvent):
-            """
-            Checks if this reaction is related to the paginator interface.
-            """
-
-            owner_check = not self.owner or payload.user_id == self.owner.id
-
-            emoji = payload.emoji
-            if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
-                emoji = emoji.name
-
-            tests = (
-                owner_check,
-                payload.message_id == self.message.id,
-                emoji,
-                emoji in self.emojis,
-                payload.user_id != self.bot.user.id
-            )
-
-            return all(tests)
 
         task_list = [
             self.bot.loop.create_task(coro) for coro in {
-                self.bot.wait_for('raw_reaction_add', check=check),
-                self.bot.wait_for('raw_reaction_remove', check=check),
+                self.interaction_lock.wait(),
                 self.send_lock_delayed()
             }
         ]
 
         try:  # pylint: disable=too-many-nested-blocks
-            last_kwargs = None
-
             while not self.bot.is_closed():
                 done, _ = await asyncio.wait(task_list, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED)
 
@@ -295,50 +262,23 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
                 for task in done:
                     task_list.remove(task)
-                    payload = task.result()
+                    value = task.result()
 
-                    if isinstance(payload, discord.RawReactionActionEvent):
-                        emoji = payload.emoji
-                        if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
-                            emoji = emoji.name
-
-                        if emoji == close:
-                            await self.message.delete()
-                            return
-
-                        if emoji == start:
-                            self._display_page = 0
-                        elif emoji == end:
-                            self._display_page = self.page_count - 1
-                        elif emoji == back:
-                            self._display_page -= 1
-                        elif emoji == forward:
-                            self._display_page += 1
-
-                        if payload.event_type == 'REACTION_ADD':
-                            task_list.append(self.bot.loop.create_task(
-                                self.bot.wait_for('raw_reaction_add', check=check)
-                            ))
-                        elif payload.event_type == 'REACTION_REMOVE':
-                            task_list.append(self.bot.loop.create_task(
-                                self.bot.wait_for('raw_reaction_remove', check=check)
-                            ))
-                    else:
+                    if value >= 2:
                         # Send lock was released
                         task_list.append(self.bot.loop.create_task(self.send_lock_delayed()))
+                    else:
+                        # Interaction lock was released
+                        self.interaction_lock.clear()
+                        task_list.append(self.bot.loop.create_task(self.interaction_lock.wait()))
 
-                if not self.sent_page_reactions and self.page_count > 1:
-                    self.bot.loop.create_task(self.send_all_reactions())
-                    self.sent_page_reactions = True  # don't spawn any more tasks
+                self.update_view()
 
-                if self.send_kwargs != last_kwargs:
-                    try:
-                        await self.message.edit(**self.send_kwargs)
-                    except discord.NotFound:
-                        # something terrible has happened
-                        return
-
-                    last_kwargs = self.send_kwargs
+                try:
+                    await self.message.edit(**self.send_kwargs)
+                except discord.NotFound:
+                    # something terrible has happened
+                    return
 
         except (asyncio.CancelledError, asyncio.TimeoutError) as exception:
             self.close_exception = exception
@@ -347,18 +287,51 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 # Can't do anything about the messages, so just close out to avoid noisy error
                 return
 
+            # If the message was already deleted, this part is unnecessary
+            if not self.message:
+                return
+
             if self.delete_message:
-                return await self.message.delete()
+                await self.message.delete()
+            else:
+                await self.message.edit(view=None)
 
-            for emoji in filter(None, self.emojis):
-                try:
-                    await self.message.remove_reaction(emoji, self.bot.user)
-                except (discord.Forbidden, discord.NotFound):
-                    pass
+    @ui.button(label="1 \u200b \N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}", style=discord.ButtonStyle.secondary)
+    async def button_start(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to send interface to first page"""
+        self._display_page = 0
+        self.interaction_lock.set()
 
-        finally:
-            for task in task_list:
-                task.cancel()
+    @ui.button(label="\N{BLACK LEFT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
+    async def button_previous(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to send interface to previous page"""
+        self._display_page -= 1
+        self.interaction_lock.set()
+
+    @ui.button(label="1", style=discord.ButtonStyle.primary)
+    async def button_current(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to refresh the interface"""
+        self.interaction_lock.set()
+
+    @ui.button(label="\N{BLACK RIGHT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
+    async def button_next(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to send interface to next page"""
+        self._display_page += 1
+        self.interaction_lock.set()
+
+    @ui.button(label="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR} \u200b 1", style=discord.ButtonStyle.secondary)
+    async def button_last(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to send interface to last page"""
+        self._display_page = self.page_count - 1
+        self.interaction_lock.set()
+
+    @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
+    async def button_close(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+        """Button to close the interface"""
+        message = self.message
+        self.message = None
+        self.task.cancel()
+        await message.delete()
 
 
 class PaginatorEmbedInterface(PaginatorInterface):
@@ -372,10 +345,8 @@ class PaginatorEmbedInterface(PaginatorInterface):
 
     @property
     def send_kwargs(self) -> dict:
-        display_page = self.display_page
-        self._embed.description = self.pages[display_page]
-        self._embed.set_footer(text=f'Page {display_page + 1}/{self.page_count}')
-        return {'embed': self._embed}
+        self._embed.description = self.pages[self.display_page]
+        return {'embed': self._embed, 'view': self}
 
     max_page_size = 2048
 
