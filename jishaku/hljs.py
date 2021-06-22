@@ -21,7 +21,7 @@ __all__ = (
 )
 
 
-LANGUAGES = sorted([
+LANGUAGES = [
     'as',
     '1c',
     'abnf',
@@ -337,7 +337,7 @@ LANGUAGES = sorted([
     'zephir',
     'zone',
     'zsh'
-], key=len, reverse=True)
+]
 
 
 def get_language(query: str) -> str:
