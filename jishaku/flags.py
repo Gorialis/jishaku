@@ -39,3 +39,6 @@ JISHAKU_NO_DM_TRACEBACK = enabled("JISHAKU_NO_DM_TRACEBACK")
 
 # Flag to indicate usage of braille J in shutdown command
 JISHAKU_USE_BRAILLE_J = enabled("JISHAKU_USE_BRAILLE_J")
+
+# Flag to indicate whether or not to always use paginators in commands that now use files, as there is no file preview on mobile and some people just like the paginators better.
+JISHAKU_FORCE_PAGINATOR = enabled("JISHAKU_FORCE_PAGINATOR")
