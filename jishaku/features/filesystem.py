@@ -24,6 +24,7 @@ from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.hljs import get_language, guess_file_traits
 from jishaku.paginators import PaginatorInterface, WrappedFilePaginator
+from jishaku.flags import JISHAKU_FORCE_PAGINATOR
 
 
 class FilesystemFeature(Feature):
@@ -68,7 +69,7 @@ class FilesystemFeature(Feature):
 
         try:
             with open(path, "rb") as file:
-                if size < 50_000:  # File "full content" preview limit
+                if size < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
                     if line_span:
                         content, *_ = guess_file_traits(file.read())
 
@@ -116,7 +117,7 @@ class FilesystemFeature(Feature):
             if not data:
                 return await ctx.send(f"HTTP response was empty (status code {code}).")
 
-            if len(data) < 50_000:  # File "full content" preview limit
+            if len(data) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
                 # Shallow language detection
                 language = None
 
