@@ -104,7 +104,7 @@ class FilesystemFeature(Feature):
         # remove embed maskers if present
         url = url.lstrip("<").rstrip(">")
 
-        async with ReplResponseReactor(ctx.message):
+        async with ReplResponseReactor(ctx):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     data = await response.read()

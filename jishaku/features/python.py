@@ -89,7 +89,7 @@ class PythonFeature(Feature):
         scope = self.scope
 
         try:
-            async with ReplResponseReactor(ctx.message):
+            async with ReplResponseReactor(ctx):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
                     async for send, result in AsyncSender(executor):
@@ -151,7 +151,7 @@ class PythonFeature(Feature):
         scope = self.scope
 
         try:
-            async with ReplResponseReactor(ctx.message):
+            async with ReplResponseReactor(ctx):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
                     async for send, result in AsyncSender(executor):
@@ -192,7 +192,7 @@ class PythonFeature(Feature):
 
         arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
 
-        async with ReplResponseReactor(ctx.message):
+        async with ReplResponseReactor(ctx):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
             if len(text) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit

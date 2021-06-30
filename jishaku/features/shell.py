@@ -34,7 +34,7 @@ class ShellFeature(Feature):
         Execution can be cancelled by closing the paginator.
         """
 
-        async with ReplResponseReactor(ctx.message):
+        async with ReplResponseReactor(ctx):
             with self.submit(ctx):
                 with ShellReader(argument.content) as reader:
                     prefix = "```" + reader.highlight
