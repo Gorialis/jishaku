@@ -22,9 +22,9 @@ from discord.ext import commands
 
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
+from jishaku.flags import JISHAKU_FORCE_PAGINATOR
 from jishaku.hljs import get_language, guess_file_traits
 from jishaku.paginators import PaginatorInterface, WrappedFilePaginator
-from jishaku.flags import JISHAKU_FORCE_PAGINATOR
 
 
 class FilesystemFeature(Feature):

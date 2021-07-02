@@ -19,7 +19,7 @@ from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
-from jishaku.flags import JISHAKU_RETAIN, SCOPE_PREFIX, JISHAKU_FORCE_PAGINATOR
+from jishaku.flags import JISHAKU_FORCE_PAGINATOR, JISHAKU_RETAIN, SCOPE_PREFIX
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, disassemble, get_var_dict_from_ctx
