@@ -3,6 +3,18 @@
 What's new?
 ================
 
+Version 2.1.0
+-------------
+
+A new implementation of PaginatorInterface has been created using Discord's interaction buttons system.
+It is available when using discord.py 2.0.0 or greater (currently alpha).
+
+Jishaku will now avoid uploading files either when detecting the author is on mobile or through an explicit ``JISHAKU_FORCE_PAGINATOR`` switch.
+This is to better support mobile platforms that do not have inline file previews yet. (`PR #111 <https://github.com/Gorialis/jishaku/pull/111>`_).
+
+Humanize has been removed as a dependency. Selftest now uses Discord's own relative timestamp formatting markdown extension for timing,
+and pretty printing of memory usage has been implemented within the Feature itself.
+
 Version 2.0.0
 --------------
 
