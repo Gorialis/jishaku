@@ -76,8 +76,12 @@ def test_wrapped_paginator():
     assert len(paginator.pages) == 2
 
 
+@pytest.mark.skipif(
+    discord.version_info >= (2, 0, 0),
+    reason="Tests with the reaction model of the paginator interface"
+)
 @utils.run_async
-async def test_paginator_interface():
+async def test_paginator_interface_reactions():
     bot = commands.Bot('?')
 
     with open(__file__, 'rb') as file:
@@ -322,3 +326,5 @@ async def test_paginator_interface():
         await asyncio.sleep(0.1)
 
         assert interface.closed
+
+# TODO: Write test for interactions-based paginator interface
