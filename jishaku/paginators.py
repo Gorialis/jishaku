@@ -463,8 +463,6 @@ class FilePaginator(commands.Paginator):
         A shebang present in the actual file will always be prioritized over this.
     """
 
-    __encoding_regex = re.compile(br'coding[=:]\s*([-\w.]+)')
-
     def __init__(self, fp, line_span=None, language_hints=(), **kwargs):
         language = ''
 

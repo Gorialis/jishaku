@@ -142,7 +142,8 @@ disable=print-statement,
         comprehension-escape,
         ungrouped-imports,
         unsubscriptable-object,  # FIXME: this should be REMOVED once pylint fixes the unsubscriptable-object bug on 3.9. do not forget, on pain of death
-        too-many-instance-attributes
+        too-many-instance-attributes,
+        duplicate-code  # This picks up stupid things like imports
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
