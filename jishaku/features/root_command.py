@@ -11,11 +11,11 @@ The jishaku root command.
 
 """
 
+import math
 import sys
 import typing
 
 import discord
-import humanize
 from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
@@ -27,6 +27,20 @@ try:
     import psutil
 except ImportError:
     psutil = None
+
+
+def natural_size(size_in_bytes: int):
+    """
+    Converts a number of bytes to an appropriately-scaled unit
+    E.g.:
+        1024 -> 1.00 KiB
+        12345678 -> 11.77 MiB
+    """
+    units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    power = int(math.log(size_in_bytes, 1024))
+
+    return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
 
 class RootCommand(Feature):
@@ -47,8 +61,8 @@ class RootCommand(Feature):
         summary = [
             f"Jishaku v{package_version('jishaku')}, discord.py `{package_version('discord.py')}`, "
             f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
-            f"Module was loaded {humanize.naturaltime(self.load_time)}, "
-            f"cog was loaded {humanize.naturaltime(self.start_time)}.",
+            f"Module was loaded <t:{self.load_time.timestamp():.0f}:R>, "
+            f"cog was loaded <t:{self.start_time.timestamp():.0f}:R>.",
             ""
         ]
 
@@ -60,9 +74,9 @@ class RootCommand(Feature):
                 with proc.oneshot():
                     try:
                         mem = proc.memory_full_info()
-                        summary.append(f"Using {humanize.naturalsize(mem.rss)} physical memory and "
-                                       f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                                       f"{humanize.naturalsize(mem.uss)} of which unique to this process.")
+                        summary.append(f"Using {natural_size(mem.rss)} physical memory and "
+                                       f"{natural_size(mem.vms)} virtual memory, "
+                                       f"{natural_size(mem.uss)} of which unique to this process.")
                     except psutil.AccessDenied:
                         pass
 

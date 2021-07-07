@@ -14,8 +14,8 @@ The base Feature class that serves as the superclass of all feature components.
 import asyncio
 import collections
 import contextlib
-import datetime
 import typing
+from datetime import datetime, timezone
 
 from discord.ext import commands
 
@@ -54,11 +54,11 @@ class Feature(commands.Cog):
             self.callback = callback
             return self
 
-    load_time = datetime.datetime.now()
+    load_time: datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
 
     def __init__(self, *args, **kwargs):  # pylint: disable=too-many-branches
         self.bot: commands.Bot = kwargs.pop('bot')
-        self.start_time: datetime.datetime = datetime.datetime.now()
+        self.start_time: datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
         self.tasks = collections.deque()
         self.task_count: int = 0
 
