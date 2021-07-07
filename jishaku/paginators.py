@@ -15,13 +15,13 @@ import discord
 from discord.ext import commands
 
 from jishaku.hljs import get_language, guess_file_traits
-
 from jishaku.shim.paginator_base import EmojiSettings
+
 # Version detection
 if discord.version_info >= (2, 0, 0):
-    from jishaku.shim.paginator_200 import PaginatorInterface, PaginatorEmbedInterface
+    from jishaku.shim.paginator_200 import PaginatorEmbedInterface, PaginatorInterface
 else:
-    from jishaku.shim.paginator_170 import PaginatorInterface, PaginatorEmbedInterface
+    from jishaku.shim.paginator_170 import PaginatorEmbedInterface, PaginatorInterface
 
 __all__ = ('EmojiSettings', 'PaginatorInterface', 'PaginatorEmbedInterface',
            'WrappedPaginator', 'FilePaginator')
