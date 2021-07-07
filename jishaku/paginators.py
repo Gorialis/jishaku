@@ -13,7 +13,6 @@ Paginator-related tools and interfaces for Jishaku.
 
 import asyncio
 import collections
-import re
 
 import discord
 from discord.ext import commands
