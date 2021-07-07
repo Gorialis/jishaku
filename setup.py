@@ -114,7 +114,7 @@ setup(
     },
 
     version=VERSION,
-    packages=['jishaku', 'jishaku.features', 'jishaku.repl'],
+    packages=['jishaku', 'jishaku.features', 'jishaku.repl', 'jishaku.shim'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
     python_requires='>=3.8.0',
