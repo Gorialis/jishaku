@@ -77,6 +77,52 @@ class PythonFeature(Feature):
         self.retain = False
         return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
 
+    async def jsk_python_result_handling(self, ctx: commands.Context, result):  # pylint: disable=too-many-return-statements
+        """
+        Determines what is done with a result when it comes out of jsk py.
+        This allows you to override how this is done without having to rewrite the command itself.
+        """
+
+        if isinstance(result, discord.Message):
+            return await ctx.send(f"<Message <{result.jump_url}>>")
+        elif isinstance(result, discord.File):
+            return await ctx.send(file=result)
+        elif isinstance(result, discord.Embed):
+            return await ctx.send(embed=result)
+        elif isinstance(result, PaginatorInterface):
+            return await result.send_to(ctx)
+        else:
+            if not isinstance(result, str):
+                # repr all non-strings
+                result = repr(result)
+
+            if len(result) <= 2000:
+                if result.strip() == '':
+                    result = "\u200b"
+
+                return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+
+            elif len(result) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
+                # Discord's desktop and web client now supports an interactive file content
+                #  display for files encoded in UTF-8.
+                # Since this avoids escape issues and is more intuitive than pagination for
+                #  long results, it will now be prioritized over PaginatorInterface if the
+                #  resultant content is below the filesize threshold
+                return await ctx.send(file=discord.File(
+                    filename="output.py",
+                    fp=io.BytesIO(result.encode('utf-8'))
+                ))
+
+            else:
+                # inconsistency here, results get wrapped in codeblocks when they are too large
+                #  but don't if they're not. probably not that bad, but noting for later review
+                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+                paginator.add_line(result)
+
+                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                return await interface.send_to(ctx)
+
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
@@ -98,45 +144,7 @@ class PythonFeature(Feature):
 
                         self.last_result = result
 
-                        if isinstance(result, discord.Message):
-                            send(await ctx.send(f"<Message <{result.jump_url}>>"))
-                        elif isinstance(result, discord.File):
-                            send(await ctx.send(file=result))
-                        elif isinstance(result, discord.Embed):
-                            send(await ctx.send(embed=result))
-                        elif isinstance(result, PaginatorInterface):
-                            send(await result.send_to(ctx))
-                        else:
-                            if not isinstance(result, str):
-                                # repr all non-strings
-                                result = repr(result)
-
-                            if len(result) <= 2000:
-                                if result.strip() == '':
-                                    result = "\u200b"
-
-                                send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
-
-                            elif len(result) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
-                                # Discord's desktop and web client now supports an interactive file content
-                                #  display for files encoded in UTF-8.
-                                # Since this avoids escape issues and is more intuitive than pagination for
-                                #  long results, it will now be prioritized over PaginatorInterface if the
-                                #  resultant content is below the filesize threshold
-                                send(await ctx.send(file=discord.File(
-                                    filename="output.py",
-                                    fp=io.BytesIO(result.encode('utf-8'))
-                                )))
-
-                            else:
-                                # inconsistency here, results get wrapped in codeblocks when they are too large
-                                #  but don't if they're not. probably not that bad, but noting for later review
-                                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-
-                                paginator.add_line(result)
-
-                                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                                send(await interface.send_to(ctx))
+                        send(await self.jsk_python_result_handling(ctx, result))
 
         finally:
             scope.clear_intersection(arg_dict)
