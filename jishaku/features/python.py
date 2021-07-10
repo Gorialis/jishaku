@@ -81,47 +81,51 @@ class PythonFeature(Feature):
         """
         Determines what is done with a result when it comes out of jsk py.
         This allows you to override how this is done without having to rewrite the command itself.
+        What you return is what gets stored in the temporary _ variable.
         """
 
         if isinstance(result, discord.Message):
             return await ctx.send(f"<Message <{result.jump_url}>>")
-        elif isinstance(result, discord.File):
+
+        if isinstance(result, discord.File):
             return await ctx.send(file=result)
-        elif isinstance(result, discord.Embed):
+
+        if isinstance(result, discord.Embed):
             return await ctx.send(embed=result)
-        elif isinstance(result, PaginatorInterface):
+
+        if isinstance(result, PaginatorInterface):
             return await result.send_to(ctx)
-        else:
-            if not isinstance(result, str):
-                # repr all non-strings
-                result = repr(result)
 
-            if len(result) <= 2000:
-                if result.strip() == '':
-                    result = "\u200b"
+        if not isinstance(result, str):
+            # repr all non-strings
+            result = repr(result)
 
-                return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+        # Eventually the below handling should probably be put somewhere else
+        if len(result) <= 2000:
+            if result.strip() == '':
+                result = "\u200b"
 
-            elif len(result) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
-                # Discord's desktop and web client now supports an interactive file content
-                #  display for files encoded in UTF-8.
-                # Since this avoids escape issues and is more intuitive than pagination for
-                #  long results, it will now be prioritized over PaginatorInterface if the
-                #  resultant content is below the filesize threshold
-                return await ctx.send(file=discord.File(
-                    filename="output.py",
-                    fp=io.BytesIO(result.encode('utf-8'))
-                ))
+            return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
 
-            else:
-                # inconsistency here, results get wrapped in codeblocks when they are too large
-                #  but don't if they're not. probably not that bad, but noting for later review
-                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+        if len(result) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
+            # Discord's desktop and web client now supports an interactive file content
+            #  display for files encoded in UTF-8.
+            # Since this avoids escape issues and is more intuitive than pagination for
+            #  long results, it will now be prioritized over PaginatorInterface if the
+            #  resultant content is below the filesize threshold
+            return await ctx.send(file=discord.File(
+                filename="output.py",
+                fp=io.BytesIO(result.encode('utf-8'))
+            ))
 
-                paginator.add_line(result)
+        # inconsistency here, results get wrapped in codeblocks when they are too large
+        #  but don't if they're not. probably not that bad, but noting for later review
+        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
 
-                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                return await interface.send_to(ctx)
+        paginator.add_line(result)
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        return await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
