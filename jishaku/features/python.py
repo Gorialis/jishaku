@@ -98,7 +98,9 @@ class PythonFeature(Feature):
 
                         self.last_result = result
 
-                        if isinstance(result, discord.File):
+                        if isinstance(result, discord.Message):
+                            send(await ctx.send(f"<Message <{result.jump_url}>>"))
+                        elif isinstance(result, discord.File):
                             send(await ctx.send(file=result))
                         elif isinstance(result, discord.Embed):
                             send(await ctx.send(embed=result))
