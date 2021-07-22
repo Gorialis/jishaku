@@ -19,7 +19,7 @@ import traceback
 from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
-from jishaku.flags import JISHAKU_USE_BRAILLE_J
+from jishaku.flags import Flags
 from jishaku.modules import ExtensionConverter
 from jishaku.paginators import WrappedPaginator
 
@@ -98,10 +98,22 @@ class ManagementFeature(Feature):
         Logs this bot out.
         """
 
-        ellipse_character = "\N{BRAILLE PATTERN DOTS-356}" if JISHAKU_USE_BRAILLE_J else "\N{HORIZONTAL ELLIPSIS}"
+        ellipse_character = "\N{BRAILLE PATTERN DOTS-356}" if Flags.USE_BRAILLE_J else "\N{HORIZONTAL ELLIPSIS}"
 
         await ctx.send(f"Logging out now{ellipse_character}")
         await ctx.bot.close()
+
+    @Feature.Command(parent="jsk", name="invite")
+    async def jsk_invite(self, ctx: commands.Context):
+        """
+        Retrieve the invite URL for this bot.
+        """
+
+        application_info = await self.bot.application_info()
+
+        return await ctx.send(
+            f"Link to invite this bot:\n<https://discordapp.com/oauth2/authorize?client_id={application_info.id}&scope=bot>"
+        )
 
     @Feature.Command(parent="jsk", name="rtt", aliases=["ping"])
     async def jsk_rtt(self, ctx: commands.Context):

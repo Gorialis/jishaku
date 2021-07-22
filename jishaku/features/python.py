@@ -19,7 +19,7 @@ from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
-from jishaku.flags import JISHAKU_FORCE_PAGINATOR, JISHAKU_RETAIN, SCOPE_PREFIX
+from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, disassemble, get_var_dict_from_ctx
@@ -33,7 +33,7 @@ class PythonFeature(Feature):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._scope = Scope()
-        self.retain = JISHAKU_RETAIN
+        self.retain = Flags.RETAIN
         self.last_result = None
 
     @property
@@ -107,7 +107,7 @@ class PythonFeature(Feature):
 
             return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
 
-        if len(result) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
+        if len(result) < 50_000 and not ctx.author.is_on_mobile() and not Flags.FORCE_PAGINATOR:  # File "full content" preview limit
             # Discord's desktop and web client now supports an interactive file content
             #  display for files encoded in UTF-8.
             # Since this avoids escape issues and is more intuitive than pagination for
@@ -133,7 +133,7 @@ class PythonFeature(Feature):
         Direct evaluation of Python code.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -159,7 +159,7 @@ class PythonFeature(Feature):
         Evaluation of Python code with inspect information.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -183,7 +183,7 @@ class PythonFeature(Feature):
 
                         text = "\n".join(lines)
 
-                        if len(text) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
+                        if len(text) < 50_000 and not ctx.author.is_on_mobile() and not Flags.FORCE_PAGINATOR:  # File "full content" preview limit
                             send(await ctx.send(file=discord.File(
                                 filename="inspection.prolog",
                                 fp=io.BytesIO(text.encode('utf-8'))
@@ -204,12 +204,12 @@ class PythonFeature(Feature):
         Disassemble Python code into bytecode.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
 
         async with ReplResponseReactor(ctx.message):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
-            if len(text) < 50_000 and not ctx.author.is_on_mobile() and not JISHAKU_FORCE_PAGINATOR:  # File "full content" preview limit
+            if len(text) < 50_000 and not ctx.author.is_on_mobile() and not Flags.FORCE_PAGINATOR:  # File "full content" preview limit
                 await ctx.send(file=discord.File(
                     filename="dis.py",
                     fp=io.BytesIO(text.encode('utf-8'))

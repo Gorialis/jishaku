@@ -19,7 +19,7 @@ import typing
 import discord
 from discord.ext import commands
 
-from jishaku.flags import JISHAKU_NO_DM_TRACEBACK
+from jishaku.flags import Flags
 
 
 async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *exc_info):
@@ -139,7 +139,7 @@ class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-pu
         else:
             # this traceback likely needs more info, so increase verbosity, and DM it instead.
             await send_traceback(
-                self.message.channel if JISHAKU_NO_DM_TRACEBACK else self.message.author,
+                self.message.channel if Flags.NO_DM_TRACEBACK else self.message.author,
                 8, exc_type, exc_val, exc_tb
             )
 

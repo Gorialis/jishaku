@@ -19,7 +19,7 @@ import discord
 from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
-from jishaku.flags import JISHAKU_HIDE
+from jishaku.flags import Flags
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
 
@@ -48,7 +48,11 @@ class RootCommand(Feature):
     Feature containing the root jsk command
     """
 
-    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.jsk.hidden = Flags.HIDE
+
+    @Feature.Command(name="jishaku", aliases=["jsk"],
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: commands.Context):  # pylint: disable=too-many-branches
         """
