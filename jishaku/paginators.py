@@ -25,7 +25,7 @@ else:
     from jishaku.shim.paginator_170 import PaginatorEmbedInterface, PaginatorInterface
 
 __all__ = ('EmojiSettings', 'PaginatorInterface', 'PaginatorEmbedInterface',
-           'WrappedPaginator', 'FilePaginator', 'paginator_check')
+           'WrappedPaginator', 'FilePaginator', 'use_file_check')
 
 
 class WrappedPaginator(commands.Paginator):
