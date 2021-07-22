@@ -24,7 +24,7 @@ from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.models import copy_context_with
-from jishaku.paginators import PaginatorInterface, WrappedPaginator
+from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 
 
 class InvocationFeature(Feature):
@@ -151,7 +151,7 @@ class InvocationFeature(Feature):
         # getsourcelines for some reason returns WITH line endings
         source_text = ''.join(source_lines)
 
-        if len(source_text) < 50_000 and not ctx.author.is_on_mobile() and not Flags.FORCE_PAGINATOR:  # File "full content" preview limit
+        if use_file_check(ctx, len(source_text)):  # File "full content" preview limit
             await ctx.send(file=discord.File(
                 filename=filename,
                 fp=io.BytesIO(source_text.encode('utf-8'))

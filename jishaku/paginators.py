@@ -14,6 +14,7 @@ Paginator-related tools and interfaces for Jishaku.
 import discord
 from discord.ext import commands
 
+from jishaku.flags import Flags
 from jishaku.hljs import get_language, guess_file_traits
 from jishaku.shim.paginator_base import EmojiSettings
 
@@ -24,7 +25,7 @@ else:
     from jishaku.shim.paginator_170 import PaginatorEmbedInterface, PaginatorInterface
 
 __all__ = ('EmojiSettings', 'PaginatorInterface', 'PaginatorEmbedInterface',
-           'WrappedPaginator', 'FilePaginator')
+           'WrappedPaginator', 'FilePaginator', 'paginator_check')
 
 
 class WrappedPaginator(commands.Paginator):
@@ -144,3 +145,15 @@ class WrappedFilePaginator(FilePaginator, WrappedPaginator):
     Combination of FilePaginator and WrappedPaginator.
     In other words, a FilePaginator that supports line wrapping.
     """
+
+
+def use_file_check(ctx: commands.Context, size: int) -> bool:
+    """
+    A check to determine if uploading a file and relying on Discord's file preview is acceptable over a PaginatorInterface.
+    """
+
+    return all([
+        size < 50_000,  # Check the text is below the Discord cutoff point;
+        not Flags.FORCE_PAGINATOR,  # Check the user hasn't explicitly disabled this;
+        (not ctx.author.is_on_mobile() if ctx.guild else True)  # Ensure the user isn't on mobile
+    ])
