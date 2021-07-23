@@ -15,7 +15,9 @@ import itertools
 import math
 import time
 import traceback
+from urllib.parse import urlencode
 
+import discord
 from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
@@ -104,15 +106,32 @@ class ManagementFeature(Feature):
         await ctx.bot.close()
 
     @Feature.Command(parent="jsk", name="invite")
-    async def jsk_invite(self, ctx: commands.Context):
+    async def jsk_invite(self, ctx: commands.Context, *perms: str):
         """
         Retrieve the invite URL for this bot.
+
+        If the names of permissions are provided, they are requested as part of the invite.
         """
+
+        scopes = ('bot', 'applications.commands')
+        permissions = discord.Permissions()
+
+        for perm in perms:
+            if perm not in dict(permissions):
+                raise commands.BadArgument(f"Invalid permission: {perm}")
+
+            setattr(permissions, perm, True)
 
         application_info = await self.bot.application_info()
 
+        query = {
+            "client_id": application_info.id,
+            "scope": "+".join(scopes),
+            "permissions": permissions.value
+        }
+
         return await ctx.send(
-            f"Link to invite this bot:\n<https://discordapp.com/oauth2/authorize?client_id={application_info.id}&scope=bot>"
+            f"Link to invite this bot:\n<https://discordapp.com/oauth2/authorize?{urlencode(query)}>"
         )
 
     @Feature.Command(parent="jsk", name="rtt", aliases=["ping"])
