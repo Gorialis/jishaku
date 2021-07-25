@@ -88,8 +88,9 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
     """
     __slots__ = ('message', 'loop', 'handle', 'raised')
 
-    def __init__(self, message: discord.Message, loop: typing.Optional[asyncio.BaseEventLoop] = None):
-        self.message = message
+    def __init__(self, ctx: commands.Context, loop: typing.Optional[asyncio.BaseEventLoop] = None):
+        self.ctx = ctx
+        self.message = ctx.message
         self.loop = loop or asyncio.get_event_loop()
         self.handle = None
         self.raised = False
@@ -135,11 +136,11 @@ class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-pu
 
         if isinstance(exc_val, (SyntaxError, asyncio.TimeoutError, subprocess.TimeoutExpired)):
             # short traceback, send to channel
-            await send_traceback(self.message.channel, 0, exc_type, exc_val, exc_tb)
+            await send_traceback(self.ctx, 0, exc_type, exc_val, exc_tb)
         else:
             # this traceback likely needs more info, so increase verbosity, and DM it instead.
             await send_traceback(
-                self.message.channel if Flags.NO_DM_TRACEBACK else self.message.author,
+                self.ctx if Flags.NO_DM_TRACEBACK else self.message.author,
                 8, exc_type, exc_val, exc_tb
             )
 
