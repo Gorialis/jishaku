@@ -86,7 +86,7 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
     """
     Class that reacts to a message based on what happens during its lifetime.
     """
-    __slots__ = ('message', 'loop', 'handle', 'raised')
+    __slots__ = ('ctx', 'message', 'loop', 'handle', 'raised')
 
     def __init__(self, ctx: commands.Context, loop: typing.Optional[asyncio.BaseEventLoop] = None):
         self.ctx = ctx
