@@ -139,7 +139,7 @@ class PythonFeature(Feature):
         scope = self.scope
 
         try:
-            async with ReplResponseReactor(ctx.message):
+            async with ReplResponseReactor(ctx):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
                     async for send, result in AsyncSender(executor):
@@ -165,7 +165,7 @@ class PythonFeature(Feature):
         scope = self.scope
 
         try:
-            async with ReplResponseReactor(ctx.message):
+            async with ReplResponseReactor(ctx):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
                     async for send, result in AsyncSender(executor):
@@ -206,7 +206,7 @@ class PythonFeature(Feature):
 
         arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
 
-        async with ReplResponseReactor(ctx.message):
+        async with ReplResponseReactor(ctx):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
             if use_file_check(ctx, len(text)):  # File "full content" preview limit
