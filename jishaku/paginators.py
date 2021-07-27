@@ -155,5 +155,5 @@ def use_file_check(ctx: commands.Context, size: int) -> bool:
     return all([
         size < 50_000,  # Check the text is below the Discord cutoff point;
         not Flags.FORCE_PAGINATOR,  # Check the user hasn't explicitly disabled this;
-        (not ctx.author.is_on_mobile() if ctx.guild else True)  # Ensure the user isn't on mobile
+        (not ctx.author.is_on_mobile() if ctx.guild and ctx.bot.intents.presences else True)  # Ensure the user isn't on mobile
     ])
