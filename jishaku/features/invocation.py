@@ -16,6 +16,7 @@ import inspect
 import io
 import pathlib
 import time
+import typing
 
 import discord
 from discord.ext import commands
@@ -31,61 +32,57 @@ class InvocationFeature(Feature):
     Feature containing the command invocation related commands
     """
 
-    @Feature.Command(parent="jsk", name="su")
-    async def jsk_su(self, ctx: commands.Context, target: discord.User, *, command_string: str):
+    if hasattr(discord, 'Thread'):
+        OVERRIDE_SIGNATURE = typing.Union[discord.User, discord.TextChannel, discord.Thread]
+    else:
+        OVERRIDE_SIGNATURE = typing.Union[discord.User, discord.TextChannel]
+
+    @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
+    async def jsk_override(
+        self, ctx: commands.Context,
+        overrides: commands.Greedy[OVERRIDE_SIGNATURE],
+        *, command_string: str
+    ):
         """
-        Run a command as someone else.
+        Run a command with a different user, channel, or thread, optionally bypassing checks and cooldowns.
 
-        This will try to resolve to a Member, but will use a User if it can't find one.
+        Users will try to resolve to a Member, but will use a User if it can't find one.
         """
 
-        if ctx.guild:
-            # Try to upgrade to a Member instance
-            # This used to be done by a Union converter, but doing it like this makes
-            #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
-            target_member = None
+        kwargs = {
+            "content": ctx.prefix + command_string
+        }
 
-            with contextlib.suppress(discord.HTTPException):
-                target_member = ctx.guild.get_member(target.id) or await ctx.guild.fetch_member(target.id)
+        for override in overrides:
+            if isinstance(override, discord.User):
+                # This is a user
+                if ctx.guild:
+                    # Try to upgrade to a Member instance
+                    # This used to be done by a Union converter, but doing it like this makes
+                    #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
+                    target_member = None
 
-            target = target_member or target
+                    with contextlib.suppress(discord.HTTPException):
+                        target_member = ctx.guild.get_member(override.id) or await ctx.guild.fetch_member(override.id)
 
-        alt_ctx = await copy_context_with(ctx, author=target, content=ctx.prefix + command_string)
+                    kwargs["author"] = target_member or override
+                else:
+                    kwargs["author"] = override
+            else:
+                # Otherwise, is a text channel or a thread
+                kwargs["channel"] = override
+
+        alt_ctx = await copy_context_with(ctx, **kwargs)
 
         if alt_ctx.command is None:
             if alt_ctx.invoked_with is None:
                 return await ctx.send('This bot has been hard-configured to ignore this user.')
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
 
-        return await alt_ctx.command.invoke(alt_ctx)
-
-    @Feature.Command(parent="jsk", name="in")
-    async def jsk_in(self, ctx: commands.Context, channel: discord.TextChannel, *, command_string: str):
-        """
-        Run a command as if it were run in a different channel.
-        """
-
-        alt_ctx = await copy_context_with(ctx, channel=channel, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+        if ctx.invoked_with.endswith('!'):
+            return await alt_ctx.command.reinvoke(alt_ctx)
 
         return await alt_ctx.command.invoke(alt_ctx)
-
-    @Feature.Command(parent="jsk", name="sudo")
-    async def jsk_sudo(self, ctx: commands.Context, *, command_string: str):
-        """
-        Run a command bypassing all checks and cooldowns.
-
-        This also bypasses permission checks so this has a high possibility of making commands raise exceptions.
-        """
-
-        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        return await alt_ctx.command.reinvoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="repeat")
     async def jsk_repeat(self, ctx: commands.Context, times: int, *, command_string: str):
