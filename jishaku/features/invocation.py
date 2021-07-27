@@ -16,6 +16,7 @@ import inspect
 import io
 import pathlib
 import time
+import re
 import typing
 
 import discord
@@ -27,15 +28,37 @@ from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 
 
+class SlimUserConverter(commands.IDConverter[discord.User]):  # pylint: disable=too-few-public-methods
+    """
+    Identical to the stock UserConverter, but does not perform plaintext name checks.
+    """
+
+    async def convert(self, ctx: commands.Context, argument: str) -> discord.User:
+        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
+
+        if match is not None:
+            user_id = int(match.group(1))
+            result = ctx.bot.get_user(user_id) or discord.utils.get(ctx.message.mentions, id=user_id)
+            if result is None:
+                try:
+                    result = await ctx.bot.fetch_user(user_id)
+                except discord.HTTPException:
+                    raise commands.UserNotFound(argument) from None
+
+            return result
+
+        raise commands.UserNotFound(argument)
+
+
 class InvocationFeature(Feature):
     """
     Feature containing the command invocation related commands
     """
 
     if hasattr(discord, 'Thread'):
-        OVERRIDE_SIGNATURE = typing.Union[discord.User, discord.TextChannel, discord.Thread]
+        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel, discord.Thread]
     else:
-        OVERRIDE_SIGNATURE = typing.Union[discord.User, discord.TextChannel]
+        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel]
 
     @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
     async def jsk_override(
@@ -50,7 +73,7 @@ class InvocationFeature(Feature):
         """
 
         kwargs = {
-            "content": ctx.prefix + command_string
+            "content": ctx.prefix + command_string.lstrip('/')
         }
 
         for override in overrides:
