@@ -3,6 +3,45 @@
 What's new?
 ================
 
+Version 2.2.0
+-------------
+
+The ``jsk sudo``, ``jsk su`` and ``jsk in`` commands have been removed and replaced with a single command that handles all three at once.
+
+``jsk exec`` now automatically handles IDs or mentions for channels, users, or threads (only with discord v2.0a+).
+Aliases with a postfix ``!`` bypass checks and cooldowns, like ``jsk sudo`` used to do.
+
+Example of how the commands change with this release:
+
+- ``jsk su @user command`` -> ``jsk exec @user command``
+- ``jsk in #channel command`` -> ``jsk exec #channel command``
+- ``jsk in #channel jsk su @user command`` -> ``jsk exec #channel @user command`` or ``jsk exec @user #channel command``
+- ``jsk sudo command`` -> ``jsk exec! command``
+
+This allows combinations that were previously not possible, for example,
+``jsk exec! #channel @user command`` now executes a command as a user in another channel or thread, bypassing any checks or cooldowns that user or channel has against the command.
+
+The flag system (i.e. the ``JISHAKU_FLAG=...`` system) has been rewritten to use various degrees of lazy evaluation.
+This means setting flags like ``JISHAKU_HIDE`` and ``JISHAKU_RETAIN`` need only precede loading the Jishaku extension, as opposed to the entire module.
+
+Flags that only evaluated at command runtime will now have their changes take effect immediately.
+For example, executing ``os.environ['JISHAKU_NO_UNDERSCORE'] = '1'`` no longer requires a reload to take effect.
+
+A programmatic interface for flags is available, however, its use is discouraged except in subclass initialization, due to the fact that the changes will **NOT** persist across reloads of the extension.
+
+.. code:: python3
+
+    jishaku.Flags.NO_UNDERSCORE = True
+
+The ``jsk invite`` command has been added, which is a developer convenience command that supplies the invite link for the bot it is ran on.
+This command is most useful for bots that predate the behavior change that merged bot and application IDs, saving the time of having to retrieve the application ID yourself.
+
+Permissions can be supplied, e.g., ``jsk invite kick_members manage_messages`` will create an invite requesting those two permissions.
+
+The invites produced request slash commands for convenience.
+
+Some regressions have been fixed and other internal cleanup has been addressed in this release.
+
 Version 2.1.0
 -------------
 
