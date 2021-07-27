@@ -27,7 +27,6 @@ from jishaku.features.baseclass import Feature
 from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 
-
 UserIDConverter = commands.IDConverter[discord.User] if discord.version_info >= (2, 0) else commands.IDConverter
 
 
@@ -37,6 +36,7 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
     """
 
     async def convert(self, ctx: commands.Context, argument: str) -> discord.User:
+        """Converter method"""
         match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
 
         if match is not None:
