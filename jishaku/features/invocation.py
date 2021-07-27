@@ -15,8 +15,8 @@ import contextlib
 import inspect
 import io
 import pathlib
-import time
 import re
+import time
 import typing
 
 import discord
@@ -28,7 +28,10 @@ from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 
 
-class SlimUserConverter(commands.IDConverter[discord.User]):  # pylint: disable=too-few-public-methods
+UserIDConverter = commands.IDConverter[discord.User] if discord.version_info >= (2, 0) else commands.IDConverter
+
+
+class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
     """
     Identical to the stock UserConverter, but does not perform plaintext name checks.
     """
@@ -56,7 +59,7 @@ class InvocationFeature(Feature):
     """
 
     if hasattr(discord, 'Thread'):
-        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel, discord.Thread]
+        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel, discord.Thread]  # pylint: disable=no-member
     else:
         OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel]
 
