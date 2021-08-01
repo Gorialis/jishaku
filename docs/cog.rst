@@ -339,27 +339,14 @@ Commands
     If unloading the extension fails, it will be reported with a traceback.
 
 
-.. py:function:: jsk su <member> <command: str>
+.. py:function:: jsk exec [member] [channel] <command: str>
 
-    Runs a command as if it were ran by someone else.
+    Runs a command as if it were ran by someone else and/or in a different channel.
 
     This allows you to test how your bot would react to other users, or perform administrative actions you may have not programmed yourself
     to be able to use by default.
 
-
-.. py:function:: jsk in <channel> <command: str>
-
-    Runs a command as if it were in a different channel.
-
-    Because it matches a `TextChannel`, using this in a guild will only work for other channels in that guild.
-    Cross-server remote commanding can be facilitated by DMing the bot instead.
-
-
-.. py:function:: jsk sudo <command: str>
-
-    Runs a command, ignoring any checks or cooldowns on the command.
-
-    This forces the relevant callbacks to be triggered, and can be used to let you bypass any large cooldowns or conditions you have set.
+    If `exec!` is used instead of `exec`, the command will bypass all checks and cooldowns, directly triggering the callback.
 
 .. py:function:: jsk permtrace <channel> [targets...]
 
