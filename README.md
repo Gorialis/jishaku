@@ -204,18 +204,12 @@ You can also import the module to use the command development utilities.
             <img align="left" width="50" src=".github/assets/chat.svg">
         </td>
         <td>
-            <h4>&gt; <code>jishaku sudo &lt;command string&gt;</code></h4>
-            <h4>&gt; <code>jishaku su &lt;member&gt; &lt;command string&gt;</code></h4>
-            <h4>&gt; <code>jishaku in &lt;channel&gt; &lt;command string&gt;</code></h4>
+            <h4>&gt; <code>jishaku exec [member and/or channel...] &lt;command string&gt;</code></h4>
             <h4>&gt; <code>jishaku debug &lt;command string&gt;</code></h4>
             <h4>&gt; <code>jishaku repeat &lt;times&gt; &lt;command string&gt;</code></h4>
             These commands serve as command control for other commands.
             <br><br>
-            <code>jishaku sudo</code> bypasses all checks and cooldowns on a given command.
-            <br><br>
-            <code>jishaku su</code> allows you to execute a command as another user.
-            <br><br>
-            <code>jishaku in</code> allows you to execute a command in another channel.
+            <code>jishaku exec</code> allows you to execute a command as another user, in another channel, or both. Using aliases with a postfix exclamation mark (such as <code>jsk exec! ...</code>) executes the command bypassing checks and cooldowns.
             <br><br>
             <code>jishaku debug</code> executes a command with an exception wrapper and a timer. This allows you to quickly get feedback on reproducable command errors and slowdowns.
             <br><br>

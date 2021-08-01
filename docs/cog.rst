@@ -339,12 +339,14 @@ Commands
     If unloading the extension fails, it will be reported with a traceback.
 
 
-.. py:function:: jsk exec [member] [channel] <command: str>
+.. py:function:: jsk exec [member_and_or_channel...] <command: str>
 
     Runs a command as if it were ran by someone else and/or in a different channel.
 
     This allows you to test how your bot would react to other users, or perform administrative actions you may have not programmed yourself
     to be able to use by default.
+
+    You can provide a channel to redirect command location, a user to redirect command origin, or both.
 
     If `exec!` is used instead of `exec`, the command will bypass all checks and cooldowns, directly triggering the callback.
 
