@@ -12,6 +12,7 @@ The jishaku Python evaluation/execution commands.
 """
 
 import io
+from typing import Iterable
 
 import discord
 from discord.ext import commands
@@ -90,8 +91,14 @@ class PythonFeature(Feature):
         if isinstance(result, discord.File):
             return await ctx.send(file=result)
 
+        if isinstance(result, Iterable) and all(isinstance(obj, discord.File) for obj in result):
+            return await ctx.send(files=result)
+
         if isinstance(result, discord.Embed):
             return await ctx.send(embed=result)
+
+        if isinstance(result, Iterable) and all(isinstance(obj, discord.Embed) for obj in result) and discord.__version__[0] == "2":
+            return await ctx.send(embeds=result)
 
         if isinstance(result, PaginatorInterface):
             return await result.send_to(ctx)
