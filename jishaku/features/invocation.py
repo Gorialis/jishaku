@@ -30,6 +30,7 @@ from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_ch
 UserIDConverter = commands.IDConverter[discord.User] if discord.version_info >= (2, 0) else commands.IDConverter
 ChannelIDConverter = commands.IDConverter[discord.TextChannel] if discord.version_info >= (2, 0) else commands.IDConverter
 ThreadIDConverter = commands.IDConverter[discord.Thread] if discord.version_info >= (2, 0) else commands.IDConverter
+Thread = discord.Thread if discord.version_info >= (2, 0) else None
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
@@ -53,7 +54,8 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
             return result
 
         raise commands.UserNotFound(argument)
-        
+
+
 class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-public-methods
     """
     Identical to the stock TextChannelConverter, but does not perform plaintext name checks.
@@ -69,14 +71,14 @@ class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-publi
             if result is not None:
                 return result
         raise commands.ChannelNotFound(argument)
-        
+
 
 class SlimThreadConverter(ThreadIDConverter):  # pylint: disable=too-few-public-methods
     """
     Identical to the stock ThreadConverter, but does not perform plaintext name checks.
     """
 
-    async def convert(self, ctx: commands.Context, argument: str) -> getattr(discord, 'Thread', None):
+    async def convert(self, ctx: commands.Context, argument: str) -> Thread:
         """Converter method"""
         match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
 
