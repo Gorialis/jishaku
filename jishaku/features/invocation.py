@@ -28,6 +28,8 @@ from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 
 UserIDConverter = commands.IDConverter[discord.User] if discord.version_info >= (2, 0) else commands.IDConverter
+ChannelIDConverter = commands.IDConverter[discord.TextChannel] if discord.version_info >= (2, 0) else commands.IDConverter
+ThreadIDConverter = commands.IDConverter[discord.Thread] if discord.version_info >= (2, 0) else commands.IDConverter
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
@@ -51,6 +53,39 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
             return result
 
         raise commands.UserNotFound(argument)
+        
+class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-public-methods
+    """
+    Identical to the stock TextChannelConverter, but does not perform plaintext name checks.
+    """
+
+    async def convert(self, ctx: commands.Context, argument: str) -> discord.TextChannel:
+        """Converter method"""
+        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
+
+        if match is not None:
+            channel_id = int(match.group(1))
+            result = ctx.bot.get_channel(channel_id) or discord.utils.get(ctx.message.channel_mentions, id=channel_id)
+            if result is not None:
+                return result
+        raise commands.ChannelNotFound(argument)
+        
+
+class SlimThreadConverter(ThreadIDConverter):  # pylint: disable=too-few-public-methods
+    """
+    Identical to the stock ThreadConverter, but does not perform plaintext name checks.
+    """
+
+    async def convert(self, ctx: commands.Context, argument: str) -> getattr(discord, 'Thread', None):
+        """Converter method"""
+        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
+
+        if match is not None:
+            thread_id = int(match.group(1))
+            result = ctx.guild.get_thread(thread_id)
+            if result is not None:
+                return result
+        raise commands.ThreadNotFound(argument)
 
 
 class InvocationFeature(Feature):
@@ -59,9 +94,9 @@ class InvocationFeature(Feature):
     """
 
     if hasattr(discord, 'Thread'):
-        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel, discord.Thread]  # pylint: disable=no-member
+        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter, SlimThreadConverter]  # pylint: disable=no-member
     else:
-        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel]
+        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter]
 
     @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
     async def jsk_override(
