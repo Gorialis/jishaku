@@ -173,7 +173,7 @@ class VoiceFeature(Feature):
         Resumes a running audio source, if there is one.
         """
 
-        if await self.playing_check(ctx):
+        if await self.connected_check(ctx):
             return
 
         voice = ctx.guild.voice_client
