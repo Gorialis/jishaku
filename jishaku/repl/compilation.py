@@ -22,10 +22,10 @@ from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
 from jishaku.repl.walkers import KeywordTransformer
 
-CORO_CODE = """
+CORO_CODE = f"""
 async def _repl_coroutine({{0}}):
     import asyncio
-    from importlib import import_module as {0}
+    from importlib import import_module as {import_expression.constants.IMPORTER}
 
     import aiohttp
     import discord
@@ -40,7 +40,7 @@ async def _repl_coroutine({{0}}):
         pass
     finally:
         _async_executor.scope.globals.update(locals())
-""".format(import_expression.constants.IMPORTER)
+"""
 
 
 def wrap_code(code: str, args: str = '') -> ast.Module:

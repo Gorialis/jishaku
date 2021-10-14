@@ -18,18 +18,18 @@ import import_expression
 
 from jishaku.repl.scope import Scope
 
-CORO_CODE = """
+CORO_CODE = f"""
 import asyncio
 
 import discord
 from discord.ext import commands
-from importlib import import_module as {0}
+from importlib import import_module as {import_expression.constants.IMPORTER}
 
 import jishaku
 
 async def _repl_coroutine({{0}}):
     pass
-""".format(import_expression.constants.IMPORTER)
+"""
 
 
 def wrap_code(code: str, args: str = '') -> ast.Module:
