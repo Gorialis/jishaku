@@ -135,18 +135,18 @@ class GuildFeature(Feature):
                 # Denies are applied BEFORE allows, always
                 # Handle denies
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    if overwrite.is_role() and overwrite.id in role_lookup:
                         self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=role_lookup[overwrite.id].name)
 
                 # Handle allows
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    if overwrite.is_role() and overwrite.id in role_lookup:
                         self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=role_lookup[overwrite.id].name)
 
                 if member_ids:
                     # Handle member-specific overwrites
                     for overwrite in remaining_overwrites:
-                        if overwrite.type == 'member' and overwrite.id in member_ids:
+                        if overwrite.is_member() and overwrite.id in member_ids:
                             self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name=f"{member_ids[overwrite.id].mention}")
                             break
 
