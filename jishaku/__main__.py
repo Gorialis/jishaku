@@ -53,8 +53,6 @@ def entrypoint(intents: typing.Iterable[str], token: str):
         name = intent[1:].lower()
         value = intent[0] == "+"
 
-        print(name)
-
         if name in all_intents:
             setattr(intents_class, name, value)
         elif name == 'all':
