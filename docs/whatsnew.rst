@@ -3,6 +3,12 @@
 What's new?
 ================
 
+Version 2.3.2
+-------------
+
+Fixed a regression from 2.3.1 that made permtrace return bad results on 1.7.2
+
+
 Version 2.3.1
 -------------
 
