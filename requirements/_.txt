@@ -1,3 +1,4 @@
 braceexpand>=0.1.7
 click>=8.0.1
 import_expression>=1.0.0,<2.0.0
+importlib_metadata
