@@ -15,10 +15,9 @@ import math
 import sys
 import typing
 
-from importlib import metadata
-
 import discord
 from discord.ext import commands
+from importlib_metadata import packages_distributions
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
@@ -64,7 +63,7 @@ class RootCommand(Feature):
         All other functionality is within its subcommands.
         """
         
-        package_name = metadata.packages_distributions()['discord'][0]
+        package_name = packages_distributions()['discord'][0]
         
         summary = [
             f"Jishaku v{package_version('jishaku')}, {package_name} `{package_version(package_name)}`, "
