@@ -17,10 +17,6 @@ import typing
 
 import discord
 from discord.ext import commands
-try:
-    from importlib.metadata import packages_distributions
-except ImportError:
-    from importlib_metadata import packages_distributions
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
@@ -31,6 +27,11 @@ try:
     import psutil
 except ImportError:
     psutil = None
+
+try:
+    from importlib.metadata import packages_distributions
+except ImportError:
+    from importlib_metadata import packages_distributions
 
 
 def natural_size(size_in_bytes: int):
