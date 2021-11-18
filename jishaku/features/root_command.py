@@ -17,7 +17,10 @@ import typing
 
 import discord
 from discord.ext import commands
-from importlib_metadata import packages_distributions
+try:
+    from importlib.metadata import packages_distributions
+except ImportError:
+    from importlib_metadata import packages_distributions
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
