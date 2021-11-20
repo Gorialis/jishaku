@@ -28,6 +28,11 @@ try:
 except ImportError:
     psutil = None
 
+try:
+    from importlib.metadata import packages_distributions
+except ImportError:
+    from importlib_metadata import packages_distributions
+
 
 def natural_size(size_in_bytes: int):
     """
@@ -62,8 +67,10 @@ class RootCommand(Feature):
         All other functionality is within its subcommands.
         """
 
+        package_name = packages_distributions()['discord'][0]
+
         summary = [
-            f"Jishaku v{package_version('jishaku')}, discord.py `{package_version('discord.py')}`, "
+            f"Jishaku v{package_version('jishaku')}, {package_name} `{package_version(package_name)}`, "
             f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded <t:{self.load_time.timestamp():.0f}:R>, "
             f"cog was loaded <t:{self.start_time.timestamp():.0f}:R>.",
