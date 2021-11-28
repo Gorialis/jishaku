@@ -34,7 +34,7 @@ class FilesystemFeature(Feature):
     __cat_line_regex = re.compile(r"(?:\.\/+)?(.+?)(?:#L?(\d+)(?:\-L?(\d+))?)?$")
 
     @Feature.Command(parent="jsk", name="cat")
-    async def jsk_cat(self, ctx: commands.Context, argument: str):  # pylint: disable=too-many-locals
+    async def jsk_cat(self, ctx: commands.Context, argument: str):
         """
         Read out a file, using syntax highlighting if detected.
 

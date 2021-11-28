@@ -56,7 +56,7 @@ class Feature(commands.Cog):
 
     load_time: datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-    def __init__(self, *args, **kwargs):  # pylint: disable=too-many-branches
+    def __init__(self, *args, **kwargs):
         self.bot: commands.Bot = kwargs.pop('bot')
         self.start_time: datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
         self.tasks = collections.deque()
