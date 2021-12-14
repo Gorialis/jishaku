@@ -59,7 +59,7 @@ class RootCommand(Feature):
 
     @Feature.Command(name="jishaku", aliases=["jsk"],
                      invoke_without_command=True, ignore_extra=False,
-                     slash_commands=False, message_commands=True)
+                     slash_command=False, message_command=True)
     async def jsk(self, ctx: commands.Context):
         """
         The Jishaku debug and diagnostic commands.
