@@ -58,7 +58,8 @@ class RootCommand(Feature):
         self.jsk.hidden = Flags.HIDE
 
     @Feature.Command(name="jishaku", aliases=["jsk"],
-                     invoke_without_command=True, ignore_extra=False)
+                     invoke_without_command=True, ignore_extra=False,
+                     slash_commands=False, message_commands=True)
     async def jsk(self, ctx: commands.Context):
         """
         The Jishaku debug and diagnostic commands.
