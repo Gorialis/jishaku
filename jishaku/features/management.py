@@ -31,7 +31,7 @@ class ManagementFeature(Feature):
     Feature containing the extension and bot control commands
     """
 
-    @Feature.Command(parent="jsk", name="load", aliases=["reload"])
+    @Feature.Command(parent="jsk", name="load", aliases=["reload"], message_command=True, slash_command=False)
     async def jsk_load(self, ctx: commands.Context, *extensions: ExtensionConverter):
         """
         Loads or reloads the given extension names.
@@ -67,7 +67,7 @@ class ManagementFeature(Feature):
         for page in paginator.pages:
             await ctx.send(page)
 
-    @Feature.Command(parent="jsk", name="unload")
+    @Feature.Command(parent="jsk", name="unload", message_command=True, slash_command=False)
     async def jsk_unload(self, ctx: commands.Context, *extensions: ExtensionConverter):
         """
         Unloads the given extension names.
@@ -94,7 +94,7 @@ class ManagementFeature(Feature):
         for page in paginator.pages:
             await ctx.send(page)
 
-    @Feature.Command(parent="jsk", name="shutdown", aliases=["logout"])
+    @Feature.Command(parent="jsk", name="shutdown", aliases=["logout"], message_command=True, slash_command=False)
     async def jsk_shutdown(self, ctx: commands.Context):
         """
         Logs this bot out.
@@ -105,7 +105,7 @@ class ManagementFeature(Feature):
         await ctx.send(f"Logging out now{ellipse_character}")
         await ctx.bot.close()
 
-    @Feature.Command(parent="jsk", name="invite")
+    @Feature.Command(parent="jsk", name="invite", message_command=True, slash_command=False)
     async def jsk_invite(self, ctx: commands.Context, *perms: str):
         """
         Retrieve the invite URL for this bot.
@@ -134,7 +134,7 @@ class ManagementFeature(Feature):
             f"Link to invite this bot:\n<https://discordapp.com/oauth2/authorize?{urlencode(query, safe='+')}>"
         )
 
-    @Feature.Command(parent="jsk", name="rtt", aliases=["ping"])
+    @Feature.Command(parent="jsk", name="rtt", aliases=["ping"], message_command=True, slash_command=False)
     async def jsk_rtt(self, ctx: commands.Context):
         """
         Calculates Round-Trip Time to the API.
