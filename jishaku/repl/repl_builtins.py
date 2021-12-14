@@ -92,7 +92,8 @@ def get_var_dict_from_ctx(ctx: commands.Context, prefix: str = '_'):
         'http_post_bytes': http_post_bytes,
         'http_post_json': http_post_json,
         'message': ctx.message,
-        'msg': ctx.message
+        'msg': ctx.message,
+        'me': ctx.guild.me
     }
 
     return {f'{prefix}{k}': v for k, v in raw_var_dict.items()}
