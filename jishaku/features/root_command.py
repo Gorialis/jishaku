@@ -152,8 +152,9 @@ class RootCommand(Feature):
         if discord.version_info >= (1, 5, 0):
             presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"
             members_intent = f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
+            messages_intent = f"messages intent is {'enabled' if self.bot.intents.messages else 'disabled'}"
 
-            summary.append(f"{message_cache}, {presence_intent} and {members_intent}.")
+            summary.append(f"{message_cache}, {presence_intent}, {members_intent} and {messages_intent}.")
         else:
             guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
 
