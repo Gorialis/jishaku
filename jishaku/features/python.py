@@ -49,7 +49,7 @@ class PythonFeature(Feature):
             return self._scope
         return Scope()
 
-    @Feature.Command(parent="jsk", name="retain", message_command=True, slash_command=False)
+    @Feature.Command(parent="jsk", name="retain")
     async def jsk_retain(self, ctx: commands.Context, *, toggle: bool = None):
         """
         Turn variable retention for REPL on or off.
@@ -127,7 +127,7 @@ class PythonFeature(Feature):
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         return await interface.send_to(ctx)
 
-    @Feature.Command(parent="jsk", name="py", aliases=["python"], message_command=True, slash_command=False)
+    @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Direct evaluation of Python code.
@@ -153,7 +153,7 @@ class PythonFeature(Feature):
         finally:
             scope.clear_intersection(arg_dict)
 
-    @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"], message_command=True, slash_command=False)
+    @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Evaluation of Python code with inspect information.
@@ -198,7 +198,7 @@ class PythonFeature(Feature):
         finally:
             scope.clear_intersection(arg_dict)
 
-    @Feature.Command(parent="jsk", name="dis", aliases=["disassemble"], message_command=True, slash_command=False)
+    @Feature.Command(parent="jsk", name="dis", aliases=["disassemble"])
     async def jsk_disassemble(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Disassemble Python code into bytecode.
