@@ -17,8 +17,8 @@ import pathlib
 import re
 
 import aiohttp
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature

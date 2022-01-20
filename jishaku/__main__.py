@@ -20,8 +20,8 @@ import sys
 import typing
 
 import click
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 LOG_FORMAT: logging.Formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 LOG_STREAM: logging.Handler = logging.StreamHandler(stream=sys.stdout)

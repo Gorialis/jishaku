@@ -11,9 +11,9 @@ The jishaku youtube-dl command.
 
 """
 
-import discord
+import disnake as discord
 import youtube_dl
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.features.voice import VoiceFeature

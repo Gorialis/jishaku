@@ -28,8 +28,8 @@ async def _repl_coroutine({{0}}):
     from importlib import import_module as {import_expression.constants.IMPORTER}
 
     import aiohttp
-    import discord
-    from discord.ext import commands
+    import disnake as discord
+    from disnake.ext import commands
 
     try:
         import jishaku

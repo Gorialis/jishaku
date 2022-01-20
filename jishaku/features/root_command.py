@@ -15,8 +15,8 @@ import math
 import sys
 import typing
 
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags

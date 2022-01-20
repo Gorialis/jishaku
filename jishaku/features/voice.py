@@ -13,10 +13,10 @@ The jishaku core voice-related commands.
 
 import typing
 
-import discord
-import discord.opus
-import discord.voice_client
-from discord.ext import commands
+import disnake as discord
+import disnake.opus
+import disnake.voice_client
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 
@@ -32,12 +32,12 @@ class VoiceFeature(Feature):
         Check for whether VC is available in this bot.
         """
 
-        if not discord.voice_client.has_nacl:
+        if not disnake.voice_client.has_nacl:
             return await ctx.send("Voice cannot be used because PyNaCl is not loaded.")
 
-        if not discord.opus.is_loaded():
-            if hasattr(discord.opus, '_load_default'):
-                if not discord.opus._load_default():  # pylint: disable=protected-access,no-member
+        if not disnake.opus.is_loaded():
+            if hasattr(disnake.opus, '_load_default'):
+                if not disnake.opus._load_default():  # pylint: disable=protected-access,no-member
                     return await ctx.send(
                         "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
                     )

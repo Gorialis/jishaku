@@ -16,7 +16,7 @@ import typing
 
 import pkg_resources
 from braceexpand import UnbalancedBracesError, braceexpand
-from discord.ext import commands
+from disnake.ext import commands
 
 __all__ = ('find_extensions_in', 'resolve_extensions', 'package_version', 'ExtensionConverter')
 

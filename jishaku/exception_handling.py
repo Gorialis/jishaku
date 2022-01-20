@@ -16,8 +16,8 @@ import subprocess
 import traceback
 import typing
 
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 from jishaku.flags import Flags
 

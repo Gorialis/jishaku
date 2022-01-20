@@ -11,7 +11,7 @@ The Jishaku debugging and diagnostics cog implementation.
 
 """
 
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.features.filesystem import FilesystemFeature
 from jishaku.features.guild import GuildFeature

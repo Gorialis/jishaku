@@ -12,8 +12,8 @@ Builtin functions and variables within Jishaku REPL contexts.
 """
 
 import aiohttp
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 
 async def http_get_bytes(*args, **kwargs) -> bytes:

@@ -13,9 +13,9 @@ Paginator-related tools and interfaces for Jishaku.
 
 import asyncio
 
-import discord
-from discord import ui
-from discord.ext import commands
+import disnake as discord
+from disnake import ui
+from disnake.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 

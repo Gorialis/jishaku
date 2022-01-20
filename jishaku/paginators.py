@@ -11,8 +11,8 @@ Paginator-related tools and interfaces for Jishaku.
 
 """
 
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 
 from jishaku.flags import Flags
 from jishaku.hljs import get_language, guess_file_traits

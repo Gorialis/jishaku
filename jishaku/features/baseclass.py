@@ -17,7 +17,7 @@ import contextlib
 import typing
 from datetime import datetime, timezone
 
-from discord.ext import commands
+from disnake.ext import commands
 
 __all__ = (
     'Feature',
