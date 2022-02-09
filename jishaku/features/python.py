@@ -11,6 +11,7 @@ The jishaku Python evaluation/execution commands.
 
 """
 
+import inspect
 import io
 
 import discord
@@ -180,6 +181,11 @@ class PythonFeature(Feature):
 
                         for name, res in all_inspections(result):
                             lines.append(f"{name:16.16} :: {res}")
+
+                        docstring = (inspect.getdoc(result) or '').strip()
+
+                        if docstring:
+                            lines.append(f"\n=== Help ===\n\n{docstring}")
 
                         text = "\n".join(lines)
 
