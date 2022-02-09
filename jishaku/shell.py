@@ -48,7 +48,7 @@ class ShellReader:
                 print(x)
     """
 
-    def __init__(self, code: str, timeout: int = 120, loop: asyncio.AbstractEventLoop = None):
+    def __init__(self, code: str, timeout: int = 120, loop: asyncio.AbstractEventLoop = None, escape_ansi: bool = True):
         if WINDOWS:
             # Check for powershell
             if pathlib.Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe").exists():
@@ -59,10 +59,13 @@ class ShellReader:
                 sequence = ['cmd', '/c', code]
                 self.ps1 = "cmd >"
                 self.highlight = "cmd"
+            # Windows doesn't use ANSI codes
+            self.escape_ansi = True
         else:
             sequence = [SHELL, '-c', code]
             self.ps1 = "$"
-            self.highlight = "sh"
+            self.highlight = "ansi"
+            self.escape_ansi = escape_ansi
 
         self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # pylint: disable=consider-using-with
         self.close_code = None
@@ -97,14 +100,19 @@ class ShellReader:
 
         return self.loop.create_task(self.executor_wrapper(background_reader, stream, self.loop, callback))
 
-    @staticmethod
-    def clean_bytes(line):
+    ANSI_ESCAPE_CODE = re.compile(r'\x1b\[\??(\d*)(?:([ABCDEFGJKSThilmnsu])|;(\d+)([fH]))')
+
+    def clean_bytes(self, line):
         """
         Cleans a byte sequence of shell directives and decodes it.
         """
 
         text = line.decode('utf-8').replace('\r', '').strip('\n')
-        return re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
+
+        def sub(group: re.Match):
+            return group.group(0) if group.group(2) == 'm' and not self.escape_ansi else ''
+
+        return self.ANSI_ESCAPE_CODE.sub(sub, text).replace("``", "`\u200b`").strip('\n')
 
     async def stdout_handler(self, line):
         """

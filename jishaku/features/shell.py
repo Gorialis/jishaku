@@ -34,9 +34,12 @@ class ShellFeature(Feature):
         Execution can be cancelled by closing the paginator.
         """
 
+        # Don't use the new ANSI mode if the user is detectably on mobile
+        on_mobile = ctx.author.is_on_mobile() if ctx.guild and ctx.bot.intents.presences else False
+
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
-                with ShellReader(argument.content) as reader:
+                with ShellReader(argument.content, escape_ansi=on_mobile) as reader:
                     prefix = "```" + reader.highlight
 
                     paginator = WrappedPaginator(prefix=prefix, max_size=1975)
