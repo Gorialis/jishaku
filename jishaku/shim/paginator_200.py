@@ -192,7 +192,9 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         This automatically creates the response task for you.
         """
 
-        self.message = await destination.send(**self.send_kwargs)
+        self.message = await destination.send(
+            **self.send_kwargs, allowed_mentions=discord.AllowedMentions.none()
+        )
 
         self.send_lock.set()
 

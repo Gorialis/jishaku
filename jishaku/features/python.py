@@ -106,7 +106,10 @@ class PythonFeature(Feature):
             if result.strip() == '':
                 result = "\u200b"
 
-            return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+            return await ctx.send(
+                result.replace(self.bot.http.token, "[token omitted]"),
+                allowed_mentions=discord.AllowedMentions.none()
+            )
 
         if use_file_check(ctx, len(result)):  # File "full content" preview limit
             # Discord's desktop and web client now supports an interactive file content
