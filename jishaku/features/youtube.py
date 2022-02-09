@@ -12,8 +12,12 @@ The jishaku youtube-dl command.
 """
 
 import discord
-import youtube_dl
 from discord.ext import commands
+
+try:
+    import yt_dlp as youtube_dl
+except ImportError:
+    import youtube_dl
 
 from jishaku.features.baseclass import Feature
 from jishaku.features.voice import VoiceFeature
