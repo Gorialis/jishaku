@@ -150,10 +150,16 @@ class RootCommand(Feature):
             message_cache = "Message cache is disabled"
 
         if discord.version_info >= (1, 5, 0):
-            presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"
-            members_intent = f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
+            intents_info = [
+                f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}",
+                f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
+            ]
+            
+            if hasattr(self.bot.intents, "message_content"):
+                # The privileged message content intent is supported
+                intents_info.append(f"message content intent is {'enabled' if self.bot.intents.message_content else 'disabled'}")
 
-            summary.append(f"{message_cache}, {presence_intent} and {members_intent}.")
+            summary.append(f"{message_cache}, {", ".join(intents_info[:-1])}, and {intents_info[-1]}.")
         else:
             guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
 
