@@ -159,7 +159,7 @@ class RootCommand(Feature):
                 # The privileged message content intent is supported
                 intents_info.append(f"message content intent is {'enabled' if self.bot.intents.message_content else 'disabled'}")
 
-            summary.append(f"{message_cache}, {", ".join(intents_info[:-1])}, and {intents_info[-1]}.")
+            summary.append(f"{message_cache}, {', '.join(intents_info[:-1])}, and {intents_info[-1]}.")
         else:
             guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
 
