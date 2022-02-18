@@ -154,7 +154,7 @@ class RootCommand(Feature):
                 f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}",
                 f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
             ]
-            
+
             if hasattr(self.bot.intents, "message_content"):
                 # The privileged message content intent is supported
                 intents_info.append(f"message content intent is {'enabled' if self.bot.intents.message_content else 'disabled'}")
