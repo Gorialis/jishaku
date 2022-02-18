@@ -16,6 +16,9 @@ import inspect
 import os
 import typing
 
+import discord
+from discord.ext import commands
+
 ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
 DISABLED_SYMBOLS = ("false", "f", "no", "n", "off", "0")
 
@@ -29,11 +32,12 @@ class Flag:
     name: str
     flag_type: type
     default: typing.Callable = None
+    handler: typing.Callable = None
     override: typing.Any = None
 
-    def resolve(self, flags):  # pylint: disable=too-many-return-statements
+    def resolve_raw(self, flags):  # pylint: disable=too-many-return-statements
         """
-        Resolve this flag. Only for internal use.
+        Receive the intrinsic value for this flag, before optionally being processed by the handler.
         """
 
         # Manual override, ignore environment in this case
@@ -61,6 +65,19 @@ class Flag:
 
         return self.flag_type()
 
+    def resolve(self, flags):
+        """
+        Resolve this flag. Only for internal use.
+        Applies the handler when there is one.
+        """
+
+        value = self.resolve_raw(flags)
+
+        if self.handler:
+            return self.handler(value)
+
+        return value
+
 
 class FlagMeta(type):
     """
@@ -72,7 +89,13 @@ class FlagMeta(type):
         attrs['flag_map'] = {}
 
         for flag_name, flag_type in attrs['__annotations__'].items():
-            attrs['flag_map'][flag_name] = Flag(flag_name, flag_type, attrs.pop(flag_name, None))
+            default = attrs.pop(flag_name, None)
+            handler = None
+
+            if isinstance(default, tuple):
+                default, handler = default
+
+            attrs['flag_map'][flag_name] = Flag(flag_name, flag_type, default, handler)
 
         return super(FlagMeta, cls).__new__(cls, name, base, attrs)
 
@@ -125,3 +148,24 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
 
     # Flag to indicate usage of braille J in shutdown command
     USE_BRAILLE_J: bool
+
+    # Flag to indicate whether ANSI support should always be enabled
+    # USE_ANSI_NEVER takes precedence over this
+    USE_ANSI_ALWAYS: bool
+
+    # Flag to indicate whether ANSI support should always be disabled
+    USE_ANSI_NEVER: bool
+
+    @classmethod
+    def use_ansi(cls, ctx: commands.Context):
+        """
+        Determine whether to use ANSI support from flags and context
+        """
+
+        if cls.USE_ANSI_NEVER:
+            return False
+
+        if cls.USE_ANSI_ALWAYS:
+            return True
+
+        return not ctx.author.is_on_mobile() if ctx.guild and ctx.bot.intents.presences else True
