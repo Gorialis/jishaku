@@ -53,6 +53,8 @@ jobs:
       shell: bash
       run: |
         export tag_name="${GITHUB_REF##*/}"
+        # Substitute README assets with direct GitHub links
+        sed -i "s/src=\".github\/assets/src=\"https:\/\/raw.githubusercontent.com\/Gorialis\/jishaku\/$(git rev-parse HEAD)\/.github\/assets/g" README.md
         python ./setup.py sdist bdist_egg bdist_wheel
         rm -rf jishaku
         find dist -name *.whl -exec pip install '{}' +
