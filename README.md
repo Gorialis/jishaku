@@ -10,7 +10,7 @@
 
 <h1 align="center">
 <sub>
-    <img src=".github/assets/jishaku_logo.svg" height="36">
+    <img src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/jishaku_logo.svg" height="36">
 </sub>
 &nbsp;
 jishaku
@@ -69,7 +69,7 @@ You can also import the module to use the command development utilities.
 <table>
     <tr>
         <td width="60px">
-            <img align="left" width="50" src=".github/assets/python_logo.svg">
+            <img align="left" width="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/python_logo.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [py|python] &lt;argument&gt;</code></h4>
@@ -79,7 +79,7 @@ You can also import the module to use the command development utilities.
             <br><br> <!-- Horrifying that I have to do this -->
             <blockquote>
                 <p>&gt;  <i>jsk py 3+4</i></p>
-                <img align="left" width="50" height="50" src=".github/assets/beep_bot.svg">
+                <img align="left" width="50" height="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/beep_bot.svg">
                     <p><b>Beep Bot</b></p>
                     7
             </blockquote>
@@ -88,7 +88,7 @@ You can also import the module to use the command development utilities.
             <br><br>
             <blockquote>
                 <p>&gt;  <i>jsk py await _ctx.pins()</i></p>
-                <img align="left" width="50" height="50" src=".github/assets/beep_bot.svg">
+                <img align="left" width="50" height="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/beep_bot.svg">
                     <p><b>Beep Bot</b></p>
                     [&lt;Message id=123456789012345678 ...&gt;, ...]
             </blockquote>
@@ -146,7 +146,7 @@ You can also import the module to use the command development utilities.
 <table>
     <tr>
         <td width="60px">
-            <img align="left" width="50" src=".github/assets/terminal.svg">
+            <img align="left" width="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/terminal.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [sh|shell] &lt;argument&gt;</code></h4>
@@ -171,7 +171,7 @@ You can also import the module to use the command development utilities.
 <table>
     <tr>
         <td width="60px">
-            <img align="left" width="50" src=".github/assets/extension.svg">
+            <img align="left" width="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/extension.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku [load|reload] [extensions...]</code></h4>
@@ -197,7 +197,7 @@ You can also import the module to use the command development utilities.
 <table>
     <tr>
         <td width="60px">
-            <img align="left" width="50" src=".github/assets/description.svg">
+            <img align="left" width="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/description.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku cat &lt;file&gt;</code></h4>
@@ -216,7 +216,7 @@ You can also import the module to use the command development utilities.
 <table>
     <tr>
         <td width="60px">
-            <img align="left" width="50" src=".github/assets/chat.svg">
+            <img align="left" width="50" src="https://raw.githubusercontent.com/Gorialis/jishaku/120f811da513df6447f9ed6998d1e2920ae7dcb8/.github/assets/chat.svg">
         </td>
         <td>
             <h4>&gt; <code>jishaku exec [member and/or channel...] &lt;command string&gt;</code></h4>
