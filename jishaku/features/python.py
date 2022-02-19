@@ -23,7 +23,7 @@ from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, disassemble, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
 
 
 class PythonFeature(Feature):
@@ -230,3 +230,17 @@ class PythonFeature(Feature):
 
                 interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                 await interface.send_to(ctx)
+
+    @Feature.Command(parent="jsk", name="ast")
+    async def jsk_ast(self, ctx: commands.Context, *, argument: codeblock_converter):
+        """
+        Disassemble Python code into AST.
+        """
+
+        async with ReplResponseReactor(ctx.message):
+            text = create_tree(argument.content, use_ansi=Flags.use_ansi(ctx))
+
+            await ctx.send(file=discord.File(
+                filename="ast.ansi",
+                fp=io.BytesIO(text.encode('utf-8'))
+            ))

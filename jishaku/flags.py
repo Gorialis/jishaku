@@ -16,7 +16,6 @@ import inspect
 import os
 import typing
 
-import discord
 from discord.ext import commands
 
 ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")

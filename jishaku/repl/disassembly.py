@@ -13,6 +13,7 @@ Functions pertaining to the disassembly of Python code
 
 import ast
 import dis
+import typing
 
 import import_expression
 
@@ -105,3 +106,86 @@ def disassemble(code: str, scope: Scope = None, arg_dict: dict = None):
         )
 
     # pylint: enable=protected-access, invalid-name
+
+
+TREE_CONTINUE = ('\N{BOX DRAWINGS HEAVY VERTICAL AND RIGHT}', '\N{BOX DRAWINGS HEAVY VERTICAL}')
+TREE_LAST = ('\N{BOX DRAWINGS HEAVY UP AND RIGHT}', '\N{BOX DRAWINGS LIGHT QUADRUPLE DASH VERTICAL}')
+
+
+def maybe_ansi(text: str, level: int, use_ansi: bool = True):
+    """
+    Adds an ANSI highlight corresponding to the level, if enabled
+    """
+
+    return f"\u001b[{(level % 6) + 31}m{text}\u001b[0m" if use_ansi else text
+
+
+def format_ast_block(
+    node: typing.Union[typing.List[ast.AST], ast.AST],
+    header: str = '',
+    level: int = 0,
+    through: bool = False,
+    use_ansi: bool = True
+):
+    """
+    Formats either an AST node, a list of AST nodes, or a constant.
+    """
+
+    if isinstance(node, ast.AST):
+        node = [node]
+        header += ": "
+    elif not isinstance(node, list):
+        branch, _ = TREE_CONTINUE if through else TREE_LAST
+        branch = maybe_ansi(f"{branch} {header}: ", level, use_ansi)
+        yield f"{branch}{repr(node)}"
+        return
+    else:
+        header += "[{0}]: "
+
+    for index, item in enumerate(node):
+        branch, stalk = TREE_LAST if index == len(node) - 1 and not through else TREE_CONTINUE
+        branch, stalk = (
+            maybe_ansi(f"{branch} {header}", level, use_ansi),
+            maybe_ansi(stalk, level, use_ansi)
+        )
+
+        for child_index, description in enumerate(format_ast_node(item, level=level + 1, use_ansi=use_ansi)):
+            if child_index == 0:
+                yield f"{branch.format(index)}{description}"
+            else:
+                yield f"{stalk + (' ' * len(header.format(index)))} {description}"
+
+
+def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True):
+    """
+    Recursively formats an AST node structure
+
+    The code for this is pretty disgusting as it is, to be honest
+    Serious refactoring consideration required here.
+    """
+
+    # Node name
+    if use_ansi:
+        yield f"\u001b[{(level % 6) + 31}m{type(node).__name__}\u001b[0m"
+    else:
+        yield type(node).__name__
+
+    fields = node._fields
+
+    for index, field in enumerate(fields):
+        yield from format_ast_block(
+            getattr(node, field),
+            header=field,
+            through=index < len(fields) - 1,
+            level=level,
+            use_ansi=use_ansi
+        )
+
+
+def create_tree(code: str, use_ansi: bool = True):
+    """
+    Compiles code into an AST tree and then formats it
+    """
+
+    user_code = import_expression.parse(code, mode='exec')
+    return '\n'.join(format_ast_node(user_code, use_ansi=use_ansi))
