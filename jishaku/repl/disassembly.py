@@ -139,6 +139,11 @@ def format_ast_block(
         branch = maybe_ansi(f"{branch} {header}: ", level, use_ansi)
         yield f"{branch}{repr(node)}"
         return
+    elif not node:
+        branch, _ = TREE_CONTINUE if through else TREE_LAST
+        branch = maybe_ansi(f"{branch} {header}: ", level, use_ansi)
+        yield f"{branch}[]"
+        return
     else:
         header += "[{0}]: "
 
