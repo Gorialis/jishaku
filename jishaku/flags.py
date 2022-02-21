@@ -152,6 +152,11 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
 
     @classmethod
     def traceback_destination(cls, message: discord.Message) -> typing.Optional[discord.abc.Messageable]:
+        """
+        Determine what 'default' location to send tracebacks to
+        When None, the caller should decide
+        """
+
         if cls.ALWAYS_DM_TRACEBACK:
             return message.author
 
