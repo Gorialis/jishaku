@@ -15,6 +15,7 @@ import dataclasses
 import inspect
 import os
 import typing
+import discord
 
 from discord.ext import commands
 
@@ -143,7 +144,22 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     FORCE_PAGINATOR: bool
 
     # Flag to indicate verbose error tracebacks should be sent to the invoking channel as opposed to via direct message.
+    # ALWAYS_DM_TRACEBACK takes precedence over this
     NO_DM_TRACEBACK: bool
+
+    # Flag to indicate all errors, even minor ones like SyntaxErrors, should be sent via direct message.
+    ALWAYS_DM_TRACEBACK: bool
+
+    @classmethod
+    def traceback_destination(cls, message: discord.Message) -> typing.Optional[discord.abc.Messageable]:
+        if cls.ALWAYS_DM_TRACEBACK:
+            return message.author
+
+        if cls.NO_DM_TRACEBACK:
+            return message.channel
+
+        # Otherwise let the caller decide
+        return None
 
     # Flag to indicate usage of braille J in shutdown command
     USE_BRAILLE_J: bool
@@ -156,7 +172,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     USE_ANSI_NEVER: bool
 
     @classmethod
-    def use_ansi(cls, ctx: commands.Context):
+    def use_ansi(cls, ctx: commands.Context) -> bool:
         """
         Determine whether to use ANSI support from flags and context
         """

@@ -135,11 +135,14 @@ class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-pu
 
         if isinstance(exc_val, (SyntaxError, asyncio.TimeoutError, subprocess.TimeoutExpired)):
             # short traceback, send to channel
-            await send_traceback(self.message.channel, 0, exc_type, exc_val, exc_tb)
+            await send_traceback(
+                Flags.traceback_destination(self.message) or self.message.channel,
+                0, exc_type, exc_val, exc_tb
+            )
         else:
             # this traceback likely needs more info, so increase verbosity, and DM it instead.
             await send_traceback(
-                self.message.channel if Flags.NO_DM_TRACEBACK else self.message.author,
+                Flags.traceback_destination(self.message) or self.message.author,
                 8, exc_type, exc_val, exc_tb
             )
 
