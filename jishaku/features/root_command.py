@@ -150,10 +150,19 @@ class RootCommand(Feature):
             message_cache = "Message cache is disabled"
 
         if discord.version_info >= (1, 5, 0):
-            presence_intent = f"presence intent is {'enabled' if self.bot.intents.presences else 'disabled'}"
-            members_intent = f"members intent is {'enabled' if self.bot.intents.members else 'disabled'}"
+            remarks = {
+                True: 'enabled',
+                False: 'disabled',
+                None: 'unknown'
+            }
 
-            summary.append(f"{message_cache}, {presence_intent} and {members_intent}.")
+            *group, last = (
+                f"{intent.replace('_', ' ')} intent is {remarks.get(getattr(self.bot.intents, intent, None))}"
+                for intent in
+                ('presences', 'members', 'message_content')
+            )
+
+            summary.append(f"{message_cache}, {', '.join(group)}, and {last}.")
         else:
             guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
 
