@@ -31,7 +31,8 @@ LOG_STREAM.setFormatter(LOG_FORMAT)
 @click.command()
 @click.argument('intents', nargs=-1)
 @click.argument('token')
-def entrypoint(intents: typing.Iterable[str], token: str):
+@click.option('--log-file', '-l', default=None)
+def entrypoint(intents: typing.Iterable[str], token: str, log_file: str = None):
     """
     Entrypoint accessible through `python -m jishaku <TOKEN>`
     """
@@ -39,6 +40,11 @@ def entrypoint(intents: typing.Iterable[str], token: str):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.addHandler(LOG_STREAM)
+
+    if log_file:
+        log_file_handler: logging.Handler = logging.FileHandler(filename=log_file, encoding='utf-8', mode='a')
+        log_file_handler.setFormatter(LOG_FORMAT)
+        logger.addHandler(log_file_handler)
 
     intents_class = discord.Intents.default()
     all_intents = [name for name, _ in discord.Intents.all()]
