@@ -1,3 +1,0 @@
-discord.py >= 1.7.2
--r ../requirements/_.txt
--r ../requirements/docs.txt

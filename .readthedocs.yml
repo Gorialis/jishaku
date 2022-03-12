@@ -5,8 +5,13 @@ formats: []
 build:
   image: latest
 
-requirements_file: .readthedocs/requirements.txt
+sphinx:
+  configuration: docs/conf.py
 
 python:
-  version: '3.8'
-  setup_py_install: true
+  install:
+    - method: setuptools
+      path: .
+    - requirements: requirements/docs.txt
+    - requirements: requirements/procinfo.txt
+    - requirements: requirements/voice.txt
