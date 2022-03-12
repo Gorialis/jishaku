@@ -35,6 +35,11 @@ LOG_STREAM.setFormatter(LOG_FORMAT)
 def entrypoint(intents: typing.Iterable[str], token: str, log_file: str = None):
     """
     Entrypoint accessible through `python -m jishaku <TOKEN>`
+
+    Specify intents using + and - before the token
+    E.g.:
+        -m jishaku -- +all -message_content <TOKEN>
+    Arguments are applied in order.
     """
 
     logger = logging.getLogger()
