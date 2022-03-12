@@ -10,7 +10,8 @@ sphinx:
 
 python:
   install:
-    - method: setuptools
+    - requirements: requirements/discordpy.txt
+    - method: pip
       path: .
     - requirements: requirements/docs.txt
     - requirements: requirements/procinfo.txt

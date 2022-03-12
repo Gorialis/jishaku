@@ -8,5 +8,9 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
-    "restructuredtext.confPath": ""
+    "restructuredtext.confPath": "",
+    "esbonio.server.enabled": true,
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.json": "file:///t%3A/GitHub/jishaku/.readthedocs.yml"
+    }
 }
