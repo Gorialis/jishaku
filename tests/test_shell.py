@@ -13,12 +13,11 @@ import asyncio
 import sys
 
 import pytest
-from utils import run_async
 
 from jishaku.shell import ShellReader
 
 
-@run_async
+@pytest.mark.asyncio
 async def test_reader_basic():
     return_data = []
 
@@ -34,12 +33,14 @@ async def test_reader_basic():
             async for result in reader:
                 pass
 
+    await asyncio.sleep(0.5)  # Ensure ShellReader.executor_wrapper completes
+
 
 @pytest.mark.skipif(
     sys.platform == "win32",
     reason="Tests with Linux-only sh syntax"
 )
-@run_async
+@pytest.mark.asyncio
 async def test_linux():
     return_data = []
 
@@ -65,7 +66,7 @@ async def test_linux():
     sys.platform != "win32",
     reason="Tests with Windows-only cmd syntax"
 )
-@run_async
+@pytest.mark.asyncio
 async def test_windows():
     return_data = []
 

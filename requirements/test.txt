@@ -4,5 +4,6 @@ flake8
 isort
 pylint
 pytest
+pytest-asyncio
 pytest-cov
 pytest-mock

@@ -9,12 +9,13 @@ jishaku.models tests
 
 """
 
+import pytest
 import utils
 
 from jishaku.models import copy_context_with
 
 
-@utils.run_async
+@pytest.mark.asyncio
 async def test_context_copy():
     with utils.mock_ctx() as ctx:
         await copy_context_with(ctx, author=1, channel=2, content=3)

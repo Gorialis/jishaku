@@ -80,7 +80,8 @@ def test_wrapped_paginator():
     discord.version_info >= (2, 0, 0),
     reason="Tests with the reaction model of the paginator interface"
 )
-@utils.run_async
+@pytest.mark.skip
+@pytest.mark.asyncio
 async def test_paginator_interface_reactions():
     bot = commands.Bot('?')
 

@@ -23,6 +23,7 @@ import sys
 import typing
 
 import click
+import discord
 from discord.ext import commands
 
 LOADABLES = (
@@ -37,7 +38,7 @@ async def async_entrypoint(token):
 
     for prefix, extension in LOADABLES:
         bot = commands.Bot(prefix)
-        bot.load_extension(extension)
+        await discord.utils.maybe_coroutine(bot.load_extension, extension)
 
         bots.append(bot)
 

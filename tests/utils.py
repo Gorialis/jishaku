@@ -19,22 +19,17 @@ from unittest.mock import patch
 from discord.ext import commands
 
 
-def run_async(func):
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(func(*args, **kwargs))
-
-    return inner
-
-
 def sentinel():
     return random.randint(10**16, 10**18)
 
 
 def magic_coro_mock():
     coro = mock.MagicMock(name="coro_result")
-    coro_func = mock.MagicMock(name="coro_function", side_effect=asyncio.coroutine(coro))
+
+    async def over(*args, **kwargs):
+        return coro(*args, **kwargs)
+
+    coro_func = mock.MagicMock(name="coro_function", side_effect=over)
     coro_func.coro = coro
 
     return coro_func

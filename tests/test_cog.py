@@ -11,13 +11,15 @@ jishaku.cog loadability and functionality test
 
 import asyncio
 
+import discord
 import pytest
+import pytest_asyncio
 import utils
 from discord.ext import commands
 
 
-@pytest.fixture(
-    scope='module',
+@pytest_asyncio.fixture(
+    scope='function',
     params=[
         ("jishaku", commands.Bot, {}),
         ("jishaku", commands.Bot, {"shard_id": 0, "shard_count": 2}),
@@ -35,17 +37,18 @@ from discord.ext import commands
         "jishaku.cog (AutoShardedBot)"
     ]
 )
-def bot(request):
+async def bot(request):
     b = request.param[1]('?', **request.param[2])
-    b.load_extension(request.param[0])
+    await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     yield b
 
-    b.unload_extension(request.param[0])
-    b.loop.run_until_complete(b.close())
+    await discord.utils.maybe_coroutine(b.unload_extension, request.param[0])
+    await b.close()
 
 
-def test_loads(bot):
+@pytest.mark.asyncio
+async def test_loads(bot):
     assert bot.get_cog("Jishaku")
     assert isinstance(bot.get_cog("Jishaku"), commands.Cog)
 
@@ -53,7 +56,8 @@ def test_loads(bot):
     assert isinstance(bot.get_command("jsk"), commands.Command)
 
 
-def test_cog_attributes(bot):
+@pytest.mark.asyncio
+async def test_cog_attributes(bot):
     cog = bot.get_cog("Jishaku")
 
     cog.retain = False
@@ -69,7 +73,7 @@ def test_cog_attributes(bot):
 
         assert cmd_task.index == 1
         assert cmd_task.ctx == "mock 1"
-        assert cmd_task.task is None
+        assert cmd_task.task is not None  # now not None thanks to async
 
     assert not cog.tasks
 
@@ -78,12 +82,12 @@ def test_cog_attributes(bot):
 
         assert cmd_task.index == 2
         assert cmd_task.ctx == "mock 2"
-        assert cmd_task.task is None
+        assert cmd_task.task is not None  # now not None thanks to async
 
     assert not cog.tasks
 
 
-@utils.run_async
+@pytest.mark.asyncio
 async def test_cog_check(bot):
     cog = bot.get_cog("Jishaku")
 
@@ -99,7 +103,7 @@ async def test_cog_check(bot):
                 await cog.cog_check(ctx)
 
 
-@utils.run_async
+@pytest.mark.asyncio
 async def test_commands(bot):
     cog = bot.get_cog("Jishaku")
 

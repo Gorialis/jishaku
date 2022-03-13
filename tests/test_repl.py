@@ -14,7 +14,7 @@ import random
 import sys
 
 import pytest
-from utils import mock_ctx, run_async
+from utils import mock_ctx
 
 from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, get_var_dict_from_ctx
 
@@ -72,7 +72,7 @@ def test_scope_var():
         )
     ]
 )
-@run_async
+@pytest.mark.asyncio
 async def test_executor_basic(code, expected):
     return_data = []
     async for result in AsyncCodeExecutor(code):
@@ -106,7 +106,7 @@ async def test_executor_basic(code, expected):
         ("await add_numbers(10, 12)", [22], None)
     ]
 )
-@run_async
+@pytest.mark.asyncio
 async def test_executor_advanced(code, expected, arg_dict, scope):
 
     return_data = []
@@ -121,7 +121,7 @@ async def test_executor_advanced(code, expected, arg_dict, scope):
         scope.clear_intersection(arg_dict)
 
 
-@run_async
+@pytest.mark.asyncio
 async def test_scope_copy(scope):
     scope2 = Scope()
     scope2.update(scope)
@@ -149,7 +149,7 @@ async def test_scope_copy(scope):
     assert 'e' not in scope.globals, "Checking globals intersection cleared"
 
 
-@run_async
+@pytest.mark.asyncio
 async def test_executor_builtins(scope):
     codeblock = inspect.cleandoc("""
     def ensure_builtins():
@@ -168,7 +168,8 @@ async def test_executor_builtins(scope):
     assert scope.globals['ensure_builtins']() == ValueError, "Checking defined return consistent"
 
 
-def test_var_dict(scope):
+@pytest.mark.asyncio
+async def test_var_dict(scope):
     with mock_ctx() as ctx:
         scope.update_globals(get_var_dict_from_ctx(ctx))
 

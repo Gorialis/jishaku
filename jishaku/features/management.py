@@ -53,7 +53,7 @@ class ManagementFeature(Feature):
             )
 
             try:
-                method(extension)
+                await discord.utils.maybe_coroutine(method, extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
@@ -80,7 +80,7 @@ class ManagementFeature(Feature):
 
         for extension in itertools.chain(*extensions):
             try:
-                self.bot.unload_extension(extension)
+                await discord.utils.maybe_coroutine(self.bot.unload_extension, extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 

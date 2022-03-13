@@ -9,13 +9,15 @@ jishaku subclassing functionality test
 
 """
 
+import discord
 import pytest
+import pytest_asyncio
 import utils
 from discord.ext import commands
 
 
-@pytest.fixture(
-    scope='module',
+@pytest_asyncio.fixture(
+    scope='function',
     params=[
         # Subclass 1 (Feature)
         ("tests.subclassed_module_1", "Magnet1", "overridden with a third party feature", commands.Bot, {}),
@@ -42,20 +44,20 @@ from discord.ext import commands
         "native (AutoShardedBot)"
     ]
 )
-def bot(request):
+async def bot(request):
     b = request.param[3]('?', **request.param[4])
-    b.load_extension(request.param[0])
+    await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     b.test_cog = request.param[1]
     b.test_predicate = request.param[2]
 
     yield b
 
-    b.unload_extension(request.param[0])
-    b.loop.run_until_complete(b.close())
+    await discord.utils.maybe_coroutine(b.unload_extension, request.param[0])
+    await b.close()
 
 
-@utils.run_async
+@pytest.mark.asyncio
 async def test_commands(bot):
     cog = bot.get_cog(bot.test_cog)
 
