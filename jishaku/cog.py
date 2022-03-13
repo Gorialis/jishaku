@@ -11,6 +11,8 @@ The Jishaku debugging and diagnostics cog implementation.
 
 """
 
+import inspect
+
 from discord.ext import commands
 
 from jishaku.features.filesystem import FilesystemFeature
@@ -47,9 +49,20 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):  # pylint: disable=too-fe
     """
 
 
+async def async_setup(bot: commands.Bot):
+    """
+    The async setup function defining the jishaku.cog and jishaku extensions.
+    """
+
+    await bot.add_cog(Jishaku(bot=bot))
+
+
 def setup(bot: commands.Bot):
     """
     The setup function defining the jishaku.cog and jishaku extensions.
     """
 
-    bot.add_cog(Jishaku(bot=bot))
+    if inspect.iscoroutinefunction(bot.add_cog):
+        return async_setup(bot)
+    else:
+        bot.add_cog(Jishaku(bot=bot))
