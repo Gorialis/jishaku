@@ -408,3 +408,9 @@ Commands
     The latency for each pass will be shown, as well as an average and standard deviation.
 
     This command will also output the websocket latency.
+
+.. py:function:: jsk sync [guild_ids...]
+
+    Sync global or guild application commands to Discord.
+
+    Should syncing commands to a guild fail the reason will be reported in the output.
