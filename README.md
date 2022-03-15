@@ -113,7 +113,7 @@ You can also import the module to use the command development utilities.
                     </td>
                 </tr>
                 <tr>
-                    <td><code>_author</code><br><code>_channel</code><br><code>_guild</code><br><code>_message</code><br><code>_msg</code></td>
+                    <td><code>_author</code><br><code>_channel</code><br><code>_guild</code><br><code>_me</code><br><code>_message</code><br><code>_msg</code></td>
                     <td>
                         Shortcuts for attributes on <a href="https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Context"><code>_ctx</code></a>.
                     </td>
