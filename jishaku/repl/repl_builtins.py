@@ -87,6 +87,7 @@ def get_var_dict_from_ctx(ctx: commands.Context, prefix: str = '_'):
         'find': discord.utils.find,
         'get': discord.utils.get,
         'guild': ctx.guild,
+        'me': ctx.guild.me,
         'http_get_bytes': http_get_bytes,
         'http_get_json': http_get_json,
         'http_post_bytes': http_post_bytes,
