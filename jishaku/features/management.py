@@ -201,7 +201,7 @@ class ManagementFeature(Feature):
 
         if not guild_ids:
             await self.bot.tree.sync()
-            paginator.add_line("\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS} synced global commands")
+            paginator.add_line("\N{SATELLITE ANTENNA} Synced global commands")
         else:
             for guild_id in guild_ids:
                 try:
@@ -209,7 +209,7 @@ class ManagementFeature(Feature):
                 except discord.HTTPException as exc:
                     paginator.add_line(f"\N{WARNING SIGN} `{guild_id}`: {exc.text}")
                 else:
-                    paginator.add_line(f"\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS} `{guild_id}`")
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced guild commands")
 
         for page in paginator.pages:
             await ctx.send(page)
