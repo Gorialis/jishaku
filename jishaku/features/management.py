@@ -190,3 +190,26 @@ class ManagementFeature(Feature):
             # Ignore websocket latencies that are 0 or negative because they usually mean we've got bad heartbeats
             if self.bot.latency > 0.0:
                 websocket_readings.append(self.bot.latency)
+
+    @Feature.Command(parent="jsk", name="sync")
+    async def jsk_sync(self, ctx: commands.Context, *guild_ids: int):
+        """
+        Sync global or guild application commands to Discord.
+        """
+
+        paginator = WrappedPaginator(prefix='', suffix='')
+
+        if not guild_ids:
+            await self.bot.tree.sync()
+            paginator.add_line("\N{SATELLITE ANTENNA} Synced global commands")
+        else:
+            for guild_id in guild_ids:
+                try:
+                    await self.bot.tree.sync(guild=discord.Object(guild_id))
+                except discord.HTTPException as exc:
+                    paginator.add_line(f"\N{WARNING SIGN} `{guild_id}`: {exc.text}")
+                else:
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced guild commands")
+
+        for page in paginator.pages:
+            await ctx.send(page)
