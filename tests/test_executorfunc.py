@@ -9,7 +9,6 @@ jishaku.hljs test
 
 """
 
-import asyncio
 import inspect
 
 import pytest

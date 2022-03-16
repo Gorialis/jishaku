@@ -11,7 +11,6 @@ jishaku test utils
 
 import asyncio
 import contextlib
-import functools
 import random
 from unittest import mock
 from unittest.mock import patch
