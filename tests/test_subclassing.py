@@ -54,7 +54,6 @@ async def bot(request):
     yield b
 
     await discord.utils.maybe_coroutine(b.unload_extension, request.param[0])
-    await b.close()
 
 
 @pytest.mark.asyncio

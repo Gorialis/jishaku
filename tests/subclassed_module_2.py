@@ -14,6 +14,8 @@ This variant overrides behavior directly.
 
 """
 
+import inspect
+
 from discord.ext import commands
 
 import jishaku
@@ -32,9 +34,20 @@ class Magnet2(*jishaku.OPTIONAL_FEATURES, *jishaku.STANDARD_FEATURES):  # pylint
         return await ctx.send("The behavior of this command has been overridden directly.")
 
 
+async def async_setup(bot: commands.Bot):
+    """
+    The async setup function for the extended cog
+    """
+
+    await bot.add_cog(Magnet2(bot=bot))
+
+
 def setup(bot: commands.Bot):
     """
     The setup function for the extended cog
     """
 
-    bot.add_cog(Magnet2(bot=bot))
+    if inspect.iscoroutinefunction(bot.add_cog):
+        return async_setup(bot)
+    else:
+        bot.add_cog(Magnet2(bot=bot))
