@@ -15,6 +15,7 @@ It can be used to perform manual administrative actions as the bot, or to test J
 
 """
 
+import asyncio
 import logging
 import sys
 import typing
@@ -26,6 +27,19 @@ from discord.ext import commands
 LOG_FORMAT: logging.Formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 LOG_STREAM: logging.Handler = logging.StreamHandler(stream=sys.stdout)
 LOG_STREAM.setFormatter(LOG_FORMAT)
+
+
+async def entry(bot, *args, **kwargs):
+    """
+    Async entrypoint for 2.0a compatibility
+    """
+
+    await discord.utils.maybe_coroutine(bot.load_extension, 'jishaku')
+
+    try:
+        await bot.start(*args, **kwargs)
+    except KeyboardInterrupt:
+        pass
 
 
 @click.command()
@@ -91,8 +105,7 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_file: str = None):
             )
 
     bot = commands.Bot(commands.when_mentioned, intents=intents_class)
-    bot.load_extension('jishaku')
-    bot.run(token)
+    asyncio.run(entry(bot, token))
 
 
 if __name__ == '__main__':
