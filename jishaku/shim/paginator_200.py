@@ -264,7 +264,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         return not self.owner or interaction.user.id == self.owner.id
 
     @ui.button(label="1 \u200b \N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}", style=discord.ButtonStyle.secondary)
-    async def button_start(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_start(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to send interface to first page"""
 
         self._display_page = 0
@@ -272,7 +272,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK LEFT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
-    async def button_previous(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_previous(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to send interface to previous page"""
 
         self._display_page -= 1
@@ -280,14 +280,14 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="1", style=discord.ButtonStyle.primary)
-    async def button_current(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_current(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to refresh the interface"""
 
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK RIGHT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
-    async def button_next(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_next(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to send interface to next page"""
 
         self._display_page += 1
@@ -295,7 +295,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR} \u200b 1", style=discord.ButtonStyle.secondary)
-    async def button_last(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_last(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to send interface to last page"""
 
         self._display_page = self.page_count - 1
@@ -303,7 +303,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
-    async def button_close(self, button: ui.Button, interaction: discord.Interaction):  # pylint: disable=unused-argument
+    async def button_close(self, interaction: discord.Interaction, button: ui.Button):  # pylint: disable=unused-argument
         """Button to close the interface"""
 
         message = self.message
