@@ -70,7 +70,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
         self.owner = kwargs.pop('owner', None)
         self.emojis = kwargs.pop('emoji', EMOJI_DEFAULT)
-        self.timeout = kwargs.pop('timeout', 7200)
+        self.timeout_length = kwargs.pop('timeout', 7200)
         self.delete_message = kwargs.pop('delete_message', False)
 
         self.sent_page_reactions = False
@@ -86,7 +86,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
                 f'({self.page_size} > {self.max_page_size})'
             )
 
-        super().__init__(timeout=self.timeout)
+        super().__init__(timeout=self.timeout_length)
 
     @property
     def pages(self):
@@ -233,7 +233,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
         try:  # pylint: disable=too-many-nested-blocks
             while not self.bot.is_closed():
-                await asyncio.wait_for(self.send_lock_delayed(), timeout=self.timeout)
+                await asyncio.wait_for(self.send_lock_delayed(), timeout=self.timeout_length)
 
                 self.update_view()
 
