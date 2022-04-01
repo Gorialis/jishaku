@@ -3,6 +3,33 @@
 What's new?
 ================
 
+Version 2.4.0
+-------------
+
+discord.py has now resumed development, and this version allows the cog to be loaded with the new 2.0a async load strategy.
+
+As it stands, jishaku will now once again handle discord.py as its first class priority for support.
+However, jishaku will still **no longer serve discord.py as a requirement** and fork-specific fixes up to this point will remain, with future ones still being considered based on their impact.
+
+It is still thus up to you what you decide to use with jishaku, and the module will not make this choice for you, but be aware that discord.py-related bugs will be prioritized for fixes over other implementations.
+
+New stuff in this release:
+
+- jishaku will now correctly provide and use async setup/add_cog/load_extension on 2.0a
+- ``__main__`` has been improved to allow you to specify a log file to output to in addition to stdout.
+- ``WrappedPaginator`` performance has been improved over tenfold, reducing lag from extremely large outputs
+- The ``jsk sync`` command has been added, allowing you to sync either your global or guild-specific app_commands.
+- ``jsk pyi`` now by default includes the help text on objects when it can find it, making it quicker to determine how to use functions and classes.
+- The ``jsk ast`` command has been added, which takes in code and produces a colourful AST breakdown tree.
+- The ``jsk`` command will now correctly detect and display the version of the source of the ``discord`` package on forks.
+- The ``jsk`` command will now show whether the ``message_content`` intent is enabled or not.
+- The ``jsk sh`` support will now attempt to preserve and properly display ANSI when it is possible to do so.
+- The ``jsk sh`` command has a new alias: ``jsk terminal``.
+- The ``jsk vc ytdl`` command will now prioritize ``yt-dlp`` when it's available to take advantage of the reduced staggering.
+- The ``ALWAYS_DM_TRACEBACK`` flag has been added to always DM tracebacks, even for syntax errors.
+- The ``USE_ANSI_ALWAYS`` and ``USE_ANSI_NEVER`` flags have been added to override ANSI use in commands that support it.
+- Typing has been improved across the module.
+
 Version 2.3.2
 -------------
 

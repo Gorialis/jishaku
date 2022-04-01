@@ -27,7 +27,7 @@ __all__ = (
 
 # pylint: disable=invalid-name
 VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
-version_info = VersionInfo(major=2, minor=3, micro=2, releaselevel='final', serial=0)
+version_info = VersionInfo(major=2, minor=4, micro=0, releaselevel='final', serial=0)
 
 __author__ = 'Gorialis'
 __copyright__ = 'Copyright 2021 Devon (Gorialis) R'
