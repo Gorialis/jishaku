@@ -210,7 +210,7 @@ class RootCommand(Feature):
         if not self.tasks:
             return await ctx.send("No currently running tasks.")
 
-        paginator = commands.Paginator(max_size=1985)
+        paginator = commands.Paginator(max_size=1980)
 
         for task in self.tasks:
             paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "

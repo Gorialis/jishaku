@@ -124,7 +124,7 @@ class PythonFeature(Feature):
 
         # inconsistency here, results get wrapped in codeblocks when they are too large
         #  but don't if they're not. probably not that bad, but noting for later review
-        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
 
         paginator.add_line(result)
 
@@ -198,7 +198,7 @@ class PythonFeature(Feature):
                                 fp=io.BytesIO(text.encode('utf-8'))
                             )))
                         else:
-                            paginator = WrappedPaginator(prefix="```prolog", max_size=1985)
+                            paginator = WrappedPaginator(prefix="```prolog", max_size=1980)
 
                             paginator.add_line(text)
 
@@ -224,7 +224,7 @@ class PythonFeature(Feature):
                     fp=io.BytesIO(text.encode('utf-8'))
                 ))
             else:
-                paginator = WrappedPaginator(prefix='```py', max_size=1985)
+                paginator = WrappedPaginator(prefix='```py', max_size=1980)
 
                 paginator.add_line(text)
 

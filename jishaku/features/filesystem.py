@@ -84,7 +84,7 @@ class FilesystemFeature(Feature):
                             fp=file
                         ))
                 else:
-                    paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1985)
+                    paginator = WrappedFilePaginator(file, line_span=line_span, max_size=1980)
                     interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                     await interface.send_to(ctx)
         except UnicodeDecodeError:
@@ -132,7 +132,7 @@ class FilesystemFeature(Feature):
                 ))
             else:
                 try:
-                    paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1985)
+                    paginator = WrappedFilePaginator(io.BytesIO(data), language_hints=hints, max_size=1980)
                 except UnicodeDecodeError:
                     return await ctx.send(f"Couldn't determine the encoding of the response. (status code {code})")
                 except ValueError as exc:

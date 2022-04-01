@@ -179,7 +179,7 @@ class InvocationFeature(Feature):
                 fp=io.BytesIO(source_text.encode('utf-8'))
             ))
         else:
-            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
 
             paginator.add_line(source_text.replace('```', '``\N{zero width space}`'))
 
