@@ -13,11 +13,20 @@ Function-related tools for Jishaku.
 
 import asyncio
 import functools
+import sys
 import typing
 
 # pylint: disable=invalid-name
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+
+if sys.version_info < (3, 10):
+    if typing.TYPE_CHECKING:
+        from typing_extensions import ParamSpec
+        P = ParamSpec('P')
+    else:
+        P = None
+else:
+    P = typing.ParamSpec('P')
 
 
 def executor_function(sync_function: typing.Callable[P, T]) -> typing.Callable[P, typing.Awaitable[T]]:
