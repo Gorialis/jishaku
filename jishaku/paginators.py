@@ -55,48 +55,48 @@ class WrappedPaginator(commands.Paginator):
         self.force_wrap = force_wrap
 
     def add_line(self, line='', *, empty=False):
-        if not empty:
-            true_max_size = self.max_size - self._prefix_len - self._suffix_len - 2
-            start = 0
-            needle = 0
-            last_delimiter = -1
-            last_space = -1
+        true_max_size = self.max_size - self._prefix_len - self._suffix_len - 2 * self._linesep_len
+        start = 0
+        needle = 0
+        last_delimiter = -1
+        last_space = -1
 
-            while needle < len(line):
-                if needle - start >= true_max_size:
-                    if last_delimiter != -1:
-                        if self.include_wrapped and line[last_delimiter] != '\n':
-                            super().add_line(line[start:last_delimiter + 1])
-                            needle = last_delimiter + 1
-                            start = last_delimiter + 1
-                        else:
-                            super().add_line(line[start:last_delimiter])
-                            needle = last_delimiter + 1
-                            start = last_delimiter + 1
-                    elif last_space != -1:
-                        super().add_line(line[start:last_space])
-                        needle = last_space + 1
-                        start = last_space
+        while needle < len(line):
+            if needle - start >= true_max_size:
+                if last_delimiter != -1:
+                    if self.include_wrapped and line[last_delimiter] != '\n':
+                        super().add_line(line[start:last_delimiter + 1])
+                        needle = last_delimiter + 1
+                        start = last_delimiter + 1
                     else:
-                        super().add_line(line[start:needle])
-                        start = needle
+                        super().add_line(line[start:last_delimiter])
+                        needle = last_delimiter + 1
+                        start = last_delimiter + 1
+                elif last_space != -1:
+                    super().add_line(line[start:last_space])
+                    needle = last_space + 1
+                    start = last_space
+                else:
+                    super().add_line(line[start:needle])
+                    start = needle
 
-                    last_delimiter = -1
-                    last_space = -1
+                last_delimiter = -1
+                last_space = -1
 
-                if line[needle] in self.wrap_on:
-                    last_delimiter = needle
-                elif line[needle] == ' ':
-                    last_space = needle
+            if line[needle] in self.wrap_on:
+                last_delimiter = needle
+            elif line[needle] == ' ':
+                last_space = needle
 
-                needle += 1
+            needle += 1
 
-            last_line = line[start:needle]
-            if last_line:
-                super().add_line(last_line)
+        last_line = line[start:needle]
+        if last_line:
+            super().add_line(last_line)
 
-        else:
-            super().add_line(empty=empty)
+        if empty:
+            self._current_page.append('')
+            self._count += self._linesep_len
 
 
 class FilePaginator(commands.Paginator):
