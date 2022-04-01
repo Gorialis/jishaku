@@ -54,7 +54,7 @@ class WrappedPaginator(commands.Paginator):
         self.include_wrapped = include_wrapped
         self.force_wrap = force_wrap
 
-    def add_line(self, line='', *, empty=False):
+    def add_line(self, line: str = '', *, empty: bool = False):
         true_max_size = self.max_size - self._prefix_len - self._suffix_len - 2 * self._linesep_len
         start = 0
         needle = 0

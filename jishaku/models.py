@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 
 
-async def copy_context_with(ctx: commands.Context, *, author=None, channel=None, **kwargs):
+async def copy_context_with(ctx: commands.Context, *, author=None, channel=None, **kwargs) -> commands.Context:
     """
     Makes a new :class:`Context` with changed message properties.
     """

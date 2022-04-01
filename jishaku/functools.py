@@ -15,8 +15,12 @@ import asyncio
 import functools
 import typing
 
+# pylint: disable=invalid-name
+T = typing.TypeVar('T')
+P = typing.ParamSpec('P')
 
-def executor_function(sync_function: typing.Callable):
+
+def executor_function(sync_function: typing.Callable[P, T]) -> typing.Callable[P, typing.Awaitable[T]]:
     """A decorator that wraps a sync function in an executor, changing it into an async function.
 
     This allows processing functions to be wrapped and used immediately as an async function.

@@ -74,7 +74,7 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     return mod
 
 
-def disassemble(code: str, scope: Scope = None, arg_dict: dict = None):
+def disassemble(code: str, scope: Scope = None, arg_dict: dict = None) -> typing.Generator[str, None, None]:
     """
     Disassembles asynchronous code into dis.dis-style bytecode instructions.
     """
@@ -112,7 +112,7 @@ TREE_CONTINUE = ('\N{BOX DRAWINGS HEAVY VERTICAL AND RIGHT}', '\N{BOX DRAWINGS H
 TREE_LAST = ('\N{BOX DRAWINGS HEAVY UP AND RIGHT}', '\N{BOX DRAWINGS LIGHT QUADRUPLE DASH VERTICAL}')
 
 
-def maybe_ansi(text: str, level: int, use_ansi: bool = True):
+def maybe_ansi(text: str, level: int, use_ansi: bool = True) -> str:
     """
     Adds an ANSI highlight corresponding to the level, if enabled
     """
@@ -126,7 +126,7 @@ def format_ast_block(
     level: int = 0,
     through: bool = False,
     use_ansi: bool = True
-):
+) -> typing.Generator[str, None, None]:
     """
     Formats either an AST node, a list of AST nodes, or a constant.
     """
@@ -161,7 +161,7 @@ def format_ast_block(
                 yield f"{stalk + (' ' * len(header.format(index)))} {description}"
 
 
-def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True):
+def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True) -> typing.Generator[str, None, None]:
     """
     Recursively formats an AST node structure
 
@@ -187,7 +187,7 @@ def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True):
         )
 
 
-def create_tree(code: str, use_ansi: bool = True):
+def create_tree(code: str, use_ansi: bool = True) -> str:
     """
     Compiles code into an AST tree and then formats it
     """

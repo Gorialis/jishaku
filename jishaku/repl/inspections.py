@@ -21,7 +21,7 @@ MethodWrapperType = type((1).__le__)
 WrapperDescriptorType = type(int.__le__)
 
 
-def add_inspection(name):
+def add_inspection(name: str):
     """
     Add a Jishaku object inspection
     """

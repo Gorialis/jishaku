@@ -18,12 +18,13 @@ import re
 import subprocess
 import sys
 import time
+import typing
 
 SHELL = os.getenv("SHELL") or "/bin/bash"
 WINDOWS = sys.platform == "win32"
 
 
-def background_reader(stream, loop: asyncio.AbstractEventLoop, callback):
+def background_reader(stream: typing.IO[bytes], loop: asyncio.AbstractEventLoop, callback: typing.Callable[[bytes], typing.Any]):
     """
     Reads a stream and forwards each line to an async callback.
     """
@@ -79,7 +80,7 @@ class ShellReader:
         self.queue = asyncio.Queue(maxsize=250)
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         """
         Are both tasks done, indicating there is no more to read?
         """
@@ -93,7 +94,7 @@ class ShellReader:
 
         return await self.loop.run_in_executor(None, *args, **kwargs)
 
-    def make_reader_task(self, stream, callback):
+    def make_reader_task(self, stream: typing.IO[bytes], callback: typing.Callable[[bytes], typing.Any]):
         """
         Create a reader executor task for a stream.
         """
@@ -102,7 +103,7 @@ class ShellReader:
 
     ANSI_ESCAPE_CODE = re.compile(r'\x1b\[\??(\d*)(?:([ABCDEFGJKSThilmnsu])|;(\d+)([fH]))')
 
-    def clean_bytes(self, line):
+    def clean_bytes(self, line: bytes) -> str:
         """
         Cleans a byte sequence of shell directives and decodes it.
         """
@@ -114,14 +115,14 @@ class ShellReader:
 
         return self.ANSI_ESCAPE_CODE.sub(sub, text).replace("``", "`\u200b`").strip('\n')
 
-    async def stdout_handler(self, line):
+    async def stdout_handler(self, line: bytes):
         """
         Handler for this class for stdout.
         """
 
         await self.queue.put(self.clean_bytes(line))
 
-    async def stderr_handler(self, line):
+    async def stderr_handler(self, line: bytes):
         """
         Handler for this class for stderr.
         """

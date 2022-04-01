@@ -12,6 +12,7 @@ AST walkers for code transformation and analysis.
 """
 
 import ast
+import typing
 
 # pylint: disable=no-self-use,invalid-name,missing-docstring
 
@@ -23,19 +24,19 @@ class KeywordTransformer(ast.NodeTransformer):
     - Converts bare deletes into conditional global pops
     """
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
         # Do not affect nested function definitions
         return node
 
-    def visit_AsyncFunctionDef(self, node):
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AsyncFunctionDef:
         # Do not affect nested async function definitions
         return node
 
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.ClassDef:
         # Do not affect nested class definitions
         return node
 
-    def visit_Return(self, node):
+    def visit_Return(self, node: ast.Return) -> typing.Union[ast.Return, ast.If]:
         # Do not modify valueless returns
         if node.value is None:
             return node
@@ -70,7 +71,7 @@ class KeywordTransformer(ast.NodeTransformer):
             col_offset=node.col_offset
         )
 
-    def visit_Delete(self, node):
+    def visit_Delete(self, node: ast.Delete) -> ast.If:
         """
         This converter replaces bare deletes with conditional global pops.
 
@@ -176,7 +177,7 @@ class KeywordTransformer(ast.NodeTransformer):
             col_offset=node.col_offset
         )
 
-    def globals_call(self, node):
+    def globals_call(self, node: ast.AST) -> ast.Call:
         """
         Creates an AST node that calls globals().
         """

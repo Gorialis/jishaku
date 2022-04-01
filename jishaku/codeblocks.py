@@ -18,7 +18,7 @@ __all__ = ('Codeblock', 'codeblock_converter')
 Codeblock = collections.namedtuple('Codeblock', 'language content')
 
 
-def codeblock_converter(argument):
+def codeblock_converter(argument: str) -> Codeblock:
     """
     A converter that strips codeblock markdown if it exists.
 

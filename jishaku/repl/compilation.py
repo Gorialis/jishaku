@@ -15,6 +15,7 @@ import ast
 import asyncio
 import inspect
 import linecache
+import typing
 
 import import_expression
 
@@ -128,7 +129,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
         return self.traverse(func_def)
 
-    async def traverse(self, func):
+    async def traverse(self, func) -> typing.AsyncGenerator[typing.Any, typing.Any]:
         """
         Traverses an async function or generator, yielding each result.
 
