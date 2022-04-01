@@ -1,9 +1,8 @@
-click
-coverage
-flake8
-isort
-pylint
-pytest
-pytest-asyncio
-pytest-cov
-pytest-mock
+coverage >= 6.3.2
+flake8 >= 4.0.1
+isort >= 5.10.1
+pylint >= 2.11.1
+pytest >= 7.0.1
+pytest-asyncio >= 0.18.1
+pytest-cov >= 3.0.0
+pytest-mock >= 3.7.0

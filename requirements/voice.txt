@@ -1,1 +1,1 @@
-youtube-dl
+yt-dlp >= 2022.3.8
