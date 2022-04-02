@@ -200,16 +200,16 @@ class ManagementFeature(Feature):
         paginator = WrappedPaginator(prefix='', suffix='')
 
         if not guild_ids:
-            await self.bot.tree.sync()
-            paginator.add_line("\N{SATELLITE ANTENNA} Synced global commands")
+            synced = await self.bot.tree.sync()
+            paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands")
         else:
             for guild_id in guild_ids:
                 try:
-                    await self.bot.tree.sync(guild=discord.Object(guild_id))
+                    synced = await self.bot.tree.sync(guild=discord.Object(guild_id))
                 except discord.HTTPException as exc:
                     paginator.add_line(f"\N{WARNING SIGN} `{guild_id}`: {exc.text}")
                 else:
-                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced guild commands")
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced {len(synced)} guild commands")
 
         for page in paginator.pages:
             await ctx.send(page)
