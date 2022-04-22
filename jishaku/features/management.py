@@ -273,14 +273,24 @@ class ManagementFeature(Feature):
                                 name += f"(parameter: {param}) "
 
                         if selected_command:
-                            error_text.append(''.join([
-                                "\N{MAGNET} This is likely caused by: `",
-                                name,
-                                "` at ",
-                                str(inspections.file_loc_inspection(selected_command.callback)),
-                                ":",
-                                str(inspections.line_span_inspection(selected_command.callback))
-                            ]))
+                            to_inspect = None
+
+                            if hasattr(selected_command, 'callback'):
+                                to_inspect = selected_command.callback
+                            elif isinstance(selected_command, commands.Cog):
+                                to_inspect = type(selected_command)
+
+                            if to_inspect:
+                                error_text.append(''.join([
+                                    "\N{MAGNET} This is likely caused by: `",
+                                    name,
+                                    "` at ",
+                                    str(inspections.file_loc_inspection(to_inspect)),
+                                    ":",
+                                    str(inspections.line_span_inspection(to_inspect))
+                                ]))
+                            else:
+                                error_text.append(f"\N{MAGNET} This is likely caused by: `{name}`")
 
                     except Exception as error:  # pylint: disable=broad-except
                         error_text.append(f"\N{MAGNET} Couldn't determine cause: {type(error).__name__}: {error}")
