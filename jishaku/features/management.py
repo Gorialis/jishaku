@@ -207,6 +207,8 @@ class ManagementFeature(Feature):
         for target in targets:
             if target == '$':
                 guilds.add(None)
+            elif target == '*':
+                guilds |= set(self.bot.tree._guild_commands.keys())  # pylint: disable=protected-access
             elif target == '.':
                 guilds.add(ctx.guild.id)
             else:
