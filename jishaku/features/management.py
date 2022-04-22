@@ -288,16 +288,14 @@ class ManagementFeature(Feature):
                 error_text = '\n'.join(error_text)
 
                 if guild:
-                    paginator.add_line(f"\N{WARNING SIGN} `{guild}`: {error_text}")
+                    paginator.add_line(f"\N{WARNING SIGN} `{guild}`: {error_text}", empty=True)
                 else:
-                    paginator.add_line(f"\N{WARNING SIGN} Global: {error_text}")
+                    paginator.add_line(f"\N{WARNING SIGN} Global: {error_text}", empty=True)
             else:
                 if guild:
-                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild}` Synced {len(synced)} guild commands")
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild}` Synced {len(synced)} guild commands", empty=True)
                 else:
-                    paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands")
-
-            paginator.add_line(empty=True)
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands", empty=True)
 
         for page in paginator.pages:
             await ctx.send(page)
