@@ -221,7 +221,7 @@ class ManagementFeature(Feature):
             guilds.add(None)
 
         guilds: typing.List[typing.Optional[int]] = list(guilds)
-        guilds.sort()
+        guilds.sort(key=lambda g: (g is not None, g))
 
         for guild in guilds:
             slash_commands = self.bot.tree._get_all_commands(  # pylint: disable=protected-access
