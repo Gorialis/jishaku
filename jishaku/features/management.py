@@ -280,9 +280,8 @@ class ManagementFeature(Feature):
                                 str(inspections.line_span_inspection(selected_command.callback))
                             ))
 
-                    except Exception:  # pylint: disable=broad-except
-                        # If something strange happens, it means our diagnosis failed and we should just show the error as-is.
-                        pass
+                    except Exception as error:  # pylint: disable=broad-except
+                        error_text.append(f"\N{MAGNET} Couldn't determine cause: {type(error).__name__}: {error}")
 
                 error_text = '\n'.join(error_text)
 
