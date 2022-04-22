@@ -235,7 +235,10 @@ class ManagementFeature(Feature):
                 else:
                     data = await self.bot.http.bulk_upsert_guild_commands(self.bot.application_id, guild, payload=payload)
 
-                synced = [discord.app_commands.AppCommand(data=d, state=ctx._state) for d in data]  # pylint: disable=protected-access
+                synced = [
+                    discord.app_commands.AppCommand(data=d, state=ctx._state)  # pylint: disable=protected-access,no-member
+                    for d in data
+                ]
 
             except discord.HTTPException as error:
                 # It's diagnosis time
@@ -292,8 +295,8 @@ class ManagementFeature(Feature):
                             except Exception:  # pylint: disable=broad-except
                                 error_text.append(f"\N{MAGNET} This is likely caused by: `{name}`")
 
-                    except Exception as error:  # pylint: disable=broad-except
-                        error_text.append(f"\N{MAGNET} Couldn't determine cause: {type(error).__name__}: {error}")
+                    except Exception as diag_error:  # pylint: disable=broad-except
+                        error_text.append(f"\N{MAGNET} Couldn't determine cause: {type(diag_error).__name__}: {diag_error}")
 
                 error_text = '\n'.join(error_text)
 
