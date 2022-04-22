@@ -271,14 +271,14 @@ class ManagementFeature(Feature):
                                 name += f"(parameter: {param}) "
 
                         if selected_command:
-                            error_text.append(''.join(
+                            error_text.append(''.join([
                                 "\N{MAGNET} This is likely caused by: `",
                                 name,
                                 "` at ",
                                 str(inspections.file_loc_inspection(selected_command.callback)),
                                 ":",
                                 str(inspections.line_span_inspection(selected_command.callback))
-                            ))
+                            ]))
 
                     except Exception as error:  # pylint: disable=broad-except
                         error_text.append(f"\N{MAGNET} Couldn't determine cause: {type(error).__name__}: {error}")
