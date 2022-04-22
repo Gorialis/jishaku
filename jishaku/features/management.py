@@ -297,5 +297,7 @@ class ManagementFeature(Feature):
                 else:
                     paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands")
 
+            paginator.add_line(empty=True)
+
         for page in paginator.pages:
             await ctx.send(page)
