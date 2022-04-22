@@ -280,7 +280,7 @@ class ManagementFeature(Feature):
                             elif isinstance(selected_command, commands.Cog):
                                 to_inspect = type(selected_command)
 
-                            if to_inspect:
+                            try:
                                 error_text.append(''.join([
                                     "\N{MAGNET} This is likely caused by: `",
                                     name,
@@ -289,7 +289,7 @@ class ManagementFeature(Feature):
                                     ":",
                                     str(inspections.line_span_inspection(to_inspect))
                                 ]))
-                            else:
+                            except Exception:  # pylint: disable=broad-except
                                 error_text.append(f"\N{MAGNET} This is likely caused by: `{name}`")
 
                     except Exception as error:  # pylint: disable=broad-except
