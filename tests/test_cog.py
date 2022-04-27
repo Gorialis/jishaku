@@ -38,7 +38,7 @@ from discord.ext import commands
     ]
 )
 async def bot(request):
-    b = request.param[1]('?', **request.param[2])
+    b = request.param[1]('?', intents=discord.Intents.all(), **request.param[2])
     await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     yield b

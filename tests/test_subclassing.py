@@ -45,7 +45,7 @@ from discord.ext import commands
     ]
 )
 async def bot(request):
-    b = request.param[3]('?', **request.param[4])
+    b = request.param[3]('?', intents=discord.Intents.all(), **request.param[4])
     await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     b.test_cog = request.param[1]
