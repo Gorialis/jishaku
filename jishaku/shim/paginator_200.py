@@ -318,10 +318,10 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
         async def on_submit(self, interaction: discord.Interaction):
             try:
-                self.interface.display_page = int(self.page_number)
+                self.interface.display_page = int(self.page_number.value)
             except ValueError:
                 await interaction.response.send_message(
-                    content=f"``{self.page_number}`` could not be converted to a page number"
+                    content=f"``{self.page_number.value}`` could not be converted to a page number"
                 )
             else:
                 self.interface.update_view()
