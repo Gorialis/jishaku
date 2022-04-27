@@ -321,7 +321,8 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
                 self.interface.display_page = int(self.page_number.value) - 1
             except ValueError:
                 await interaction.response.send_message(
-                    content=f"``{self.page_number.value}`` could not be converted to a page number"
+                    content=f"``{self.page_number.value}`` could not be converted to a page number",
+                    ephemeral=True
                 )
             else:
                 self.interface.update_view()
