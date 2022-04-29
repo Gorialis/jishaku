@@ -43,7 +43,7 @@ def natural_size(size_in_bytes: int):
     """
     units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
 
-    power = int(math.log(size_in_bytes, 1024))
+    power = int(math.log(max(size_in_bytes, 1), 1024))
 
     return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
