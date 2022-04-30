@@ -113,11 +113,13 @@ class Feature(commands.Cog):
         def __call__(
             self,
             callback: typing.Callable[
-                Concatenate[GenericFeature, ContextA, P],
+                ...,
+                # This causes a weird pyright bug right now
+                # Concatenate[GenericFeature, ContextA, P],
                 typing.Coroutine[typing.Any, typing.Any, T]
             ]
         ):
-            self.callback = callback
+            self.callback = callback  # type: ignore
             return self
 
         def convert(
