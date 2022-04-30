@@ -56,11 +56,13 @@ _FeatureCommandToGroup = typing.Callable[
 T = typing.TypeVar('T')
 
 if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec, Concatenate
+    from typing_extensions import Concatenate, ParamSpec
     P = ParamSpec('P')
+    Task = asyncio.Task
 else:
     Concatenate = typing.Concatenate
     P = typing.ParamSpec('P')  # pylint: disable=no-member
+    Task = asyncio.Task[typing.Any]
 
 GenericFeature = typing.TypeVar('GenericFeature', bound='Feature')
 
@@ -72,7 +74,7 @@ class CommandTask(typing.NamedTuple):
 
     index: int  # type: ignore
     ctx: ContextA
-    task: typing.Optional[asyncio.Task[typing.Any]]
+    task: typing.Optional[Task]
 
 
 class Feature(commands.Cog):

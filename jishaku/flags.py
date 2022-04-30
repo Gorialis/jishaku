@@ -17,7 +17,8 @@ import os
 import typing
 
 import discord
-from discord.ext import commands
+
+from jishaku.types import ContextA
 
 ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
 DISABLED_SYMBOLS = ("false", "f", "no", "n", "off", "0")
@@ -193,7 +194,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     USE_ANSI_NEVER: bool
 
     @classmethod
-    def use_ansi(cls, ctx: commands.Context[commands.Bot]) -> bool:
+    def use_ansi(cls, ctx: ContextA) -> bool:
         """
         Determine whether to use ANSI support from flags and context
         """
