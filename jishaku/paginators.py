@@ -11,12 +11,15 @@ Paginator-related tools and interfaces for Jishaku.
 
 """
 
+import typing
+
 import discord
 from discord.ext import commands
 
 from jishaku.flags import Flags
 from jishaku.hljs import get_language, guess_file_traits
 from jishaku.shim.paginator_base import EmojiSettings
+from jishaku.types import ContextA
 
 # Version detection
 if discord.version_info >= (2, 0, 0):
@@ -48,7 +51,14 @@ class WrappedPaginator(commands.Paginator):
         with any provided delimiter.
     """
 
-    def __init__(self, *args, wrap_on=('\n', ' '), include_wrapped=True, force_wrap=False, **kwargs):
+    def __init__(
+        self,
+        *args: typing.Any,
+        wrap_on: typing.Tuple[str, ...] = ('\n', ' '),
+        include_wrapped: bool = True,
+        force_wrap: bool = False,
+        **kwargs: typing.Any
+    ):
         super().__init__(*args, **kwargs)
         self.wrap_on = wrap_on
         self.include_wrapped = include_wrapped
@@ -109,13 +119,19 @@ class FilePaginator(commands.Paginator):
         A file-like (implements ``fp.read``) to read the data for this paginator from.
     line_span: Optional[Tuple[int, int]]
         A linespan to read from the file. If None, reads the whole file.
-    language_hints: Tuple[str]
+    language_hints: Tuple[str, ...]
         A tuple of strings that may hint to the language of this file.
         This could include filenames, MIME types, or shebangs.
         A shebang present in the actual file will always be prioritized over this.
     """
 
-    def __init__(self, fp, line_span=None, language_hints=(), **kwargs):
+    def __init__(
+        self,
+        fp: typing.BinaryIO,
+        line_span: typing.Optional[typing.Tuple[int, int]] = None,
+        language_hints: typing.Tuple[str, ...] = (),
+        **kwargs: typing.Any
+    ):
         language = ''
 
         for hint in language_hints:
@@ -138,9 +154,10 @@ class FilePaginator(commands.Paginator):
         super().__init__(prefix=f'```{language}', suffix='```', **kwargs)
 
         if line_span:
-            line_span = sorted(line_span)
+            if line_span[1] < line_span[0]:
+                line_span = (line_span[1], line_span[0])
 
-            if min(line_span) < 1 or max(line_span) > len(lines):
+            if line_span[0] < 1 or line_span[1] > len(lines):
                 raise ValueError("Linespan goes out of bounds.")
 
             lines = lines[line_span[0] - 1:line_span[1]]
@@ -156,7 +173,10 @@ class WrappedFilePaginator(FilePaginator, WrappedPaginator):
     """
 
 
-def use_file_check(ctx: commands.Context, size: int) -> bool:
+def use_file_check(
+    ctx: ContextA,
+    size: int
+) -> bool:
     """
     A check to determine if uploading a file and relying on Discord's file preview is acceptable over a PaginatorInterface.
     """

@@ -12,19 +12,27 @@ Functions for modifying or interfacing with discord.py models.
 """
 
 import copy
+import typing
 
 import discord
-from discord.ext import commands
+
+from jishaku.types import ContextT
 
 
-async def copy_context_with(ctx: commands.Context, *, author=None, channel=None, **kwargs) -> commands.Context:
+async def copy_context_with(
+    ctx: ContextT,
+    *,
+    author: typing.Optional[typing.Union[discord.Member, discord.User]] = None,
+    channel: typing.Optional[discord.TextChannel] = None,
+    **kwargs: typing.Any
+) -> ContextT:
     """
     Makes a new :class:`Context` with changed message properties.
     """
 
     # copy the message and update the attributes
     alt_message: discord.Message = copy.copy(ctx.message)
-    alt_message._update(kwargs)  # pylint: disable=protected-access
+    alt_message._update(kwargs)  # type: ignore # pylint: disable=protected-access
 
     if author is not None:
         alt_message.author = author

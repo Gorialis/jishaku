@@ -1,6 +1,7 @@
 [flake8]
 ignore = F403,
-	     F405
+	     F405,
+         W503,
 max-line-length = 160
 exclude = .git,
           .cache,

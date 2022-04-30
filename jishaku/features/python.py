@@ -13,17 +13,18 @@ The jishaku Python evaluation/execution commands.
 
 import inspect
 import io
+import typing
 
 import discord
-from discord.ext import commands
 
-from jishaku.codeblocks import codeblock_converter
+from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
+from jishaku.types import ContextA
 
 
 class PythonFeature(Feature):
@@ -31,11 +32,11 @@ class PythonFeature(Feature):
     Feature containing the Python-related commands
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super().__init__(*args, **kwargs)
         self._scope = Scope()
         self.retain = Flags.RETAIN
-        self.last_result = None
+        self.last_result: typing.Any = None
 
     @property
     def scope(self):
@@ -51,7 +52,7 @@ class PythonFeature(Feature):
         return Scope()
 
     @Feature.Command(parent="jsk", name="retain")
-    async def jsk_retain(self, ctx: commands.Context, *, toggle: bool = None):
+    async def jsk_retain(self, ctx: ContextA, *, toggle: bool = None):  # type: ignore
         """
         Turn variable retention for REPL on or off.
 
@@ -78,7 +79,7 @@ class PythonFeature(Feature):
         self.retain = False
         return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
 
-    async def jsk_python_result_handling(self, ctx: commands.Context, result):  # pylint: disable=too-many-return-statements
+    async def jsk_python_result_handling(self, ctx: ContextA, result: typing.Any):  # pylint: disable=too-many-return-statements
         """
         Determines what is done with a result when it comes out of jsk py.
         This allows you to override how this is done without having to rewrite the command itself.
@@ -106,8 +107,11 @@ class PythonFeature(Feature):
             if result.strip() == '':
                 result = "\u200b"
 
+            if self.bot.http.token:
+                result = result.replace(self.bot.http.token, "[token omitted]")
+
             return await ctx.send(
-                result.replace(self.bot.http.token, "[token omitted]"),
+                result,
                 allowed_mentions=discord.AllowedMentions.none()
             )
 
@@ -132,10 +136,13 @@ class PythonFeature(Feature):
         return await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
-    async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_python(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Direct evaluation of Python code.
         """
+
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
 
         arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
@@ -146,7 +153,10 @@ class PythonFeature(Feature):
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
-                    async for send, result in AsyncSender(executor):
+                    async for send, result in AsyncSender(executor):  # type: ignore
+                        send: typing.Callable[..., None]
+                        result: typing.Any
+
                         if result is None:
                             continue
 
@@ -158,10 +168,13 @@ class PythonFeature(Feature):
             scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_python_inspect(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Evaluation of Python code with inspect information.
         """
+
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
 
         arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
@@ -172,10 +185,16 @@ class PythonFeature(Feature):
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
-                    async for send, result in AsyncSender(executor):
+                    async for send, result in AsyncSender(executor):  # type: ignore
+                        send: typing.Callable[..., None]
+                        result: typing.Any
+
                         self.last_result = result
 
-                        header = repr(result).replace("``", "`\u200b`").replace(self.bot.http.token, "[token omitted]")
+                        header = repr(result).replace("``", "`\u200b`")
+
+                        if self.bot.http.token:
+                            header = header.replace(self.bot.http.token, "[token omitted]")
 
                         if len(header) > 485:
                             header = header[0:482] + "..."
@@ -208,10 +227,13 @@ class PythonFeature(Feature):
             scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="dis", aliases=["disassemble"])
-    async def jsk_disassemble(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_disassemble(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Disassemble Python code into bytecode.
         """
+
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
 
         arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
 
@@ -232,10 +254,13 @@ class PythonFeature(Feature):
                 await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="ast")
-    async def jsk_ast(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_ast(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Disassemble Python code into AST.
         """
+
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
 
         async with ReplResponseReactor(ctx.message):
             text = create_tree(argument.content, use_ansi=Flags.use_ansi(ctx))

@@ -11,15 +11,31 @@ Paginator-related tools and interfaces for Jishaku.
 
 """
 
-import collections
+import typing
+
+import discord
 
 # emoji settings, this sets what emoji are used for PaginatorInterface
-EmojiSettings = collections.namedtuple('EmojiSettings', 'start back forward end close')
+
+_Emoji = typing.Union[str, discord.PartialEmoji, discord.Emoji]
+
+
+class EmojiSettings(typing.NamedTuple):
+    """
+    Emoji settings, this sets what emoji are used for PaginatorInterface
+    """
+
+    start: _Emoji
+    back: _Emoji
+    forward: _Emoji
+    end: _Emoji
+    close: _Emoji
+
 
 EMOJI_DEFAULT = EmojiSettings(
     start="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
     back="\N{BLACK LEFT-POINTING TRIANGLE}",
     forward="\N{BLACK RIGHT-POINTING TRIANGLE}",
     end="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
-    close="\N{BLACK SQUARE FOR STOP}"
+    close="\N{BLACK SQUARE FOR STOP}",
 )

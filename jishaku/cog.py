@@ -12,9 +12,11 @@ The Jishaku debugging and diagnostics cog implementation.
 """
 
 import inspect
+import typing
 
 from discord.ext import commands
 
+from jishaku.features.baseclass import Feature
 from jishaku.features.filesystem import FilesystemFeature
 from jishaku.features.guild import GuildFeature
 from jishaku.features.invocation import InvocationFeature
@@ -33,7 +35,7 @@ __all__ = (
 
 STANDARD_FEATURES = (VoiceFeature, GuildFeature, FilesystemFeature, InvocationFeature, ShellFeature, PythonFeature, ManagementFeature, RootCommand)
 
-OPTIONAL_FEATURES = []
+OPTIONAL_FEATURES: typing.List[typing.Type[Feature]] = []
 
 try:
     from jishaku.features.youtube import YouTubeFeature
@@ -43,7 +45,7 @@ else:
     OPTIONAL_FEATURES.insert(0, YouTubeFeature)
 
 
-class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):  # pylint: disable=too-few-public-methods
+class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):  # type: ignore  # pylint: disable=too-few-public-methods
     """
     The frontend subclass that mixes in to form the final Jishaku cog.
     """
@@ -65,4 +67,4 @@ def setup(bot: commands.Bot):  # pylint: disable=inconsistent-return-statements
     if inspect.iscoroutinefunction(bot.add_cog):
         return async_setup(bot)
 
-    bot.add_cog(Jishaku(bot=bot))
+    bot.add_cog(Jishaku(bot=bot))  # type: ignore[reportUnusedCoroutine]

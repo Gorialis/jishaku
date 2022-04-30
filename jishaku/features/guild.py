@@ -14,9 +14,12 @@ The jishaku guild-related commands.
 import typing
 
 import discord
-from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
+from jishaku.types import ContextA
+
+# pylint: disable=invalid-name
+T = typing.TypeVar('T')
 
 
 class GuildFeature(Feature):
@@ -25,31 +28,36 @@ class GuildFeature(Feature):
     """
 
     @staticmethod
-    def apply_overwrites(permissions: dict, allow: int, deny: int, name: str):
+    def apply_overwrites(
+        permissions: typing.Dict[str, typing.Tuple[bool, str]],
+        allow: int,
+        deny: int,
+        name: str
+    ):
         """
         Applies overwrites to the permissions dictionary (see permtrace),
         based on an allow and deny mask.
         """
 
-        allow: discord.Permissions = discord.Permissions(allow)
-        deny: discord.Permissions = discord.Permissions(deny)
+        allow_p: discord.Permissions = discord.Permissions(allow)
+        deny_p: discord.Permissions = discord.Permissions(deny)
 
         # Denies first..
-        for key, value in dict(deny).items():
+        for key, value in dict(deny_p).items():
             # Check that this is denied and it is not already denied
             # (we want to show the lowest-level reason for the denial)
             if value and permissions[key][0]:
                 permissions[key] = (False, f"it is the channel's {name} overwrite")
 
         # Then allows
-        for key, value in dict(allow).items():
+        for key, value in dict(allow_p).items():
             # Check that this is allowed and it is not already allowed
             # (we want to show the lowest-level reason for the allowance)
             if value and not permissions[key][0]:
                 permissions[key] = (True, f"it is the channel's {name} overwrite")
 
     @staticmethod
-    def chunks(array: list, chunk_size: int):
+    def chunks(array: typing.List[T], chunk_size: int) -> typing.Generator[typing.List[T], None, None]:
         """
         Chunks a list into chunks of a given size.
         Should probably be in utils, honestly.
@@ -59,7 +67,8 @@ class GuildFeature(Feature):
 
     @Feature.Command(parent="jsk", name="permtrace")
     async def jsk_permtrace(
-        self, ctx: commands.Context,
+        self,
+        ctx: ContextA,
         channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
         *targets: typing.Union[discord.Member, discord.Role]
     ):
@@ -71,7 +80,7 @@ class GuildFeature(Feature):
         """
 
         member_ids = {target.id: target for target in targets if isinstance(target, discord.Member)}
-        roles = []
+        roles: typing.List[discord.Role] = []
 
         for target in targets:
             if isinstance(target, discord.Member):
@@ -120,20 +129,27 @@ class GuildFeature(Feature):
                 # Special case for @everyone
                 # pylint: disable=protected-access
                 try:
-                    maybe_everyone = channel._overwrites[0]
+                    maybe_everyone = channel._overwrites[0]  # type: ignore
                     if maybe_everyone.id == channel.guild.default_role.id:
                         self.apply_overwrites(permissions, allow=maybe_everyone.allow, deny=maybe_everyone.deny, name="@everyone")
-                        remaining_overwrites = channel._overwrites[1:]
+                        remaining_overwrites = channel._overwrites[1:]  # type: ignore
                     else:
-                        remaining_overwrites = channel._overwrites
+                        remaining_overwrites = channel._overwrites  # type: ignore
                 except IndexError:
-                    remaining_overwrites = channel._overwrites
+                    remaining_overwrites = channel._overwrites  # type: ignore
                 # pylint: enable=protected-access
 
                 role_lookup = {r.id: r for r in roles}
 
-                is_role = lambda o: o.is_role() if discord.version_info >= (2, 0, 0) else o.type == 'role'  # noqa: E731
-                is_member = lambda o: o.is_member() if discord.version_info >= (2, 0, 0) else o.type == 'member'  # noqa: E731
+                def is_role(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
+                    if discord.version_info >= (2, 0, 0):
+                        return overwrite.is_role()
+                    return overwrite.type == 'role'  # type: ignore
+
+                def is_member(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
+                    if discord.version_info >= (2, 0, 0):
+                        return overwrite.is_member()
+                    return overwrite.type == 'member'  # type: ignore
 
                 # Denies are applied BEFORE allows, always
                 # Handle denies
@@ -164,8 +180,8 @@ class GuildFeature(Feature):
 
         embed = discord.Embed(color=0x00FF00, description=description)
 
-        allows = []
-        denies = []
+        allows: typing.List[str] = []
+        denies: typing.List[str] = []
 
         for key, value in permissions.items():
             if value[0]:
