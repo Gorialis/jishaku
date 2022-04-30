@@ -15,5 +15,5 @@
         "https://json.schemastore.org/github-workflow.json": "file:///t%3A/GitHub/jishaku/.github/workflows/deploy.yml"
     },
     "esbonio.sphinx.confDir": "",
-    "python.analysis.typeCheckingMode": "strict"
+    "python.analysis.typeCheckingMode": "basic"
 }
