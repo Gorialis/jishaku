@@ -60,7 +60,7 @@ if sys.version_info < (3, 10):
     P = ParamSpec('P')
     Task = asyncio.Task
 else:
-    Concatenate = typing.Concatenate
+    Concatenate = typing.Concatenate  # pylint: disable=no-member
     P = typing.ParamSpec('P')  # pylint: disable=no-member
     Task = asyncio.Task[typing.Any]
 

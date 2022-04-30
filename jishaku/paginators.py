@@ -19,6 +19,7 @@ from discord.ext import commands
 from jishaku.flags import Flags
 from jishaku.hljs import get_language, guess_file_traits
 from jishaku.shim.paginator_base import EmojiSettings
+from jishaku.types import ContextA
 
 # Version detection
 if discord.version_info >= (2, 0, 0):
@@ -173,7 +174,7 @@ class WrappedFilePaginator(FilePaginator, WrappedPaginator):
 
 
 def use_file_check(
-    ctx: commands.Context[typing.Union[commands.Bot, commands.AutoShardedBot]],
+    ctx: ContextA,
     size: int
 ) -> bool:
     """
