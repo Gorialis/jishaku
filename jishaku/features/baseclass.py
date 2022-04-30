@@ -18,6 +18,7 @@ import sys
 import typing
 from datetime import datetime, timezone
 
+import discord
 from discord.ext import commands
 
 from jishaku.types import BotT, ContextA
@@ -28,18 +29,26 @@ __all__ = (
 )
 
 
+if typing.TYPE_CHECKING or discord.version_info >= (2, 0, 0):
+    _ConvertedCommand = commands.Command['Feature', typing.Any, typing.Any]
+    _ConvertedGroup = commands.Group['Feature', typing.Any, typing.Any]
+else:
+    _ConvertedCommand = commands.Command
+    _ConvertedGroup = commands.Group
+
+
 _FeatureCommandToCommand = typing.Callable[
     ...,
     typing.Callable[
         [typing.Callable[..., typing.Any]],
-        commands.Command['Feature', ..., typing.Any]
+        _ConvertedCommand
     ]
 ]
 _FeatureCommandToGroup = typing.Callable[
     ...,
     typing.Callable[
         [typing.Callable[..., typing.Any]],
-        commands.Group['Feature', ..., typing.Any]
+        _ConvertedGroup
     ]
 ]
 
@@ -47,9 +56,10 @@ _FeatureCommandToGroup = typing.Callable[
 T = typing.TypeVar('T')
 
 if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
+    from typing_extensions import ParamSpec, Concatenate
     P = ParamSpec('P')
 else:
+    Concatenate = typing.Concatenate
     P = typing.ParamSpec('P')  # pylint: disable=no-member
 
 GenericFeature = typing.TypeVar('GenericFeature', bound='Feature')
@@ -91,7 +101,7 @@ class Feature(commands.Cog):
             self.kwargs = kwargs
             self.callback: typing.Optional[
                 typing.Callable[
-                    typing.Concatenate[GenericFeature, ContextA, P],
+                    Concatenate[GenericFeature, ContextA, P],
                     typing.Coroutine[typing.Any, typing.Any, T]
                 ]
             ] = None
@@ -101,7 +111,7 @@ class Feature(commands.Cog):
         def __call__(
             self,
             callback: typing.Callable[
-                typing.Concatenate[GenericFeature, ContextA, P],
+                Concatenate[GenericFeature, ContextA, P],
                 typing.Coroutine[typing.Any, typing.Any, T]
             ]
         ):
@@ -112,9 +122,9 @@ class Feature(commands.Cog):
             self,
             association_map: typing.Dict[
                 'Feature.Command[GenericFeature, typing.Any, typing.Any]',
-                commands.Command[GenericFeature, typing.Any, typing.Any]
+                'commands.Command[GenericFeature, typing.Any, typing.Any]',
             ]
-        ) -> commands.Command[GenericFeature, P, T]:
+        ) -> 'commands.Command[GenericFeature, P, T]':
             """
             Attempts to convert this Feature.Command into either a commands.Command or commands.Group
             """
