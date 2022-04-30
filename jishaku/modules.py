@@ -14,6 +14,7 @@ Functions for managing and searching modules.
 import pathlib
 import typing
 
+import discord
 import pkg_resources
 from braceexpand import braceexpand
 from discord.ext import commands
@@ -27,6 +28,12 @@ if typing.TYPE_CHECKING:
     UnbalancedBracesError = ValueError
 else:
     from braceexpand import UnbalancedBracesError
+
+
+if typing.TYPE_CHECKING or discord.version_info >= (2, 0, 0):
+    _ExtensionConverterBase = commands.Converter[typing.List[str]]
+else:
+    _ExtensionConverterBase = commands.Converter
 
 
 def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> typing.List[str]:
@@ -91,7 +98,7 @@ def package_version(package_name: str) -> typing.Optional[str]:
         return None
 
 
-class ExtensionConverter(commands.Converter[typing.List[str]]):  # pylint: disable=too-few-public-methods
+class ExtensionConverter(_ExtensionConverterBase):  # pylint: disable=too-few-public-methods
     """
     A converter interface for resolve_extensions to match extensions from users.
     """
