@@ -24,9 +24,13 @@ jobs:
           name: run tests
           command: |
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            echo "Running flake8..."
             flake8 .
+            echo "Running pylint..."
             pylint -j "$(nproc)" jishaku
+            echo "Running isort..."
             isort . --check-only
+            echo "Building..."
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -66,9 +70,13 @@ jobs:
           name: run tests
           command: |
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            echo "Running flake8..."
             flake8 .
+            echo "Running pylint..."
             pylint -j "$(nproc)" jishaku
+            echo "Running isort..."
             isort . --check-only
+            echo "Building..."
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -108,9 +116,13 @@ jobs:
           name: run tests
           command: |
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            echo "Running flake8..."
             flake8 .
+            echo "Running pylint..."
             pylint -j "$(nproc)" jishaku
+            echo "Running isort..."
             isort . --check-only
+            echo "Building..."
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
@@ -150,9 +162,13 @@ jobs:
           name: run tests
           command: |
             PYTHONPATH="$(pwd)" pytest -vs --cov=jishaku --cov-report term-missing:skip-covered
+            echo "Running flake8..."
             flake8 .
+            echo "Running pylint..."
             pylint -j "$(nproc)" jishaku
+            echo "Running isort..."
             isort . --check-only
+            echo "Building..."
             python ./setup.py sdist bdist_egg bdist_wheel
             rm -rf jishaku
             find dist -name *.whl -exec pip install '{}' +
