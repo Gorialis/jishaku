@@ -22,11 +22,11 @@ from urllib.parse import urlencode
 import discord
 from discord.ext import commands
 
-from jishaku.types import ContextA
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.modules import ExtensionConverter
 from jishaku.repl import inspections
+from jishaku.types import ContextA
 
 
 class ManagementFeature(Feature):

@@ -18,7 +18,7 @@ import discord
 from jishaku.features.baseclass import Feature
 from jishaku.types import ContextA
 
-
+# pylint: disable=invalid-name
 T = typing.TypeVar('T')
 
 
@@ -144,14 +144,12 @@ class GuildFeature(Feature):
                 def is_role(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
                     if discord.version_info >= (2, 0, 0):
                         return overwrite.is_role()
-                    else:
-                        return overwrite.type == 'role'  # type: ignore
+                    return overwrite.type == 'role'  # type: ignore
 
                 def is_member(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
                     if discord.version_info >= (2, 0, 0):
                         return overwrite.is_member()
-                    else:
-                        return overwrite.type == 'member'  # type: ignore
+                    return overwrite.type == 'member'  # type: ignore
 
                 # Denies are applied BEFORE allows, always
                 # Handle denies

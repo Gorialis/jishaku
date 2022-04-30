@@ -124,8 +124,7 @@ class VoiceFeature(Feature):
             if destination.voice and destination.voice.channel:
                 if isinstance(destination.voice.channel, discord.StageChannel):
                     return await ctx.send("Cannot join a stage channel.")
-                else:
-                    destination = destination.voice.channel
+                destination = destination.voice.channel
             else:
                 return await ctx.send("Member has no voice channel.")
 

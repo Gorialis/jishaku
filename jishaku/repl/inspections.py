@@ -14,9 +14,9 @@ Inspections performable on Python objects.
 import collections
 import functools
 import inspect
-import typing
 import os
 import sys
+import typing
 
 INSPECTIONS: typing.List[
     typing.Tuple[
