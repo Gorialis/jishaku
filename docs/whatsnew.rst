@@ -3,6 +3,14 @@
 What's new?
 ================
 
+Version 2.5.0
+-------------
+
+This version adds mostly-complete strict typing to the library, supporting type checkers using the public API.
+
+``jsk sync`` has also been improved, now including a diagnostic for commands that fail to sync,
+and the ability to use ``$`` to sync global commands, ``.`` to sync the current guild, and ``*`` to sync all known guilds.
+
 Version 2.4.0
 -------------
 
