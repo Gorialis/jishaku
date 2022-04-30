@@ -11,12 +11,15 @@ Builtin functions and variables within Jishaku REPL contexts.
 
 """
 
+import typing
+
 import aiohttp
 import discord
-from discord.ext import commands
+
+from jishaku.types import ContextA
 
 
-async def http_get_bytes(*args, **kwargs) -> bytes:
+async def http_get_bytes(*args: typing.Any, **kwargs: typing.Any) -> bytes:
     """
     Performs a HTTP GET request against a URL, returning the response payload as bytes.
 
@@ -30,7 +33,7 @@ async def http_get_bytes(*args, **kwargs) -> bytes:
             return await response.read()
 
 
-async def http_get_json(*args, **kwargs) -> dict:
+async def http_get_json(*args: typing.Any, **kwargs: typing.Any) -> typing.Dict[typing.Any, typing.Any]:
     """
     Performs a HTTP GET request against a URL,
     returning the response payload as a dictionary of the response payload interpreted as JSON.
@@ -45,7 +48,7 @@ async def http_get_json(*args, **kwargs) -> dict:
             return await response.json()
 
 
-async def http_post_bytes(*args, **kwargs) -> bytes:
+async def http_post_bytes(*args: typing.Any, **kwargs: typing.Any) -> bytes:
     """
     Performs a HTTP POST request against a URL, returning the response payload as bytes.
 
@@ -59,7 +62,7 @@ async def http_post_bytes(*args, **kwargs) -> bytes:
             return await response.read()
 
 
-async def http_post_json(*args, **kwargs) -> dict:
+async def http_post_json(*args: typing.Any, **kwargs: typing.Any) -> typing.Dict[typing.Any, typing.Any]:
     """
     Performs a HTTP POST request against a URL,
     returning the response payload as a dictionary of the response payload interpreted as JSON.
@@ -74,7 +77,7 @@ async def http_post_json(*args, **kwargs) -> dict:
             return await response.json()
 
 
-def get_var_dict_from_ctx(ctx: commands.Context, prefix: str = '_'):
+def get_var_dict_from_ctx(ctx: ContextA, prefix: str = '_') -> typing.Dict[str, typing.Any]:
     """
     Returns the dict to be used in REPL for a given Context.
     """

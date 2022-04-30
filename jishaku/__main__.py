@@ -29,7 +29,7 @@ LOG_STREAM: logging.Handler = logging.StreamHandler(stream=sys.stdout)
 LOG_STREAM.setFormatter(LOG_FORMAT)
 
 
-async def entry(bot, *args, **kwargs):
+async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
     """
     Async entrypoint for 2.0a compatibility
     """
@@ -46,7 +46,7 @@ async def entry(bot, *args, **kwargs):
 @click.argument('intents', nargs=-1)
 @click.argument('token')
 @click.option('--log-file', '-l', default=None)
-def entrypoint(intents: typing.Iterable[str], token: str, log_file: str = None):
+def entrypoint(intents: typing.Iterable[str], token: str, log_file: typing.Optional[str] = None):
     """
     Entrypoint accessible through `python -m jishaku <TOKEN>`
 

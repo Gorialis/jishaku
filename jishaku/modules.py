@@ -15,13 +15,21 @@ import pathlib
 import typing
 
 import pkg_resources
-from braceexpand import UnbalancedBracesError, braceexpand
+from braceexpand import braceexpand
 from discord.ext import commands
+
+from jishaku.types import BotT, ContextA
 
 __all__ = ('find_extensions_in', 'resolve_extensions', 'package_version', 'ExtensionConverter')
 
 
-def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> list:
+if typing.TYPE_CHECKING:
+    UnbalancedBracesError = ValueError
+else:
+    from braceexpand import UnbalancedBracesError
+
+
+def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> typing.List[str]:
     """
     Tries to find things that look like bot extensions in a directory.
     """
@@ -32,7 +40,7 @@ def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> list:
     if not path.is_dir():
         return []
 
-    extension_names = []
+    extension_names: typing.List[str] = []
 
     # Find extensions directly in this folder
     for subpath in path.glob('*.py'):
@@ -53,12 +61,12 @@ def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> list:
     return extension_names
 
 
-def resolve_extensions(bot: commands.Bot, name: str) -> list:
+def resolve_extensions(bot: BotT, name: str) -> typing.List[str]:
     """
     Tries to resolve extension queries into a list of extension names.
     """
 
-    exts = []
+    exts: typing.List[str] = []
     for ext in braceexpand(name):
         if ext.endswith('.*'):
             module_parts = ext[:-2].split('.')
@@ -83,12 +91,20 @@ def package_version(package_name: str) -> typing.Optional[str]:
         return None
 
 
-class ExtensionConverter(commands.Converter):  # pylint: disable=too-few-public-methods
+class ExtensionConverter(commands.Converter[typing.List[str]]):  # pylint: disable=too-few-public-methods
     """
     A converter interface for resolve_extensions to match extensions from users.
     """
 
-    async def convert(self, ctx: commands.Context, argument) -> list:
+    async def convert(
+        self,
+        ctx: ContextA,
+        argument: str
+    ) -> typing.List[str]:
+        """
+        Converts a name, glob, or brace expand of extensions into the list of extension names.
+        """
+
         try:
             return resolve_extensions(ctx.bot, argument)
         except UnbalancedBracesError as exc:

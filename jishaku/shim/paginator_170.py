@@ -12,6 +12,7 @@ Paginator-related tools and interfaces for Jishaku.
 """
 
 import asyncio
+import typing
 
 import discord
 from discord.ext import commands
@@ -56,8 +57,13 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
                 await interface.add_line("I'm still here!")
     """
 
-    def __init__(self, bot: commands.Bot, paginator: commands.Paginator, **kwargs):
-        if not isinstance(paginator, commands.Paginator):
+    def __init__(
+        self,
+        bot: typing.Union[commands.Bot, commands.AutoShardedBot],
+        paginator: commands.Paginator,
+        **kwargs: typing.Any
+    ):
+        if not isinstance(paginator, commands.Paginator):  # type: ignore
             raise TypeError('paginator must be a commands.Paginator instance')
 
         self._display_page = 0
@@ -74,10 +80,10 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
         self.sent_page_reactions = False
 
-        self.task: asyncio.Task = None
+        self.task: typing.Optional[asyncio.Task[None]] = None
         self.send_lock: asyncio.Event = asyncio.Event()
 
-        self.close_exception: Exception = None
+        self.close_exception: typing.Optional[BaseException] = None
 
         if self.page_size > self.max_page_size:
             raise ValueError(
@@ -93,9 +99,9 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         # protected access has to be permitted here to not close the paginator's pages
 
         # pylint: disable=protected-access
-        paginator_pages = list(self.paginator._pages)
-        if len(self.paginator._current_page) > 1:
-            paginator_pages.append('\n'.join(self.paginator._current_page) + '\n' + (self.paginator.suffix or ''))
+        paginator_pages = list(self.paginator._pages)  # type: ignore
+        if len(self.paginator._current_page) > 1:  # type: ignore
+            paginator_pages.append('\n'.join(self.paginator._current_page) + '\n' + (self.paginator.suffix or ''))  # type: ignore
         # pylint: enable=protected-access
 
         return paginator_pages
@@ -118,7 +124,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         return self._display_page
 
     @display_page.setter
-    def display_page(self, value):
+    def display_page(self, value: int):
         """
         Sets the current page the paginator is on. Automatically pushes values inbounds.
         """
@@ -138,7 +144,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         return self.paginator.max_size + len(f'\nPage {page_count}/{page_count}')
 
     @property
-    def send_kwargs(self) -> dict:
+    def send_kwargs(self) -> typing.Dict[str, typing.Any]:
         """
         A property that returns the kwargs forwarded to send/edit when updating the page.
 
@@ -151,7 +157,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         content = self.pages[display_page] + page_num
         return {'content': content}
 
-    async def add_line(self, *args, **kwargs):
+    async def add_line(self, *args: typing.Any, **kwargs: typing.Any):
         """
         A proxy function that allows this PaginatorInterface to remain locked to the last page
         if it is already on it.
@@ -205,6 +211,9 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         This method is generally for internal use only.
         """
 
+        if not self.message:
+            raise RuntimeError("Message is not set on PaginatorInterface")
+
         for emoji in filter(None, self.emojis):
             try:
                 await self.message.add_reaction(emoji)
@@ -239,6 +248,12 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """
 
+        if not self.message:
+            raise RuntimeError("Message not set on PaginatorInterface")
+
+        if not self.bot.user:
+            raise RuntimeError("A PaginatorInterface cannot be started while the bot is offline")
+
         start, back, forward, end, close = self.emojis
 
         def check(payload: discord.RawReactionActionEvent):
@@ -249,25 +264,25 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
             owner_check = not self.owner or payload.user_id == self.owner.id
 
             emoji = payload.emoji
-            if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
+            if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():  # type: ignore
                 emoji = emoji.name
 
             tests = (
                 owner_check,
-                payload.message_id == self.message.id,
+                payload.message_id == self.message.id if self.message else False,
                 emoji,
                 emoji in self.emojis,
-                payload.user_id != self.bot.user.id
+                payload.user_id != self.bot.user.id if self.bot.user else True
             )
 
             return all(tests)
 
         task_list = [
-            self.bot.loop.create_task(coro) for coro in {
+            self.bot.loop.create_task(coro) for coro in [
                 self.bot.wait_for('raw_reaction_add', check=check),
                 self.bot.wait_for('raw_reaction_remove', check=check),
                 self.send_lock_delayed()
-            }
+            ]
         ]
 
         try:  # pylint: disable=too-many-nested-blocks
@@ -285,7 +300,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
 
                     if isinstance(payload, discord.RawReactionActionEvent):
                         emoji = payload.emoji
-                        if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():
+                        if isinstance(emoji, discord.PartialEmoji) and emoji.is_unicode_emoji():  # type: ignore
                             emoji = emoji.name
 
                         if emoji == close:
@@ -352,12 +367,12 @@ class PaginatorEmbedInterface(PaginatorInterface):
     A subclass of :class:`PaginatorInterface` that encloses content in an Embed.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         self._embed = kwargs.pop('embed', None) or discord.Embed()
         super().__init__(*args, **kwargs)
 
     @property
-    def send_kwargs(self) -> dict:
+    def send_kwargs(self) -> typing.Dict[str, typing.Any]:
         display_page = self.display_page
         self._embed.description = self.pages[display_page]
         self._embed.set_footer(text=f'Page {display_page + 1}/{self.page_count}')

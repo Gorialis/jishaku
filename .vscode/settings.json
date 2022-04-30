@@ -13,5 +13,6 @@
     "yaml.schemas": {
         "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.json": "file:///t%3A/GitHub/jishaku/.readthedocs.yml"
     },
-    "esbonio.sphinx.confDir": ""
+    "esbonio.sphinx.confDir": "",
+    "python.analysis.typeCheckingMode": "strict"
 }

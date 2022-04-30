@@ -11,6 +11,8 @@ The jishaku shell commands.
 
 """
 
+import typing
+
 from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
@@ -19,6 +21,7 @@ from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.shell import ShellReader
+from jishaku.types import ContextA
 
 
 class ShellFeature(Feature):
@@ -27,13 +30,16 @@ class ShellFeature(Feature):
     """
 
     @Feature.Command(parent="jsk", name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd", "terminal"])
-    async def jsk_shell(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_shell(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Executes statements in the system shell.
 
         This uses the system shell as defined in $SHELL, or `/bin/bash` otherwise.
         Execution can be cancelled by closing the paginator.
         """
+
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
 
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
@@ -54,17 +60,23 @@ class ShellFeature(Feature):
                 await interface.add_line(f"\n[status] Return code {reader.close_code}")
 
     @Feature.Command(parent="jsk", name="git")
-    async def jsk_git(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_git(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
         Shortcut for 'jsk sh git'. Invokes the system shell.
         """
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
+
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))  # type: ignore
 
     @Feature.Command(parent="jsk", name="pip")
-    async def jsk_pip(self, ctx: commands.Context, *, argument: codeblock_converter):
+    async def jsk_pip(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore
         """
         Shortcut for 'jsk sh pip'. Invokes the system shell.
         """
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))
+        if typing.TYPE_CHECKING:
+            argument: Codeblock = argument  # type: ignore
+
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))  # type: ignore

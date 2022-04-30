@@ -15,7 +15,7 @@ import ast
 import dis
 import typing
 
-import import_expression
+import import_expression  # type: ignore
 
 from jishaku.repl.scope import Scope
 
@@ -42,8 +42,8 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     it's implemented separately here.
     """
 
-    user_code = import_expression.parse(code, mode='exec')
-    mod = import_expression.parse(CORO_CODE.format(args), mode='exec')
+    user_code: ast.Module = import_expression.parse(code, mode='exec')  # type: ignore
+    mod: ast.Module = import_expression.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -74,7 +74,11 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     return mod
 
 
-def disassemble(code: str, scope: Scope = None, arg_dict: dict = None) -> typing.Generator[str, None, None]:
+def disassemble(
+    code: str,
+    scope: typing.Optional[Scope] = None,
+    arg_dict: typing.Optional[typing.Dict[str, typing.Any]] = None
+) -> typing.Generator[str, None, None]:
     """
     Disassembles asynchronous code into dis.dis-style bytecode instructions.
     """
@@ -93,15 +97,17 @@ def disassemble(code: str, scope: Scope = None, arg_dict: dict = None) -> typing
     # pylint: disable=protected-access, invalid-name
     co = func_def.__code__
 
-    for instruction in dis._get_instructions_bytes(
+    for instruction in dis._get_instructions_bytes(  # type: ignore
         co.co_code, co.co_varnames, co.co_names, co.co_consts,
         co.co_cellvars + co.co_freevars, dict(dis.findlinestarts(co)),
         line_offset=0
     ):
+        instruction: dis.Instruction
+
         if instruction.starts_line is not None and instruction.offset > 0:
             yield ''
 
-        yield instruction._disassemble(
+        yield instruction._disassemble(  # type: ignore
             4, False, 4
         )
 
@@ -134,7 +140,7 @@ def format_ast_block(
     if isinstance(node, ast.AST):
         node = [node]
         header += ": "
-    elif not isinstance(node, list):
+    elif not isinstance(node, list):  # type: ignore
         branch, _ = TREE_CONTINUE if through else TREE_LAST
         branch = maybe_ansi(f"{branch} {header}: ", level, use_ansi)
         yield f"{branch}{repr(node)}"
@@ -192,5 +198,5 @@ def create_tree(code: str, use_ansi: bool = True) -> str:
     Compiles code into an AST tree and then formats it
     """
 
-    user_code = import_expression.parse(code, mode='exec')
+    user_code = import_expression.parse(code, mode='exec')  # type: ignore
     return '\n'.join(format_ast_node(user_code, use_ansi=use_ansi))

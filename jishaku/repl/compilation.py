@@ -17,7 +17,7 @@ import inspect
 import linecache
 import typing
 
-import import_expression
+import import_expression  # type: ignore
 
 from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
@@ -51,8 +51,8 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     Also adds inline import expression support.
     """
 
-    user_code = import_expression.parse(code, mode='exec')
-    mod = import_expression.parse(CORO_CODE.format(args), mode='exec')
+    user_code: ast.Module = import_expression.parse(code, mode='exec')  # type: ignore
+    mod: ast.Module = import_expression.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -109,7 +109,13 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
     __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope', 'source')
 
-    def __init__(self, code: str, scope: Scope = None, arg_dict: dict = None, loop: asyncio.BaseEventLoop = None):
+    def __init__(
+        self,
+        code: str,
+        scope: typing.Optional[Scope] = None,
+        arg_dict: typing.Optional[typing.Dict[str, typing.Any]] = None,
+        loop: typing.Optional[asyncio.BaseEventLoop] = None,
+    ):
         self.args = [self]
         self.arg_names = ['_async_executor']
 
@@ -123,13 +129,19 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
 
-    def __aiter__(self):
+    def __aiter__(self) -> typing.AsyncGenerator[typing.Any, typing.Any]:
         exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
         func_def = self.scope.locals.get('_repl_coroutine') or self.scope.globals['_repl_coroutine']
 
         return self.traverse(func_def)
 
-    async def traverse(self, func) -> typing.AsyncGenerator[typing.Any, typing.Any]:
+    async def traverse(
+        self,
+        func: typing.Callable[..., typing.Union[
+            typing.Awaitable[typing.Any],
+            typing.AsyncGenerator[typing.Any, typing.Any]
+        ]]
+    ) -> typing.AsyncGenerator[typing.Any, typing.Any]:
         """
         Traverses an async function or generator, yielding each result.
 
@@ -138,10 +150,12 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
         try:
             if inspect.isasyncgenfunction(func):
-                async for send, result in AsyncSender(func(*self.args)):
+                func_g: typing.Callable[..., typing.AsyncGenerator[typing.Any, typing.Any]] = func  # type: ignore
+                async for send, result in AsyncSender(func_g(*self.args)):  # type: ignore
                     send((yield result))
             else:
-                yield await func(*self.args)
+                func_a: typing.Callable[..., typing.Awaitable[typing.Any]] = func  # type: ignore
+                yield await func_a(*self.args)
         except Exception:  # pylint: disable=broad-except
             # Falsely populate the linecache to make the REPL line appear in tracebacks
             linecache.cache['<repl>'] = (

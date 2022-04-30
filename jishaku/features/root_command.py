@@ -22,6 +22,7 @@ from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
+from jishaku.types import ContextA
 
 try:
     import psutil
@@ -31,7 +32,7 @@ except ImportError:
 try:
     from importlib.metadata import distribution, packages_distributions
 except ImportError:
-    from importlib_metadata import distribution, packages_distributions
+    from importlib_metadata import distribution, packages_distributions  # type: ignore
 
 
 def natural_size(size_in_bytes: int):
@@ -53,13 +54,13 @@ class RootCommand(Feature):
     Feature containing the root jsk command
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super().__init__(*args, **kwargs)
-        self.jsk.hidden = Flags.HIDE
+        self.jsk.hidden = Flags.HIDE  # type: ignore
 
     @Feature.Command(name="jishaku", aliases=["jsk"],
                      invoke_without_command=True, ignore_extra=False)
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: ContextA):
         """
         The Jishaku debug and diagnostic commands.
 
@@ -68,11 +69,11 @@ class RootCommand(Feature):
         """
 
         # Try to locate what vends the `discord` package
-        distributions = [
-            dist for dist in packages_distributions()['discord']
+        distributions: typing.List[str] = [
+            dist for dist in packages_distributions()['discord']  # type: ignore
             if any(
-                file.parts == ('discord', '__init__.py')
-                for file in distribution(dist).files
+                file.parts == ('discord', '__init__.py')  # type: ignore
+                for file in distribution(dist).files  # type: ignore
             )
         ]
 
@@ -144,8 +145,8 @@ class RootCommand(Feature):
             summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
         # pylint: disable=protected-access
-        if self.bot._connection.max_messages:
-            message_cache = f"Message cache capped at {self.bot._connection.max_messages}"
+        if self.bot._connection.max_messages:  # type: ignore
+            message_cache = f"Message cache capped at {self.bot._connection.max_messages}"  # type: ignore
         else:
             message_cache = "Message cache is disabled"
 
@@ -164,7 +165,7 @@ class RootCommand(Feature):
 
             summary.append(f"{message_cache}, {', '.join(group)}, and {last}.")
         else:
-            guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"
+            guild_subscriptions = f"guild subscriptions are {'enabled' if self.bot._connection.guild_subscriptions else 'disabled'}"  # type: ignore
 
             summary.append(f"{message_cache} and {guild_subscriptions}.")
 
@@ -177,32 +178,32 @@ class RootCommand(Feature):
 
     # pylint: disable=no-member
     @Feature.Command(parent="jsk", name="hide")
-    async def jsk_hide(self, ctx: commands.Context):
+    async def jsk_hide(self, ctx: ContextA):
         """
         Hides Jishaku from the help command.
         """
 
-        if self.jsk.hidden:
+        if self.jsk.hidden:  # type: ignore
             return await ctx.send("Jishaku is already hidden.")
 
-        self.jsk.hidden = True
+        self.jsk.hidden = True  # type: ignore
         await ctx.send("Jishaku is now hidden.")
 
     @Feature.Command(parent="jsk", name="show")
-    async def jsk_show(self, ctx: commands.Context):
+    async def jsk_show(self, ctx: ContextA):
         """
         Shows Jishaku in the help command.
         """
 
-        if not self.jsk.hidden:
+        if not self.jsk.hidden:  # type: ignore
             return await ctx.send("Jishaku is already visible.")
 
-        self.jsk.hidden = False
+        self.jsk.hidden = False  # type: ignore
         await ctx.send("Jishaku is now visible.")
     # pylint: enable=no-member
 
     @Feature.Command(parent="jsk", name="tasks")
-    async def jsk_tasks(self, ctx: commands.Context):
+    async def jsk_tasks(self, ctx: ContextA):
         """
         Shows the currently running jishaku tasks.
         """
@@ -213,14 +214,18 @@ class RootCommand(Feature):
         paginator = commands.Paginator(max_size=1980)
 
         for task in self.tasks:
-            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                               f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+            if task.ctx.command:
+                paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                                   f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+            else:
+                paginator.add_line(f"{task.index}: unknown, invoked at "
+                                   f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         return await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk", name="cancel")
-    async def jsk_cancel(self, ctx: commands.Context, *, index: typing.Union[int, str]):
+    async def jsk_cancel(self, ctx: ContextA, *, index: typing.Union[int, str]):
         """
         Cancels a task with the given index.
 
@@ -234,7 +239,8 @@ class RootCommand(Feature):
             task_count = len(self.tasks)
 
             for task in self.tasks:
-                task.task.cancel()
+                if task.task:
+                    task.task.cancel()
 
             self.tasks.clear()
 
@@ -252,6 +258,12 @@ class RootCommand(Feature):
             else:
                 return await ctx.send("Unknown task.")
 
-        task.task.cancel()
-        return await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
-                              f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        if task.task:
+            task.task.cancel()
+
+        if task.ctx.command:
+            await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
+                           f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        else:
+            await ctx.send(f"Cancelled task {task.index}: unknown,"
+                           f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")

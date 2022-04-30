@@ -23,6 +23,9 @@ ENABLED_SYMBOLS = ("true", "t", "yes", "y", "on", "1")
 DISABLED_SYMBOLS = ("false", "f", "no", "n", "off", "0")
 
 
+FlagHandler = typing.Optional[typing.Callable[['FlagMeta'], typing.Any]]
+
+
 @dataclasses.dataclass
 class Flag:
     """
@@ -31,11 +34,11 @@ class Flag:
 
     name: str
     flag_type: type
-    default: typing.Callable = None
-    handler: typing.Callable = None
+    default: FlagHandler = None
+    handler: FlagHandler = None
     override: typing.Any = None
 
-    def resolve_raw(self, flags):  # pylint: disable=too-many-return-statements
+    def resolve_raw(self, flags: 'FlagMeta'):  # pylint: disable=too-many-return-statements
         """
         Receive the intrinsic value for this flag, before optionally being processed by the handler.
         """
@@ -65,7 +68,7 @@ class Flag:
 
         return self.flag_type()
 
-    def resolve(self, flags):
+    def resolve(self, flags: 'FlagMeta'):
         """
         Resolve this flag. Only for internal use.
         Applies the handler when there is one.
@@ -85,12 +88,23 @@ class FlagMeta(type):
     This handles the Just-In-Time evaluation of flags, allowing them to be overridden during execution.
     """
 
-    def __new__(cls, name, base, attrs):
+    def __new__(
+        cls,
+        name: str,
+        base: typing.Tuple[typing.Type[typing.Any]],
+        attrs: typing.Dict[str, typing.Any]
+    ):
         attrs['flag_map'] = {}
 
         for flag_name, flag_type in attrs['__annotations__'].items():
-            default = attrs.pop(flag_name, None)
-            handler = None
+            default: typing.Union[
+                FlagHandler,
+                typing.Tuple[
+                    FlagHandler,  # default
+                    FlagHandler,  # handler
+                ],
+            ] = attrs.pop(flag_name, None)
+            handler: FlagHandler = None
 
             if isinstance(default, tuple):
                 default, handler = default
@@ -100,12 +114,14 @@ class FlagMeta(type):
         return super(FlagMeta, cls).__new__(cls, name, base, attrs)
 
     def __getattr__(cls, name: str):
+        cls.flag_map: typing.Dict[str, Flag]
+
         if hasattr(cls, 'flag_map') and name in cls.flag_map:
             return cls.flag_map[name].resolve(cls)
 
         return super().__getattribute__(name)
 
-    def __setattr__(cls, name: str, value):
+    def __setattr__(cls, name: str, value: typing.Any):
         if name in cls.flag_map:
             flag = cls.flag_map[name]
 
@@ -138,7 +154,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
 
     # The scope prefix, i.e. the prefix that appears before Jishaku's builtin variables in REPL sessions.
     # It is recommended that you set this programatically.
-    SCOPE_PREFIX: str = lambda flags: '' if flags.NO_UNDERSCORE else '_'
+    SCOPE_PREFIX: str = lambda flags: '' if flags.NO_UNDERSCORE else '_'  # type: ignore
 
     # Flag to indicate whether to always use paginators over relying on Discord's file preview
     FORCE_PAGINATOR: bool
@@ -177,7 +193,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     USE_ANSI_NEVER: bool
 
     @classmethod
-    def use_ansi(cls, ctx: commands.Context) -> bool:
+    def use_ansi(cls, ctx: commands.Context[commands.Bot]) -> bool:
         """
         Determine whether to use ANSI support from flags and context
         """
@@ -188,4 +204,4 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
         if cls.USE_ANSI_ALWAYS:
             return True
 
-        return not ctx.author.is_on_mobile() if ctx.guild and ctx.bot.intents.presences else True
+        return not ctx.author.is_on_mobile() if isinstance(ctx.author, discord.Member) and ctx.bot.intents.presences else True

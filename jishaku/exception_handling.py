@@ -13,8 +13,10 @@ Functions and classes for handling exceptions.
 
 import asyncio
 import subprocess
+import sys
 import traceback
 import typing
+from types import TracebackType
 
 import discord
 from discord.ext import commands
@@ -22,7 +24,13 @@ from discord.ext import commands
 from jishaku.flags import Flags
 
 
-async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *exc_info):
+async def send_traceback(
+    destination: discord.abc.Messageable,
+    verbosity: int,
+    etype: typing.Type[BaseException],
+    value: BaseException,
+    trace: TracebackType
+):
     """
     Sends a traceback of an exception to a destination.
     Used when REPL fails for any reason.
@@ -32,9 +40,6 @@ async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *
     :param exc_info: Information about this exception, from sys.exc_info or similar.
     :return: The last message sent
     """
-
-    # to make pylint stop moaning
-    etype, value, trace = exc_info
 
     traceback_content = "".join(traceback.format_exception(etype, value, trace, verbosity)).replace("``", "`\u200b`")
 
@@ -50,7 +55,17 @@ async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *
     return message
 
 
-async def do_after_sleep(delay: float, coro, *args, **kwargs):
+# pylint: disable=invalid-name
+T = typing.TypeVar('T')
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+    P = ParamSpec('P')
+else:
+    P = typing.ParamSpec('P')  # pylint: disable=no-member
+
+
+async def do_after_sleep(delay: float, coro: typing.Callable[P, typing.Awaitable[T]], *args: P.args, **kwargs: P.kwargs) -> T:
     """
     Performs an action after a set amount of time.
 
@@ -67,8 +82,10 @@ async def do_after_sleep(delay: float, coro, *args, **kwargs):
     return await coro(*args, **kwargs)
 
 
-async def attempt_add_reaction(msg: discord.Message, reaction: typing.Union[str, discord.Emoji])\
-        -> typing.Optional[discord.Reaction]:
+async def attempt_add_reaction(
+    msg: discord.Message,
+    reaction: typing.Union[str, discord.Emoji]
+) -> typing.Optional[discord.Reaction]:
     """
     Try to add a reaction to a message, ignoring it if it fails for any reason.
 
@@ -99,14 +116,19 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
                                                            "\N{BLACK RIGHT-POINTING TRIANGLE}"))
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: typing.Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType
+    ) -> bool:
         if self.handle:
             self.handle.cancel()
 
         # no exception, check mark
         if not exc_val:
             await attempt_add_reaction(self.message, "\N{WHITE HEAVY CHECK MARK}")
-            return
+            return False
 
         self.raised = True
 
@@ -120,18 +142,25 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
             # other error, double exclamation mark
             await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}")
 
+        return False
+
 
 class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-public-methods
     """
     Extension of the ReactionProcedureTimer that absorbs errors, sending tracebacks.
     """
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: typing.Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType
+    ) -> bool:
         await super().__aexit__(exc_type, exc_val, exc_tb)
 
         # nothing went wrong, who cares lol
         if not exc_val:
-            return
+            return False
 
         if isinstance(exc_val, (SyntaxError, asyncio.TimeoutError, subprocess.TimeoutExpired)):
             # short traceback, send to channel

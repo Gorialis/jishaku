@@ -14,20 +14,40 @@ Inspections performable on Python objects.
 import collections
 import functools
 import inspect
+import typing
 import os
+import sys
 
-INSPECTIONS = []
+INSPECTIONS: typing.List[
+    typing.Tuple[
+        str,
+        typing.Callable[..., typing.Any]
+    ]
+] = []
 MethodWrapperType = type((1).__le__)
 WrapperDescriptorType = type(int.__le__)
 
 
-def add_inspection(name: str):
+# pylint: disable=invalid-name
+T = typing.TypeVar('T')
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+    P = ParamSpec('P')
+else:
+    P = typing.ParamSpec('P')  # pylint: disable=no-member
+
+
+def add_inspection(name: str) -> typing.Callable[
+    [typing.Callable[P, T]],
+    typing.Callable[P, T]
+]:
     """
     Add a Jishaku object inspection
     """
 
     # create the real decorator
-    def inspection_inner(func):
+    def inspection_inner(func: typing.Callable[P, T]):
         """
         Jishaku inspection decorator
         """
@@ -36,7 +56,7 @@ def add_inspection(name: str):
 
         # create an encapsulated version of the inspection that swallows exceptions
         @functools.wraps(func)
-        def encapsulated(*args, **kwargs):
+        def encapsulated(*args: P.args, **kwargs: P.kwargs):
             try:
                 return func(*args, **kwargs)
             except (TypeError, AttributeError, ValueError, OSError):
@@ -47,7 +67,7 @@ def add_inspection(name: str):
     return inspection_inner
 
 
-def all_inspections(obj):
+def all_inspections(obj: typing.Any):
     """
     Generator to iterate all current Jishaku inspections.
     """
@@ -58,7 +78,7 @@ def all_inspections(obj):
             yield name, result
 
 
-def class_name(obj):
+def class_name(obj: typing.Any):
     """
     Get the name of an object, including the module name if available.
     """
@@ -76,22 +96,22 @@ def class_name(obj):
 
 
 @add_inspection("Type")
-def type_inspection(obj):
+def type_inspection(obj: typing.Any):
     return type(obj).__name__
 
 
 @add_inspection("Object ID")
-def id_inspection(obj):
+def id_inspection(obj: typing.Any):
     return hex(id(obj))
 
 
 @add_inspection("Length")
-def len_inspection(obj):
+def len_inspection(obj: typing.Any):
     return len(obj)
 
 
 @add_inspection("MRO")
-def mro_inspection(obj):
+def mro_inspection(obj: typing.Any):
     if not inspect.isclass(obj):
         return
 
@@ -99,7 +119,7 @@ def mro_inspection(obj):
 
 
 @add_inspection("Type MRO")
-def type_mro_inspection(obj):
+def type_mro_inspection(obj: typing.Any):
     obj_type = type(obj)
     if obj_type in (type, object):
         return
@@ -108,7 +128,7 @@ def type_mro_inspection(obj):
 
 
 @add_inspection("Subclasses")
-def subclass_inspection(obj):
+def subclass_inspection(obj: typing.Any):
     if isinstance(obj, type) and hasattr(obj, "__subclasses__"):
         subclasses = type.__subclasses__(obj)
     else:
@@ -123,12 +143,12 @@ def subclass_inspection(obj):
 
 
 @add_inspection("Module Name")
-def module_inspection(obj):
-    return inspect.getmodule(obj).__name__
+def module_inspection(obj: typing.Any):
+    return inspect.getmodule(obj).__name__  # type: ignore
 
 
 @add_inspection("File Location")
-def file_loc_inspection(obj):
+def file_loc_inspection(obj: typing.Any):
     file_loc = inspect.getfile(obj)
     cwd = os.getcwd()
     if file_loc.startswith(cwd):
@@ -137,23 +157,23 @@ def file_loc_inspection(obj):
 
 
 @add_inspection("Line Span")
-def line_span_inspection(obj):
+def line_span_inspection(obj: typing.Any):
     source_lines, source_offset = inspect.getsourcelines(obj)
     return f"{source_offset}-{source_offset + len(source_lines)}"
 
 
 @add_inspection("Signature")
-def sig_inspection(obj):
+def sig_inspection(obj: typing.Any):
     return inspect.signature(obj)
 
 
 @add_inspection("Content Types")
-def content_type_inspection(obj):
+def content_type_inspection(obj: typing.Sized):
     if not isinstance(obj, (tuple, list, set)):
         return
 
-    total = len(obj)
-    types = collections.Counter(type(x) for x in obj)
+    total = len(obj)  # type: ignore
+    types = collections.Counter(type(x) for x in obj)  # type: ignore
 
     output = ', '.join(f'{x.__name__} ({y*100/total:.1f}\uFF05)' for x, y in types.most_common(3))
     if len(types) > 3:
@@ -185,7 +205,7 @@ POSSIBLE_OPS = {
 }
 
 
-def check_not_slot(obj, attr):
+def check_not_slot(obj: typing.Any, attr: str):
     """
     Check that a given attribute isn't just an open slot for subclasses
     """
@@ -197,9 +217,9 @@ def check_not_slot(obj, attr):
 
 
 @add_inspection("Operations")
-def compat_operation_inspection(obj):
+def compat_operation_inspection(obj: typing.Any):
     this_dict = dir(obj)
-    operations = []
+    operations: typing.List[str] = []
 
     for operation, member in POSSIBLE_OPS.items():
         if f'__{member}__' in this_dict and check_not_slot(obj, f'__{member}__'):
