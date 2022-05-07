@@ -20,7 +20,6 @@ from discord.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
-
 if typing.TYPE_CHECKING or hasattr(ui, 'TextInput'):
     TextInput = ui.TextInput
     TextStyle = discord.TextStyle
