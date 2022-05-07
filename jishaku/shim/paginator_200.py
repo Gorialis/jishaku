@@ -21,6 +21,14 @@ from discord.ext import commands
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
 
+if typing.TYPE_CHECKING or hasattr(ui, 'TextInput'):
+    TextInput = ui.TextInput
+    TextStyle = discord.TextStyle
+else:
+    TextInput = ui.InputText  # type: ignore  # pylint: disable=no-member
+    TextStyle = discord.InputTextStyle  # type: ignore  # pylint: disable=no-member
+
+
 class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
     """
     A message and reaction based interface for paginators.
@@ -315,10 +323,10 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    class PageChangeModal(discord.ui.Modal, title="Go to page"):
+    class PageChangeModal(ui.Modal, title="Go to page"):
         """Modal that prompts users for the page number to change to"""
 
-        page_number: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(label="Page number", style=discord.TextStyle.short)
+        page_number: TextInput[ui.Modal] = TextInput(label="Page number", style=TextStyle.short)
 
         def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
             super().__init__(*args, timeout=interface.timeout_length, **kwargs)
