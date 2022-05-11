@@ -20,13 +20,6 @@ from discord.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
-if typing.TYPE_CHECKING or hasattr(ui, 'TextInput'):
-    TextInput = ui.TextInput[ui.Modal]
-    TextStyle = discord.TextStyle
-else:
-    TextInput = ui.InputText  # type: ignore  # pylint: disable=no-member
-    TextStyle = discord.InputTextStyle  # type: ignore  # pylint: disable=no-member
-
 
 class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
     """
@@ -322,38 +315,39 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    class PageChangeModal(ui.Modal, title="Go to page"):
-        """Modal that prompts users for the page number to change to"""
+    if typing.TYPE_CHECKING or hasattr(ui, 'TextInput'):
+        class PageChangeModal(ui.Modal, title="Go to page"):
+            """Modal that prompts users for the page number to change to"""
 
-        page_number: TextInput = TextInput(label="Page number", style=TextStyle.short)
+            page_number: ui.TextInput[ui.Modal] = TextInput(label="Page number", style=discord.TextStyle.short)
 
-        def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
-            super().__init__(*args, timeout=interface.timeout_length, **kwargs)
-            self.interface = interface
-            self.page_number.label = f"Page number (1-{interface.page_count})"
-            self.page_number.min_length = 1
-            self.page_number.max_length = len(str(interface.page_count))
+            def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
+                super().__init__(*args, timeout=interface.timeout_length, **kwargs)
+                self.interface = interface
+                self.page_number.label = f"Page number (1-{interface.page_count})"
+                self.page_number.min_length = 1
+                self.page_number.max_length = len(str(interface.page_count))
 
-        async def on_submit(self, interaction: discord.Interaction):
-            try:
-                if not self.page_number.value:
-                    raise ValueError("Page number not filled")
+            async def on_submit(self, interaction: discord.Interaction):
+                try:
+                    if not self.page_number.value:
+                        raise ValueError("Page number not filled")
 
-                self.interface.display_page = int(self.page_number.value) - 1
-            except ValueError:
-                await interaction.response.send_message(
-                    content=f"``{self.page_number.value}`` could not be converted to a page number",
-                    ephemeral=True
-                )
-            else:
-                self.interface.update_view()
-                await interaction.response.edit_message(**self.interface.send_kwargs)
+                    self.interface.display_page = int(self.page_number.value) - 1
+                except ValueError:
+                    await interaction.response.send_message(
+                        content=f"``{self.page_number.value}`` could not be converted to a page number",
+                        ephemeral=True
+                    )
+                else:
+                    self.interface.update_view()
+                    await interaction.response.edit_message(**self.interface.send_kwargs)
 
-    @ui.button(label="\N{RIGHTWARDS ARROW WITH HOOK} \u200b Go to page", style=discord.ButtonStyle.primary)
-    async def button_goto(self, interaction: discord.Interaction, button: ui.Button['PaginatorInterface']):  # pylint: disable=unused-argument
-        """Button to jump directly to a page"""
+        @ui.button(label="\N{RIGHTWARDS ARROW WITH HOOK} \u200b Go to page", style=discord.ButtonStyle.primary)
+        async def button_goto(self, interaction: discord.Interaction, button: ui.Button['PaginatorInterface']):  # pylint: disable=unused-argument
+            """Button to jump directly to a page"""
 
-        await interaction.response.send_modal(self.PageChangeModal(self))
+            await interaction.response.send_modal(self.PageChangeModal(self))
 
     @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
     async def button_close(self, interaction: discord.Interaction, button: ui.Button['PaginatorInterface']):  # pylint: disable=unused-argument
