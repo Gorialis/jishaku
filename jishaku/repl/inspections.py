@@ -28,7 +28,6 @@ MethodWrapperType = type((1).__le__)
 WrapperDescriptorType = type(int.__le__)
 
 
-# pylint: disable=invalid-name
 T = typing.TypeVar('T')
 
 if sys.version_info < (3, 10):

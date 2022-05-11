@@ -18,7 +18,6 @@ import discord
 from jishaku.features.baseclass import Feature
 from jishaku.types import ContextA
 
-# pylint: disable=invalid-name
 T = typing.TypeVar('T')
 
 

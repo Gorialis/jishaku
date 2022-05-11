@@ -94,7 +94,7 @@ def disassemble(
     func_def = scope.locals.get('_repl_coroutine') or scope.globals['_repl_coroutine']
 
     # pylint is gonna really hate this part onwards
-    # pylint: disable=protected-access, invalid-name
+    # pylint: disable=protected-access
     co = func_def.__code__
 
     for instruction in dis._get_instructions_bytes(  # type: ignore
@@ -111,7 +111,7 @@ def disassemble(
             4, False, 4
         )
 
-    # pylint: enable=protected-access, invalid-name
+    # pylint: enable=protected-access
 
 
 TREE_CONTINUE = ('\N{BOX DRAWINGS HEAVY VERTICAL AND RIGHT}', '\N{BOX DRAWINGS HEAVY VERTICAL}')

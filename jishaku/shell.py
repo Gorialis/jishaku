@@ -20,7 +20,6 @@ import sys
 import time
 import typing
 
-# pylint: disable=invalid-name
 T = typing.TypeVar('T')
 
 if sys.version_info < (3, 10):
