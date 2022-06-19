@@ -13,6 +13,7 @@ The jishaku shell commands.
 
 import contextlib
 import pathlib
+import re
 import shutil
 import tempfile
 import typing
@@ -130,8 +131,10 @@ class ShellFeature(Feature):
             if typing.TYPE_CHECKING:
                 argument: Codeblock = argument  # type: ignore
 
+            requirements = ''.join(f"npm install {match} && " for match in re.findall('// jsk require: (.+)', argument.content))
+
             with scaffold('npm', content=argument.content) as directory:
-                return await ctx.invoke(self.jsk_shell, argument=Codeblock("js", f"cd {directory} && npm run main"))  # type: ignore
+                return await ctx.invoke(self.jsk_shell, argument=Codeblock("js", f"cd {directory} && {requirements}npm run main"))  # type: ignore
 
     if shutil.which('pyright'):
         @Feature.Command(parent="jsk", name="pyright")
@@ -156,5 +159,7 @@ class ShellFeature(Feature):
             if typing.TYPE_CHECKING:
                 argument: Codeblock = argument  # type: ignore
 
-            with scaffold('cargo', content=argument.content) as directory:
+            requirements = '\n'.join(re.findall('// jsk require: (.+)', argument.content))
+
+            with scaffold('cargo', content=argument.content, requirements=requirements) as directory:
                 return await ctx.invoke(self.jsk_shell, argument=Codeblock("rust", f"cd {directory} && cargo run"))  # type: ignore
