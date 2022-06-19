@@ -11,6 +11,10 @@ The jishaku shell commands.
 
 """
 
+import contextlib
+import pathlib
+import shutil
+import tempfile
 import typing
 
 from discord.ext import commands
@@ -22,6 +26,37 @@ from jishaku.flags import Flags
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.shell import ShellReader
 from jishaku.types import ContextA
+
+
+SCAFFOLD_FOLDER = pathlib.Path(__file__).parent / 'scaffolds'
+
+
+@contextlib.contextmanager
+def scaffold(name: str, **kwargs: typing.Any):
+    """
+    A context manager that sets up a temporary directory with a scaffold formatted to kwargs.
+
+    This allows it to create temporary projects for different shell tools according to the template.
+    """
+
+    source = SCAFFOLD_FOLDER / name
+
+    if not (source.exists() and source.is_dir()):
+        raise ValueError(f"{name} is not a valid shell scaffold")
+
+    with tempfile.TemporaryDirectory() as temp:
+        temp = pathlib.Path(temp)
+
+        for file in source.glob("**/*"):
+            with open(file, 'r', encoding='utf-8') as fp:
+                content = fp.read()
+
+            target = temp / file.relative_to(source)
+
+            with open(target, 'w', encoding='utf-8') as fp:
+                fp.write(content.format(**kwargs))
+
+        yield temp
 
 
 class ShellFeature(Feature):
@@ -80,3 +115,16 @@ class ShellFeature(Feature):
             argument: Codeblock = argument  # type: ignore
 
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))  # type: ignore
+
+    if shutil.which('rustc') and shutil.which('cargo'):
+        @Feature.Command(parent="jsk", name="rustc")
+        async def jsk_rustc(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore
+            """
+            Shortcut for scaffolding and executing 'cargo run'. Only exists if the executables are detected.
+            """
+
+            if typing.TYPE_CHECKING:
+                argument: Codeblock = argument  # type: ignore
+
+            with scaffold('cargo', content=argument.content) as directory:
+                return await ctx.invoke(self.jsk_shell, argument=Codeblock("rust", f"cd {directory} && cargo run"))  # type: ignore
