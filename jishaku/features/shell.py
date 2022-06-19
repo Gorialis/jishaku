@@ -27,7 +27,6 @@ from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.shell import ShellReader
 from jishaku.types import ContextA
 
-
 SCAFFOLD_FOLDER = pathlib.Path(__file__).parent / 'scaffolds'
 
 
@@ -48,6 +47,9 @@ def scaffold(name: str, **kwargs: typing.Any):
         temp = pathlib.Path(temp)
 
         for item in source.glob("**/*"):
+            if '__pycache__' in str(item):
+                continue
+
             if item.is_file():
                 with open(item, 'r', encoding='utf-8') as fp:
                     content = fp.read()
