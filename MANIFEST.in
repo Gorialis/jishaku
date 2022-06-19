@@ -1,6 +1,8 @@
 include LICENSE
 include README.rst
 include jishaku/py.typed
+include jishaku/features/scaffolds/cargo/Cargo.toml
+include jishaku/features/scaffolds/cargo/src/main.rs
 include requirements/_.txt
 include requirements/docs.txt
 include requirements/procinfo.txt
