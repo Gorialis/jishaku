@@ -118,6 +118,32 @@ class ShellFeature(Feature):
 
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))  # type: ignore
 
+    if shutil.which('node') and shutil.which('npm'):
+        @Feature.Command(parent="jsk", name="node")
+        async def jsk_node(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore
+            """
+            Shortcut for scaffolding and executing 'npm run'. Only exists if the executables are detected.
+            """
+
+            if typing.TYPE_CHECKING:
+                argument: Codeblock = argument  # type: ignore
+
+            with scaffold('npm', content=argument.content) as directory:
+                return await ctx.invoke(self.jsk_shell, argument=Codeblock("js", f"cd {directory} && npm run main"))  # type: ignore
+
+    if shutil.which('pyright'):
+        @Feature.Command(parent="jsk", name="pyright")
+        async def jsk_pyright(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore
+            """
+            Shortcut for scaffolding and executing 'pyright main.py'. Only exists if the executables are detected.
+            """
+
+            if typing.TYPE_CHECKING:
+                argument: Codeblock = argument  # type: ignore
+
+            with scaffold('pyright', content=argument.content) as directory:
+                return await ctx.invoke(self.jsk_shell, argument=Codeblock("js", f"cd {directory} && pyright main.py"))  # type: ignore
+
     if shutil.which('rustc') and shutil.which('cargo'):
         @Feature.Command(parent="jsk", name="rustc")
         async def jsk_rustc(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore

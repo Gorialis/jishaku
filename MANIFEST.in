@@ -3,6 +3,10 @@ include README.rst
 include jishaku/py.typed
 include jishaku/features/scaffolds/cargo/Cargo.toml
 include jishaku/features/scaffolds/cargo/src/main.rs
+include jishaku/features/scaffolds/npm/package.json
+include jishaku/features/scaffolds/npm/index.js
+include jishaku/features/scaffolds/pyright/main.py
+include jishaku/features/scaffolds/pyright/pyrightconfig.json
 include requirements/_.txt
 include requirements/docs.txt
 include requirements/procinfo.txt

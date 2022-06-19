@@ -1,0 +1,11 @@
+{{
+    "stubPath": "",
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "src/experimental",
+        "src/typestubs"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+}}
