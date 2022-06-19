@@ -145,9 +145,11 @@ disable=print-statement,
         too-many-instance-attributes,
         duplicate-code,  # This picks up stupid things like imports
         no-self-use,  # This catches commands which is dumb,
-        too-many-locals,  # This is dumb
+
+        ,  # This is dumb
         too-many-statements,  # This is also dumb
         too-many-branches,  # Likewise
+        too-many-arguments,  # Likewise
         invalid-name  # Sometimes short names are best
 
 # Enable the message, report, category or checker with the given id(s). You can

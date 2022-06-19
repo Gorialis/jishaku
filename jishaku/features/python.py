@@ -135,6 +135,32 @@ class PythonFeature(Feature):
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         return await interface.send_to(ctx)
 
+    def jsk_python_get_convertables(self, ctx: ContextA) -> typing.Tuple[typing.Dict[str, typing.Any], typing.Dict[str, str]]:
+        """
+        Gets the arg dict and convertables for this scope.
+
+        The arg dict contains the 'locals' to be propagated into the REPL scope.
+        The convertables are string->string conversions to be attempted if the code fails to parse.
+        """
+
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
+        arg_dict["_"] = self.last_result
+        convertables: typing.Dict[str, str] = {}
+
+        for index, user in enumerate(ctx.message.mentions):
+            arg_dict[f"__user_mention_{index}"] = user
+            convertables[user.mention] = f"__user_mention_{index}"
+
+        for index, channel in enumerate(ctx.message.channel_mentions):
+            arg_dict[f"__channel_mention_{index}"] = channel
+            convertables[channel.mention] = f"__channel_mention_{index}"
+
+        for index, role in enumerate(ctx.message.role_mentions):
+            arg_dict[f"__role_mention_{index}"] = role
+            convertables[role.mention] = f"__role_mention_{index}"
+
+        return arg_dict, convertables
+
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
@@ -144,15 +170,13 @@ class PythonFeature(Feature):
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
 
-        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
-        arg_dict["_"] = self.last_result
-
+        arg_dict, convertables = self.jsk_python_get_convertables(ctx)
         scope = self.scope
 
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
                     async for send, result in AsyncSender(executor):  # type: ignore
                         send: typing.Callable[..., None]
                         result: typing.Any
@@ -176,15 +200,13 @@ class PythonFeature(Feature):
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
 
-        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
-        arg_dict["_"] = self.last_result
-
+        arg_dict, convertables = self.jsk_python_get_convertables(ctx)
         scope = self.scope
 
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
                     async for send, result in AsyncSender(executor):  # type: ignore
                         send: typing.Callable[..., None]
                         result: typing.Any

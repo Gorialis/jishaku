@@ -114,6 +114,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         code: str,
         scope: typing.Optional[Scope] = None,
         arg_dict: typing.Optional[typing.Dict[str, typing.Any]] = None,
+        convertables: typing.Optional[typing.Dict[str, str]] = None,
         loop: typing.Optional[asyncio.BaseEventLoop] = None,
     ):
         self.args = [self]
@@ -125,7 +126,20 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 self.args.append(value)
 
         self.source = code
-        self.code = wrap_code(code, args=', '.join(self.arg_names))
+
+        try:
+            self.code = wrap_code(code, args=', '.join(self.arg_names))
+        except (SyntaxError, IndentationError) as first_error:
+            if not convertables:
+                raise
+
+            try:
+                for key, value in convertables.items():
+                    code = code.replace(key, value)
+                self.code = wrap_code(code, args=', '.join(self.arg_names))
+            except (SyntaxError, IndentationError) as second_error:
+                raise second_error from first_error
+
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
 
