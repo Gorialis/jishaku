@@ -145,8 +145,7 @@ disable=print-statement,
         too-many-instance-attributes,
         duplicate-code,  # This picks up stupid things like imports
         no-self-use,  # This catches commands which is dumb,
-
-        ,  # This is dumb
+        too-many-locals,  # This is dumb
         too-many-statements,  # This is also dumb
         too-many-branches,  # Likewise
         too-many-arguments,  # Likewise
