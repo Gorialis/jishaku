@@ -25,7 +25,7 @@ from jishaku.flags import Flags
 
 
 async def send_traceback(
-    destination: discord.abc.Messageable,
+    destination: typing.Union[discord.abc.Messageable, discord.Message],
     verbosity: int,
     etype: typing.Type[BaseException],
     value: BaseException,
@@ -50,7 +50,10 @@ async def send_traceback(
     message = None
 
     for page in paginator.pages:
-        message = await destination.send(page)
+        if isinstance(destination, discord.Message):
+            message = await destination.reply(page)
+        else:
+            message = await destination.send(page)
 
     return message
 
@@ -98,10 +101,11 @@ async def attempt_add_reaction(
         pass
 
 
-class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
+class ReplResponseReactor:  # pylint: disable=too-few-public-methods
     """
-    Class that reacts to a message based on what happens during its lifetime.
+    Extension of the ReactionProcedureTimer that absorbs errors, sending tracebacks.
     """
+
     __slots__ = ('message', 'loop', 'handle', 'raised')
 
     def __init__(self, message: discord.Message, loop: typing.Optional[asyncio.BaseEventLoop] = None):
@@ -111,7 +115,7 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
         self.raised = False
 
     async def __aenter__(self):
-        self.handle = self.loop.create_task(do_after_sleep(1, attempt_add_reaction, self.message,
+        self.handle = self.loop.create_task(do_after_sleep(2, attempt_add_reaction, self.message,
                                                            "\N{BLACK RIGHT-POINTING TRIANGLE}"))
         return self
 
@@ -131,46 +135,31 @@ class ReactionProcedureTimer:  # pylint: disable=too-few-public-methods
 
         self.raised = True
 
-        if isinstance(exc_val, (asyncio.TimeoutError, subprocess.TimeoutExpired)):
-            # timed out, alarm clock
-            await attempt_add_reaction(self.message, "\N{ALARM CLOCK}")
-        elif isinstance(exc_val, SyntaxError):
-            # syntax error, single exclamation mark
-            await attempt_add_reaction(self.message, "\N{HEAVY EXCLAMATION MARK SYMBOL}")
-        else:
-            # other error, double exclamation mark
-            await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}")
-
-        return False
-
-
-class ReplResponseReactor(ReactionProcedureTimer):  # pylint: disable=too-few-public-methods
-    """
-    Extension of the ReactionProcedureTimer that absorbs errors, sending tracebacks.
-    """
-
-    async def __aexit__(
-        self,
-        exc_type: typing.Type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType
-    ) -> bool:
-        await super().__aexit__(exc_type, exc_val, exc_tb)
-
-        # nothing went wrong, who cares lol
-        if not exc_val:
-            return False
+        destination = Flags.traceback_destination(self.message) or self.message.channel
+        should_reply = destination == self.message.channel
 
         if isinstance(exc_val, (SyntaxError, asyncio.TimeoutError, subprocess.TimeoutExpired)):
             # short traceback, send to channel
+            if not should_reply:
+                await attempt_add_reaction(
+                    self.message,
+                    # timed out is alarm clock
+                    # syntax error is single exclamation mark
+                    "\N{HEAVY EXCLAMATION MARK SYMBOL}" if isinstance(exc_val, SyntaxError) else "\N{ALARM CLOCK}"
+                )
+
             await send_traceback(
-                Flags.traceback_destination(self.message) or self.message.channel,
+                self.message if should_reply else destination,
                 0, exc_type, exc_val, exc_tb
             )
         else:
+            if not should_reply:
+                # other error, double exclamation mark
+                await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}")
+
             # this traceback likely needs more info, so increase verbosity, and DM it instead.
             await send_traceback(
-                Flags.traceback_destination(self.message) or self.message.author,
+                self.message if should_reply else destination,
                 8, exc_type, exc_val, exc_tb
             )
 

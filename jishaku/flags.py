@@ -78,7 +78,7 @@ class Flag:
         value = self.resolve_raw(flags)
 
         if self.handler:
-            return self.handler(value)
+            return self.handler(value)  # type: ignore
 
         return value
 
