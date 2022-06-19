@@ -135,12 +135,11 @@ class ReplResponseReactor:  # pylint: disable=too-few-public-methods
 
         self.raised = True
 
-        destination = Flags.traceback_destination(self.message) or self.message.channel
-        should_reply = destination == self.message.channel
-
         if isinstance(exc_val, (SyntaxError, asyncio.TimeoutError, subprocess.TimeoutExpired)):
             # short traceback, send to channel
-            if not should_reply:
+            destination = Flags.traceback_destination(self.message) or self.message.channel
+
+            if destination != self.message.channel:
                 await attempt_add_reaction(
                     self.message,
                     # timed out is alarm clock
@@ -149,17 +148,19 @@ class ReplResponseReactor:  # pylint: disable=too-few-public-methods
                 )
 
             await send_traceback(
-                self.message if should_reply else destination,
+                self.message if destination == self.message.channel else destination,
                 0, exc_type, exc_val, exc_tb
             )
         else:
-            if not should_reply:
+            destination = Flags.traceback_destination(self.message) or self.message.author
+
+            if destination != self.message.channel:
                 # other error, double exclamation mark
                 await attempt_add_reaction(self.message, "\N{DOUBLE EXCLAMATION MARK}")
 
             # this traceback likely needs more info, so increase verbosity, and DM it instead.
             await send_traceback(
-                self.message if should_reply else destination,
+                self.message if destination == self.message.channel else destination,
                 8, exc_type, exc_val, exc_tb
             )
 
