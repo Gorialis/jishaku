@@ -47,14 +47,16 @@ def scaffold(name: str, **kwargs: typing.Any):
     with tempfile.TemporaryDirectory() as temp:
         temp = pathlib.Path(temp)
 
-        for file in source.glob("**/*"):
-            with open(file, 'r', encoding='utf-8') as fp:
-                content = fp.read()
+        for item in source.glob("**/*"):
+            if item.is_file():
+                with open(item, 'r', encoding='utf-8') as fp:
+                    content = fp.read()
 
-            target = temp / file.relative_to(source)
+                target = temp / item.relative_to(source)
+                target.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(target, 'w', encoding='utf-8') as fp:
-                fp.write(content.format(**kwargs))
+                with open(target, 'w', encoding='utf-8') as fp:
+                    fp.write(content.format(**kwargs))
 
         yield temp
 
