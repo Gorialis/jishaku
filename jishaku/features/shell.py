@@ -15,6 +15,7 @@ import contextlib
 import pathlib
 import re
 import shutil
+import sys
 import tempfile
 import typing
 
@@ -119,7 +120,20 @@ class ShellFeature(Feature):
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))  # type: ignore
+        executable: str = "pip"
+        location = pathlib.Path(sys.prefix)
+
+        for test in (
+            location / 'bin' / 'pip',
+            location / 'bin' / 'pip3',
+            location / 'Scripts' / 'pip.exe',
+            location / 'Scripts' / 'pip3.exe',
+        ):
+            if test.exists() and test.is_file():
+                executable = str(test)
+                break
+
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, f"{executable} {argument.content}"))  # type: ignore
 
     if shutil.which('node') and shutil.which('npm'):
         @Feature.Command(parent="jsk", name="node")
