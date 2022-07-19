@@ -318,9 +318,10 @@ class PythonFeature(Feature):
 
                             ioless_time: float = 0
 
-                            for timing in profile.code_map[executor.function.__code__].values():  # type: ignore
-                                line_timings[timing.lineno].append(timing.total_time * profile.timer_unit)  # type: ignore
-                                ioless_time += timing.total_time * profile.timer_unit  # type: ignore
+                            for function in profile.code_map.values():  # type: ignore
+                                for timing in function.values():  # type: ignore
+                                    line_timings[timing.lineno].append(timing.total_time * profile.timer_unit)  # type: ignore
+                                    ioless_time += timing.total_time * profile.timer_unit  # type: ignore
 
                             ioless_timings.append(ioless_time)
 
