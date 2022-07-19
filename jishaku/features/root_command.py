@@ -11,7 +11,6 @@ The jishaku root command.
 
 """
 
-import math
 import sys
 import typing
 
@@ -20,6 +19,7 @@ from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
+from jishaku.math import natural_size
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
 from jishaku.types import ContextA
@@ -33,20 +33,6 @@ try:
     from importlib.metadata import distribution, packages_distributions
 except ImportError:
     from importlib_metadata import distribution, packages_distributions  # type: ignore
-
-
-def natural_size(size_in_bytes: int):
-    """
-    Converts a number of bytes to an appropriately-scaled unit
-    E.g.:
-        1024 -> 1.00 KiB
-        12345678 -> 11.77 MiB
-    """
-    units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
-
-    power = int(math.log(max(abs(size_in_bytes), 1), 1024))
-
-    return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
 
 class RootCommand(Feature):

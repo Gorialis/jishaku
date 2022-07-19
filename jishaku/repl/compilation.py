@@ -44,7 +44,7 @@ async def _repl_coroutine({{0}}):
 """
 
 
-def wrap_code(code: str, args: str = '') -> ast.Module:
+def wrap_code(code: str, args: str = '', auto_return: bool = True) -> ast.Module:
     """
     Compiles Python code into an async function or generator,
     and automatically adds return if the function body is a single evaluation.
@@ -53,6 +53,10 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
 
     user_code: ast.Module = import_expression.parse(code, mode='exec')  # type: ignore
     mod: ast.Module = import_expression.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
+
+    for node in ast.walk(mod):
+        node.lineno = -100_000
+        node.end_lineno = -100_000
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -65,6 +69,10 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     ast.fix_missing_locations(mod)
 
     KeywordTransformer().generic_visit(try_block)
+
+    # if auto return is disabled, we're done here
+    if not auto_return:
+        return mod
 
     last_expr = try_block.body[-1]
 
@@ -107,7 +115,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         print(total)
     """
 
-    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope', 'source')
+    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope', 'source', '_function')
 
     def __init__(
         self,
@@ -116,6 +124,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         arg_dict: typing.Optional[typing.Dict[str, typing.Any]] = None,
         convertables: typing.Optional[typing.Dict[str, str]] = None,
         loop: typing.Optional[asyncio.BaseEventLoop] = None,
+        auto_return: bool = True,
     ):
         self.args = [self]
         self.arg_names = ['_async_executor']
@@ -128,7 +137,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         self.source = code
 
         try:
-            self.code = wrap_code(code, args=', '.join(self.arg_names))
+            self.code = wrap_code(code, args=', '.join(self.arg_names), auto_return=auto_return)
         except (SyntaxError, IndentationError) as first_error:
             if not convertables:
                 raise
@@ -142,12 +151,45 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
+        self._function = None
+
+    @property
+    def function(self) -> typing.Callable[..., typing.Union[
+        typing.Awaitable[typing.Any],
+        typing.AsyncGenerator[typing.Any, typing.Any]
+    ]]:
+        """
+        The function object produced from compiling the code.
+        If the code has not been compiled yet, it will be done upon first access.
+        """
+
+        if self._function is not None:
+            return self._function
+
+        exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
+        self._function = self.scope.locals.get('_repl_coroutine') or self.scope.globals['_repl_coroutine']
+
+        return self._function
+
+    def create_linecache(self) -> typing.List[str]:
+        """
+        Populates the line cache with the current source.
+        Can be performed before printing a traceback to show correct source lines.
+        """
+
+        lines = [line + '\n' for line in self.source.splitlines()]
+
+        linecache.cache['<repl>'] = (
+            len(self.source),  # Source length
+            None,  # Time modified (None bypasses expunge)
+            lines,  # Line list
+            '<repl>'  # 'True' filename
+        )
+
+        return lines
 
     def __aiter__(self) -> typing.AsyncGenerator[typing.Any, typing.Any]:
-        exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
-        func_def = self.scope.locals.get('_repl_coroutine') or self.scope.globals['_repl_coroutine']
-
-        return self.traverse(func_def)
+        return self.traverse(self.function)
 
     async def traverse(
         self,
@@ -172,11 +214,6 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 yield await func_a(*self.args)
         except Exception:  # pylint: disable=broad-except
             # Falsely populate the linecache to make the REPL line appear in tracebacks
-            linecache.cache['<repl>'] = (
-                len(self.source),  # Source length
-                None,  # Time modified (None bypasses expunge)
-                [line + '\n' for line in self.source.splitlines()],  # Line list
-                '<repl>'  # 'True' filename
-            )
+            self.create_linecache()
 
             raise

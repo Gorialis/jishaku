@@ -12,7 +12,6 @@ The jishaku extension and bot control commands.
 """
 
 import itertools
-import math
 import re
 import time
 import traceback
@@ -24,6 +23,7 @@ from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
+from jishaku.math import mean_stddev
 from jishaku.modules import ExtensionConverter
 from jishaku.repl import inspections
 from jishaku.types import ContextA
@@ -162,12 +162,7 @@ class ManagementFeature(Feature):
             text += "\n".join(f"Reading {index + 1}: {reading * 1000:.2f}ms" for index, reading in enumerate(api_readings))
 
             if api_readings:
-                average = sum(api_readings) / len(api_readings)
-
-                if len(api_readings) > 1:
-                    stddev = math.sqrt(sum(math.pow(reading - average, 2) for reading in api_readings) / (len(api_readings) - 1))
-                else:
-                    stddev = 0.0
+                average, stddev = mean_stddev(api_readings)
 
                 text += f"\n\nAverage: {average * 1000:.2f} \N{PLUS-MINUS SIGN} {stddev * 1000:.2f}ms"
             else:

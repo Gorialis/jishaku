@@ -29,6 +29,7 @@ import os
 import pathlib
 import re
 import subprocess
+import typing
 
 from setuptools import setup
 
@@ -40,9 +41,9 @@ with open(ROOT / 'jishaku' / 'meta.py', 'r', encoding='utf-8') as f:
     if not VERSION_MATCH:
         raise RuntimeError('version is not set or could not be located')
 
-    VERSION = '.'.join([VERSION_MATCH.group(1), VERSION_MATCH.group(2), VERSION_MATCH.group(3)])
+    version = '.'.join([VERSION_MATCH.group(1), VERSION_MATCH.group(2), VERSION_MATCH.group(3)])
 
-EXTRA_REQUIRES = {}
+EXTRA_REQUIRES: typing.Dict[str, typing.List[str]] = {}
 
 for feature in (ROOT / 'requirements').glob('*.txt'):
     with open(feature, 'r', encoding='utf-8') as f:
@@ -50,45 +51,45 @@ for feature in (ROOT / 'requirements').glob('*.txt'):
 
 REQUIREMENTS = EXTRA_REQUIRES.pop('_')
 
-if not VERSION:
+if not version:
     raise RuntimeError('version is not set')
 
 
 try:
-    PROCESS = subprocess.Popen(
+    process = subprocess.Popen(
         ['git', 'rev-list', '--count', 'HEAD'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
 
-    COMMIT_COUNT, ERR = PROCESS.communicate()
+    COMMIT_COUNT, err = process.communicate()
 
     if COMMIT_COUNT:
-        PROCESS = subprocess.Popen(
+        process = subprocess.Popen(
             ['git', 'rev-parse', '--short', 'HEAD'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 
-        COMMIT_HASH, ERR = PROCESS.communicate()
+        COMMIT_HASH, err = process.communicate()
 
         if COMMIT_HASH:
             match = re.match(r'(\d).(\d).(\d)(a|b|rc)?', os.getenv('tag_name') or "")
 
             if (match and match[4]) or not match:
-                VERSION += ('' if match else 'a') + COMMIT_COUNT.decode('utf-8').strip() + '+g' + COMMIT_HASH.decode('utf-8').strip()
+                version += ('' if match else 'a') + COMMIT_COUNT.decode('utf-8').strip() + '+g' + COMMIT_HASH.decode('utf-8').strip()
 
                 # Also attempt to retrieve a branch, when applicable
-                PROCESS = subprocess.Popen(
+                process = subprocess.Popen(
                     ['git', 'symbolic-ref', '-q', '--short', 'HEAD'],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
 
-                COMMIT_BRANCH, ERR = PROCESS.communicate()
+                COMMIT_BRANCH, err = process.communicate()
 
                 if COMMIT_BRANCH:
-                    VERSION += "." + re.sub('[^a-zA-Z0-9.]', '.', COMMIT_BRANCH.decode('utf-8').strip())
+                    version += "." + re.sub('[^a-zA-Z0-9.]', '.', COMMIT_BRANCH.decode('utf-8').strip())
 
 except FileNotFoundError:
     pass
@@ -113,7 +114,7 @@ setup(
         'Issue tracker': 'https://github.com/Gorialis/jishaku/issues'
     },
 
-    version=VERSION,
+    version=version,
     packages=['jishaku', 'jishaku.features', 'jishaku.repl', 'jishaku.shim'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
@@ -121,7 +122,7 @@ setup(
 
     extras_require=EXTRA_REQUIRES,
 
-    download_url='https://github.com/Gorialis/jishaku/archive/{}.tar.gz'.format(VERSION),
+    download_url=f'https://github.com/Gorialis/jishaku/archive/{version}.tar.gz',
 
     keywords='jishaku discord.py discord cog repl extension',
     classifiers=[

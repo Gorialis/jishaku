@@ -47,8 +47,9 @@ async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
 @click.command()
 @click.argument('intents', nargs=-1)
 @click.argument('token')
+@click.option('--log-level', '-v', default='DEBUG')
 @click.option('--log-file', '-l', default=None)
-def entrypoint(intents: typing.Iterable[str], token: str, log_file: typing.Optional[str] = None):
+def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_file: typing.Optional[str] = None):
     """
     Entrypoint accessible through `python -m jishaku <TOKEN>`
 
@@ -56,10 +57,12 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_file: typing.Optio
     E.g.:
         -m jishaku -- +all -message_content <TOKEN>
     Arguments are applied in order.
+    You can also set log level and output to a file:
+        -m jishaku --log-level INFO --log-file bot.log -- +all <TOKEN>
     """
 
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(getattr(logging, log_level))
     logger.addHandler(LOG_STREAM)
 
     if log_file:
@@ -107,7 +110,7 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_file: typing.Optio
             )
 
     unique_id = str(uuid.uuid4())
-    logging.getLogger('jishaku.__main__').info(
+    logging.getLogger('jishaku.__main__').critical(
         'Generated a unique UUID for this session: %s'
         '\nYou can use Jishaku with your bot once it starts using `%s::jsk <subcommand>`'
         '\nIf you have no message content, you can prefix it with the mention: `@Bot %s::jsk <subcommand>`',
