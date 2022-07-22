@@ -13,20 +13,31 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.8', '3.9', '3.10', '3.11.0-alpha - 3.11.0' ]
+        python:
+          - {version: '3.8'}
+          - {version: '3.9'}
+          - {version: '3.10'}
+          - {version: '3.11.0-alpha - 3.11.0', experimental: true}
         discord-py:
           - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
           - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
-    name: "${{ matrix.os }} CPython ${{ matrix.python-version }} with ${{ matrix.python-arch }} ${{ matrix.discord-py.NAME }} discord.py"
+    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.python-arch }} ${{ matrix.discord-py.NAME }} discord.py"
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python.version }}
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.python.version }}
+
+    - name: Install experimental deps
+      shell: bash
+      if: ${{ matrix.python.experimental }}
+      run: |
+        pip install -U "yarl @ git+https://github.com/aio-libs/yarl@master"
+        pip install -U "aiohttp @ git+https://github.com/aio-libs/aiohttp@master"
 
     - name: Install dependencies
       shell: bash
