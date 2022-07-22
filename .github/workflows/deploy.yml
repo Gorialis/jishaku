@@ -105,7 +105,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install -U -r requirements/publish.txt
+          pip install -U ".[publish]"
 
       - name: Download artifacts
         uses: actions/download-artifact@v2
