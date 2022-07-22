@@ -118,8 +118,7 @@ jobs:
           rm ./dist/*.md
 
       - name: Publish packages to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.2
+        uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
-          user: ${{ secrets.pypi_username }}
-          password: ${{ secrets.pypi_password }}
-
+          user: __token__
+          password: ${{ secrets.pypi_api_token }}
