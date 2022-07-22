@@ -3,6 +3,18 @@
 What's new?
 ================
 
+Version 2.5.1
+-------------
+
+This version includes:
+
+- Some fixes for changes that broke existing fork support
+- A fix for ``jsk pip`` that tries to select the right pip for the current Python when a venv is not correctly activated.
+- Additional shortcut 'scaffold' methods that allow you to easily leverage some compilers/interpreters via the shell when detected.
+- If a REPL (``jsk py``, etc) contains mentions and fails to compile as is, jishaku will attempt to substitute the mentions with a respective object. This allows you to use mentions as literals when not in a codeblock.
+- Some reaction-related functionality has been adjusted to try and avoid sending reactions when it's not necessary. This is to account for the new, slower, reaction rate limits. Note that some of these benefits only apply to 2.0a+ users.
+- An experimental ``jsk timeit`` command that attempts to do line-based timing evaluation of Python code. This isn't super reliable as is, and generally should not be used for small or absolute measurements, but rather to find large snags that could be bottlenecking.
+
 Version 2.5.0
 -------------
 
