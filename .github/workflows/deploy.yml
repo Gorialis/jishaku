@@ -36,6 +36,7 @@ jobs:
       shell: bash
       if: ${{ matrix.python.experimental }}
       run: |
+        pip install -U Cython
         pip install -U "yarl @ git+https://github.com/aio-libs/yarl@master"
         pip install -U "aiohttp @ git+https://github.com/aio-libs/aiohttp@master"
 
