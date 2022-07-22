@@ -105,6 +105,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip setuptools wheel
+          export tag_name="${GITHUB_REF##*/}"
           pip install -U ".[publish]"
 
       - name: Download artifacts
