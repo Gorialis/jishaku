@@ -1,8 +1,13 @@
 jishaku {{ package.version }}
 
 https://pypi.org/project/jishaku/{{ package.version }}/
-https://github.com/Gorialis/jishaku/tree/{{ env('tag_name') }}
+{{ env('GITHUB_SERVER_URL') }}/{{ env('GITHUB_REPOSITORY') }}/tree/{{ env('tag_name') }}
+
 https://jishaku.readthedocs.io/en/latest/whatsnew.html#version-{{ package.version.replace('.', '-') }}
+
+Built by {{ env('GITHUB_SERVER_URL') }}/{{ env('GITHUB_REPOSITORY') }}/actions/runs/{{ env('GITHUB_RUN_ID') }} (triggered by {{ env('GITHUB_ACTOR') }})
+
+[New commits since {{ last_version }}]({{ env('GITHUB_SERVER_URL') }}/{{ env('GITHUB_REPOSITORY') }}/compare/{{ last_version }}...{{ commit_hash }})
 
 It is advised that you install jishaku directly through the pip package manager.
 
@@ -17,3 +22,18 @@ pip install -U jishaku=={{ package.version }}
 ```
 
 Artifacts are included with this release for debugging convenience.
+
+<details>
+<summary>Artifact hashes</summary>
+{% for file in files %}
+### {{file.name}}
+
+MD5: `{{file.md5}}`
+
+SHA1: `{{file.sha1}}`
+
+SHA256: `{{file.sha256}}`
+
+{% endfor %}
+
+</details>
