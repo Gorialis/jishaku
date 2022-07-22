@@ -17,7 +17,8 @@ jobs:
           - {version: '3.8'}
           - {version: '3.9'}
           - {version: '3.10'}
-          - {version: '3.11.0-alpha - 3.11.0', experimental: true}
+          # Disabled because yarl's build setup is insanely stupid (requires checked out cythonize)
+          #- {version: '3.11.0-alpha - 3.11.0', experimental: true}
         discord-py:
           - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
           - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
@@ -31,14 +32,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python.version }}
-
-    - name: Install experimental deps
-      shell: bash
-      if: ${{ matrix.python.experimental }}
-      run: |
-        pip install -U Cython
-        pip install -U "yarl @ git+https://github.com/aio-libs/yarl@master"
-        pip install -U "aiohttp @ git+https://github.com/aio-libs/aiohttp@master"
 
     - name: Install dependencies
       shell: bash
