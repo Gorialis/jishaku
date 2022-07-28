@@ -152,6 +152,8 @@ else:
                 SELECT * FROM information_schema.columns
                 WHERE $1::TEXT IS NULL OR table_name = $1::TEXT
                 ORDER BY
+                table_schema = 'pg_catalog' ASC,
+                table_schema = 'information_schema' ASC,
                 table_catalog ASC,
                 table_schema ASC,
                 table_name ASC,
@@ -322,7 +324,7 @@ class SQLFeature(Feature):
             paginator.add_line(f'{table} (')
 
             for column_name, remarks in structure.items():
-                paginator.add_line(f'    {column_name:20} {remarks},')
+                paginator.add_line(f'    {column_name:30} {remarks},')
 
             paginator.add_line(')')
             paginator.close_page()
