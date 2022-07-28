@@ -394,7 +394,7 @@ class SQLFeature(Feature):
     @Feature.Command(parent="jsk_sql", name="schema")
     async def jsk_sql_schema(self, ctx: ContextA, *, query: typing.Optional[str] = None):
         """
-        Executes a statement against the SQL database.
+        Queries for the current schema and shows located table structures.
         """
 
         adapter_shim, _ = self.jsk_find_adapter(ctx)
