@@ -110,8 +110,8 @@ except ImportError:
     pass
 else:
     @adapter(asyncpg.Connection, asyncpg.Pool)
-    class AsyncpgConnectionAdapter(Adapter[asyncpg.Connection | asyncpg.Pool]):
-        def __init__(self, connection: asyncpg.Connection | asyncpg.Pool):
+    class AsyncpgConnectionAdapter(Adapter[typing.Union[asyncpg.Connection, asyncpg.Pool]]):
+        def __init__(self, connection: typing.Union[asyncpg.Connection, asyncpg.Pool]):
             super().__init__(connection)
             self.connection: asyncpg.Connection = None  # type: ignore
 
@@ -176,8 +176,8 @@ except ImportError:
     pass
 else:
     @adapter(aiomysql.Connection, aiomysql.Pool)
-    class AioMySQLConnectionAdapter(Adapter[aiomysql.Connection | aiomysql.Pool]):
-        def __init__(self, connection: aiomysql.Connection | aiomysql.Pool):
+    class AioMySQLConnectionAdapter(Adapter[typing.Union[aiomysql.Connection, aiomysql.Pool]]):
+        def __init__(self, connection: typing.Union[aiomysql.Connection, aiomysql.Pool]):
             super().__init__(connection)
             self.connection: aiomysql.Connection = None  # type: ignore
 
