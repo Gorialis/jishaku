@@ -210,7 +210,7 @@ else:
                 await cursor.execute(query)  # type: ignore
                 return [
                     dict(record)  # type: ignore
-                    for record in await cursor.fetchall(query)  # type: ignore
+                    for record in await cursor.fetchall()  # type: ignore
                 ]
             finally:
                 await cursor.close()  # type: ignore
@@ -309,7 +309,7 @@ class SQLFeature(Feature):
                 with self.submit(ctx):
                     output = await adapter_shim.fetchrow(query)
 
-        text = tabulate({key: [value] for key, value in output}, headers='keys', tablefmt='psql')
+        text = tabulate({key: [value] for key, value in output.items()}, headers='keys', tablefmt='psql')
 
         if use_file_check(ctx, len(text)):
             await ctx.reply(file=discord.File(
