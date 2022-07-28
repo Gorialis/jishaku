@@ -156,17 +156,18 @@ class PythonFeature(Feature):
         arg_dict["_"] = self.last_result
         convertables: typing.Dict[str, str] = {}
 
-        for index, user in enumerate(ctx.message.mentions):
-            arg_dict[f"__user_mention_{index}"] = user
-            convertables[user.mention] = f"__user_mention_{index}"
+        if getattr(ctx, 'interaction', None) is None:
+            for index, user in enumerate(ctx.message.mentions):
+                arg_dict[f"__user_mention_{index}"] = user
+                convertables[user.mention] = f"__user_mention_{index}"
 
-        for index, channel in enumerate(ctx.message.channel_mentions):
-            arg_dict[f"__channel_mention_{index}"] = channel
-            convertables[channel.mention] = f"__channel_mention_{index}"
+            for index, channel in enumerate(ctx.message.channel_mentions):
+                arg_dict[f"__channel_mention_{index}"] = channel
+                convertables[channel.mention] = f"__channel_mention_{index}"
 
-        for index, role in enumerate(ctx.message.role_mentions):
-            arg_dict[f"__role_mention_{index}"] = role
-            convertables[role.mention] = f"__role_mention_{index}"
+            for index, role in enumerate(ctx.message.role_mentions):
+                arg_dict[f"__role_mention_{index}"] = role
+                convertables[role.mention] = f"__role_mention_{index}"
 
         return arg_dict, convertables
 
