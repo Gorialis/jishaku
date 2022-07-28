@@ -1,0 +1,1 @@
+line-profiler >= 3.5.1
