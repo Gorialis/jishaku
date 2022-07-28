@@ -107,15 +107,15 @@ try:
 except ImportError:
     pass
 else:
-    @adapter(asyncpg.Connection, asyncpg.Pool)
-    class AsyncpgConnectionAdapter(Adapter[typing.Union[asyncpg.Connection, asyncpg.Pool]]):
-        def __init__(self, connection: typing.Union[asyncpg.Connection, asyncpg.Pool]):
+    @adapter(asyncpg.Connection, asyncpg.pool.Pool)
+    class AsyncpgConnectionAdapter(Adapter[typing.Union[asyncpg.Connection, asyncpg.pool.Pool]]):
+        def __init__(self, connection: typing.Union[asyncpg.Connection, asyncpg.pool.Pool]):
             super().__init__(connection)
             self.connection: asyncpg.Connection = None  # type: ignore
 
         @contextlib.asynccontextmanager
         async def use(self):
-            if isinstance(self.connector, asyncpg.Pool):
+            if isinstance(self.connector, asyncpg.pool.Pool):
                 async with self.connector.acquire() as connection:  # type: ignore
                     self.connection = connection  # type: ignore
                     yield
