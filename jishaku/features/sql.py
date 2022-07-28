@@ -150,7 +150,7 @@ else:
             for record in await self.connection.fetch(  # type: ignore
                 """
                 SELECT * FROM information_schema.columns
-                WHERE $1 IS NULL OR table_name = $1
+                WHERE $1::TEXT IS NULL OR table_name = $1::TEXT
                 ORDER BY
                 table_catalog ASC,
                 table_schema ASC,
@@ -301,7 +301,7 @@ class SQLFeature(Feature):
         await ctx.reply(content=output)
 
     @Feature.Command(parent="jsk_sql", name="schema")
-    async def jsk_sql_schema(self, ctx: ContextA, *, query: str):
+    async def jsk_sql_schema(self, ctx: ContextA, *, query: typing.Optional[str] = None):
         """
         Executes a statement against the SQL database.
         """
