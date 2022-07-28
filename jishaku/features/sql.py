@@ -72,6 +72,19 @@ class Adapter(typing.Generic[T]):
         """
         raise NotImplementedError()
 
+    async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
+        """
+        A function that queries to find table structures identified by this adapter.
+
+        Returns a dictionary in form
+        {
+            table: {
+                column: remarks
+            }
+        }
+        """
+        raise NotImplementedError()
+
 
 KNOWN_ADAPTERS: typing.Dict[typing.Type[typing.Any], typing.Type[Adapter[typing.Any]]] = {}
 
@@ -130,6 +143,28 @@ else:
 
         async def execute(self, query: str) -> str:
             return await self.connection.execute(query)  # type: ignore
+
+        async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
+            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(dict)
+
+            for record in await self.connection.fetch(  # type: ignore
+                """
+                SELECT * FROM information_schema.columns
+                WHERE $1 IS NULL OR table_name = $1
+                ORDER BY
+                table_catalog ASC,
+                table_schema ASC,
+                table_name ASC,
+                ordinal_position ASC
+                """,
+                table_query
+            ):
+                table_name: str = f"{record['table_catalog']}.{record['table_schema']}.{record['table_name']}"  # type: ignore
+                tables[table_name][record['column_name']] = (  # type: ignore
+                    record['data_type'].upper() + (' NOT NULL' if record['is_nullable'] == 'NO' else '')  # type: ignore
+                )
+
+            return tables
 
 
 # pylint: enable=missing-class-docstring,missing-function-docstring
@@ -264,3 +299,33 @@ class SQLFeature(Feature):
                     output = await adapter_shim.execute(query)
 
         await ctx.reply(content=output)
+
+    @Feature.Command(parent="jsk_sql", name="schema")
+    async def jsk_sql_schema(self, ctx: ContextA, *, query: str):
+        """
+        Executes a statement against the SQL database.
+        """
+
+        adapter_shim, _ = self.jsk_find_adapter(ctx)
+
+        if adapter_shim is None:
+            return await ctx.send("No SQL adapter could be found on this bot.")
+
+        async with adapter_shim.use():
+            async with ReplResponseReactor(ctx.message):
+                with self.submit(ctx):
+                    output = await adapter_shim.table_summary(query)
+
+        paginator = WrappedPaginator(prefix='```sql', max_size=1980)
+
+        for table, structure in output.items():
+            paginator.add_line(f'{table} (')
+
+            for column_name, remarks in structure.items():
+                paginator.add_line(f'    {column_name:20} {remarks},')
+
+            paginator.add_line(')')
+            paginator.close_page()
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        await interface.send_to(ctx)
