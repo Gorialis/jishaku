@@ -11,20 +11,18 @@ The jishaku SQL-related commands and utilities.
 
 """
 
-import contextlib
 import collections
+import contextlib
 import io
 import typing
 
 import discord
 from tabulate import tabulate
 
-from jishaku.types import ContextA
-
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
-from jishaku.paginators import use_file_check, PaginatorInterface, WrappedPaginator
-
+from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
+from jishaku.types import ContextA
 
 T = typing.TypeVar('T')
 
