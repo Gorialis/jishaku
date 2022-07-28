@@ -169,6 +169,89 @@ else:
             return tables
 
 
+try:
+    import aiomysql  # type: ignore
+except ImportError:
+    pass
+else:
+    @adapter(aiomysql.Connection, aiomysql.Pool)
+    class AioMySQLConnectionAdapter(Adapter[aiomysql.Connection | aiomysql.Pool]):
+        def __init__(self, connection: aiomysql.Connection | aiomysql.Pool):
+            super().__init__(connection)
+            self.connection: aiomysql.Connection = None  # type: ignore
+
+        @contextlib.asynccontextmanager
+        async def use(self):
+            if isinstance(self.connector, aiomysql.Pool):
+                async with self.connector.acquire() as connection:  # type: ignore
+                    self.connection = connection  # type: ignore
+                    yield
+            else:
+                self.connection = self.connector
+                yield
+
+        def info(self) -> str:
+            return " ".join((
+                f"aiomysql {aiomysql.__version__} {type(self.connector).__name__} connected to",
+                f"MySQL server (Database: {self.connection.db}, User: {self.connection.user})",  # type: ignore
+            ))
+
+        async def fetchrow(self, query: str) -> typing.Dict[str, typing.Any]:
+            cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
+            try:
+                await cursor.execute(query)  # type: ignore
+                return dict(await cursor.fetchone())  # type: ignore
+            finally:
+                await cursor.close()  # type: ignore
+
+        async def fetch(self, query: str) -> typing.List[typing.Dict[str, typing.Any]]:
+            cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
+            try:
+                await cursor.execute(query)  # type: ignore
+                return [
+                    dict(record)  # type: ignore
+                    for record in await cursor.fetchall(query)  # type: ignore
+                ]
+            finally:
+                await cursor.close()  # type: ignore
+
+        async def execute(self, query: str) -> str:
+            cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
+            try:
+                return str(await cursor.execute(query)) + " row(s) affected"  # type: ignore
+            finally:
+                await cursor.close()  # type: ignore
+
+        async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
+            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(dict)
+
+            cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
+            try:
+                await cursor.execute(  # type: ignore
+                    """
+                    SELECT * FROM information_schema.columns
+                    WHERE CAST(%s AS TEXT) IS NULL OR table_name = CAST(%s AS TEXT)
+                    ORDER BY
+                    TABLE_SCHEMA = 'information_schema' ASC,
+                    TABLE_CATALOG ASC,
+                    TABLE_SCHEMA ASC,
+                    TABLE_NAME ASC,
+                    ORDINAL_POSITION ASC
+                    """,
+                    (table_query, table_query)
+                )
+
+                for record in await cursor.fetchall():  # type: ignore
+                    table_name: str = f"{record['TABLE_CATALOG']}.{record['TABLE_SCHEMA']}.{record['TABLE_NAME']}"  # type: ignore
+                    tables[table_name][record['COLUMN_NAME']] = (  # type: ignore
+                        record['DATA_TYPE'].upper() + (' NOT NULL' if record['IS_NULLABLE'] == 'NO' else '')  # type: ignore
+                    )
+            finally:
+                await cursor.close()  # type: ignore
+
+            return tables
+
+
 # pylint: enable=missing-class-docstring,missing-function-docstring
 
 class SQLFeature(Feature):
