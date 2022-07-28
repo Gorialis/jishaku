@@ -159,7 +159,7 @@ class SQLFeature(Feature):
 
         return None, None
 
-    @Feature.Command(parent="jsk", name="sql")
+    @Feature.Command(parent="jsk", name="sql", invoke_without_command=True, ignore_extra=False)
     async def jsk_sql(self, ctx: ContextA):
         """
         Parent for SQL adapter related commands
@@ -192,7 +192,7 @@ class SQLFeature(Feature):
         text = tabulate({key: [value] for key, value in output}, headers='keys', tablefmt='psql')
 
         if use_file_check(ctx, len(text)):
-            await ctx.send(file=discord.File(
+            await ctx.reply(file=discord.File(
                 filename="response.txt",
                 fp=io.BytesIO(text.encode('utf-8'))
             ))
@@ -228,7 +228,7 @@ class SQLFeature(Feature):
         text = tabulate(aggregator, headers='keys', tablefmt='psql')
 
         if use_file_check(ctx, len(text)):
-            await ctx.send(file=discord.File(
+            await ctx.reply(file=discord.File(
                 filename="response.txt",
                 fp=io.BytesIO(text.encode('utf-8'))
             ))
@@ -238,6 +238,14 @@ class SQLFeature(Feature):
 
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)
+
+    @Feature.Command(parent="jsk_sql", name="select", aliases=['SELECT'])
+    async def jsk_sql_select(self, ctx: ContextA, *, query: str):
+        """
+        Shortcut for 'jsk sql fetch select'.
+        """
+
+        await ctx.invoke(self.jsk_sql_fetch, query=f'SELECT {query}')  # type: ignore
 
     @Feature.Command(parent="jsk_sql", name="execute")
     async def jsk_sql_execute(self, ctx: ContextA, *, query: str):
