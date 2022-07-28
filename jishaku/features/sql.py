@@ -133,7 +133,8 @@ else:
             ))
 
         async def fetchrow(self, query: str) -> typing.Dict[str, typing.Any]:
-            return dict(await self.connection.fetchrow(query))  # type: ignore
+            value = await self.connection.fetchrow(query)  # type: ignore
+            return dict(value) if value else None  # type: ignore
 
         async def fetch(self, query: str) -> typing.List[typing.Dict[str, typing.Any]]:
             return [
@@ -200,7 +201,8 @@ else:
             cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
             try:
                 await cursor.execute(query)  # type: ignore
-                return dict(await cursor.fetchone())  # type: ignore
+                value = await cursor.fetchone()  # type: ignore
+                return dict(value) if value else None  # type: ignore
             finally:
                 await cursor.close()  # type: ignore
 
