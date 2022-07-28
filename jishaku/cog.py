@@ -24,6 +24,7 @@ from jishaku.features.management import ManagementFeature
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
+from jishaku.features.sql import SQLFeature
 from jishaku.features.voice import VoiceFeature
 
 __all__ = (
@@ -33,7 +34,7 @@ __all__ = (
     "setup",
 )
 
-STANDARD_FEATURES = (VoiceFeature, GuildFeature, FilesystemFeature, InvocationFeature, ShellFeature, PythonFeature, ManagementFeature, RootCommand)
+STANDARD_FEATURES = (VoiceFeature, GuildFeature, FilesystemFeature, InvocationFeature, ShellFeature, SQLFeature, PythonFeature, ManagementFeature, RootCommand)
 
 OPTIONAL_FEATURES: typing.List[typing.Type[Feature]] = []
 
@@ -56,7 +57,7 @@ async def async_setup(bot: commands.Bot):
     The async setup function defining the jishaku.cog and jishaku extensions.
     """
 
-    await bot.add_cog(Jishaku(bot=bot))
+    await bot.add_cog(Jishaku(bot=bot))  # type: ignore
 
 
 def setup(bot: commands.Bot):  # pylint: disable=inconsistent-return-statements
