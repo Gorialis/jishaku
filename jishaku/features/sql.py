@@ -230,7 +230,7 @@ else:
                 await cursor.execute(  # type: ignore
                     """
                     SELECT * FROM information_schema.columns
-                    WHERE CAST(%s AS TEXT) IS NULL OR table_name = CAST(%s AS TEXT)
+                    WHERE CAST(%s AS CHAR) IS NULL OR table_name = CAST(%s AS CHAR)
                     ORDER BY
                     TABLE_SCHEMA = 'information_schema' ASC,
                     TABLE_CATALOG ASC,
