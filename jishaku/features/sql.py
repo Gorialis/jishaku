@@ -309,6 +309,9 @@ class SQLFeature(Feature):
                 with self.submit(ctx):
                     output = await adapter_shim.fetchrow(query)
 
+        if not output:
+            return await ctx.reply("No results produced.")
+
         text = tabulate({key: [value] for key, value in output.items()}, headers='keys', tablefmt='psql')
 
         if use_file_check(ctx, len(text)):
@@ -338,6 +341,9 @@ class SQLFeature(Feature):
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.fetch(query)
+
+        if not output:
+            return await ctx.reply("No results produced.")
 
         aggregator: typing.Dict[str, typing.List[typing.Any]] = collections.defaultdict(list)
 
@@ -400,6 +406,9 @@ class SQLFeature(Feature):
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.table_summary(query)
+
+        if not output:
+            return await ctx.reply("No results produced.")
 
         paginator = WrappedPaginator(prefix='```sql', max_size=1980)
 
