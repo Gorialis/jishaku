@@ -60,7 +60,18 @@ class ManagementFeature(Feature):
             try:
                 await discord.utils.maybe_coroutine(method, extension)
             except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+                if isinstance(exc, commands.ExtensionFailed) and exc.__cause__:
+                    cause = exc.__cause__
+                    traceback_data = ''.join(traceback.format_exception(type(cause), cause, cause.__traceback__, 2))
+
+                    if type(exc).__module__ not in ('__main__', 'builtins'):
+                        stype = type(exc).__qualname__
+                    else:
+                        stype = f"{type(exc).__module__}.{type(exc).__qualname__}"
+
+                    traceback_data += f'\n{stype}: {exc}'
+                else:
+                    traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
                 paginator.add_line(
                     f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
