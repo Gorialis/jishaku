@@ -62,9 +62,9 @@ class ManagementFeature(Feature):
             except Exception as exc:  # pylint: disable=broad-except
                 if isinstance(exc, commands.ExtensionFailed) and exc.__cause__:
                     cause = exc.__cause__
-                    traceback_data = ''.join(traceback.format_exception(type(cause), cause, cause.__traceback__, 2))
+                    traceback_data = ''.join(traceback.format_exception(type(cause), cause, cause.__traceback__, 8))
                 else:
-                    traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+                    traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 2))
 
                 paginator.add_line(
                     f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
@@ -93,7 +93,7 @@ class ManagementFeature(Feature):
             try:
                 await discord.utils.maybe_coroutine(self.bot.unload_extension, extension)
             except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 2))
 
                 paginator.add_line(
                     f"{icon}\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
