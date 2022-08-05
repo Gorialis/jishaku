@@ -63,13 +63,6 @@ class ManagementFeature(Feature):
                 if isinstance(exc, commands.ExtensionFailed) and exc.__cause__:
                     cause = exc.__cause__
                     traceback_data = ''.join(traceback.format_exception(type(cause), cause, cause.__traceback__, 2))
-
-                    if type(exc).__module__ in ('__main__', 'builtins'):
-                        stype = type(exc).__qualname__
-                    else:
-                        stype = f"{type(exc).__module__}.{type(exc).__qualname__}"
-
-                    traceback_data += f'\n{stype}: {exc}'
                 else:
                     traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
