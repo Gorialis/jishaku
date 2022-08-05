@@ -64,7 +64,7 @@ class ManagementFeature(Feature):
                     cause = exc.__cause__
                     traceback_data = ''.join(traceback.format_exception(type(cause), cause, cause.__traceback__, 2))
 
-                    if type(exc).__module__ not in ('__main__', 'builtins'):
+                    if type(exc).__module__ in ('__main__', 'builtins'):
                         stype = type(exc).__qualname__
                     else:
                         stype = f"{type(exc).__module__}.{type(exc).__qualname__}"
