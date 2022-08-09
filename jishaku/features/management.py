@@ -239,7 +239,11 @@ class ManagementFeature(Feature):
             slash_commands = self.bot.tree._get_all_commands(  # type: ignore  # pylint: disable=protected-access
                 guild=discord.Object(guild) if guild else None
             )
-            payload = [command.to_dict() for command in slash_commands]
+            translator = getattr(self.bot.tree, 'translator', None)
+            if translator:
+                payload = [await command.get_translated_payload(translator) for command in slash_commands]
+            else:
+                payload = [command.to_dict() for command in slash_commands]
 
             try:
                 if guild is None:
