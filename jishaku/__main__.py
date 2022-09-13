@@ -30,6 +30,8 @@ LOG_FORMAT: logging.Formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(n
 LOG_STREAM: logging.Handler = logging.StreamHandler(stream=sys.stdout)
 LOG_STREAM.setFormatter(LOG_FORMAT)
 
+LOGGER = logging.getLogger('jishaku.__main__')
+
 
 async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
     """
@@ -110,12 +112,31 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
             )
 
     unique_id = str(uuid.uuid4())
-    logging.getLogger('jishaku.__main__').critical(
+    LOGGER.critical(
         'Generated a unique UUID for this session: %s'
         '\nYou can use Jishaku with your bot once it starts using `%s::jsk <subcommand>`'
         '\nIf you have no message content, you can prefix it with the mention: `@Bot %s::jsk <subcommand>`',
         unique_id, unique_id, unique_id
     )
+
+    try:
+        import pyperclip  # type: ignore # pylint: disable=import-outside-toplevel
+    except ImportError:
+        LOGGER.critical(
+            'If you install `pyperclip`, this prefix will be copied to your clipboard automatically.'
+        )
+    else:
+        try:
+            pyperclip.copy(f'{unique_id}::jsk')  # type: ignore
+        except Exception as error:  # pylint: disable=broad-except
+            LOGGER.critical(
+                'The prefix could not be copied to your clipboard: %s',
+                error
+            )
+        else:
+            LOGGER.critical(
+                'The prefix has been copied to your clipboard.'
+            )
 
     time.sleep(10)
 
