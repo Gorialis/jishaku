@@ -14,9 +14,9 @@ import random
 import sys
 
 import pytest
-from utils import mock_ctx
 
 from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, get_var_dict_from_ctx
+from tests.utils import mock_ctx
 
 
 def upper_method():

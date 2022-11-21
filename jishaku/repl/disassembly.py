@@ -167,7 +167,7 @@ def format_ast_block(
                 yield f"{stalk + (' ' * len(header.format(index)))} {description}"
 
 
-def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True) -> typing.Generator[str, None, None]:
+def format_ast_node(node: typing.Optional[ast.AST], level: int = 0, use_ansi: bool = True) -> typing.Generator[str, None, None]:
     """
     Recursively formats an AST node structure
 
@@ -175,22 +175,28 @@ def format_ast_node(node: ast.AST, level: int = 0, use_ansi: bool = True) -> typ
     Serious refactoring consideration required here.
     """
 
-    # Node name
-    if use_ansi:
-        yield f"\u001b[{(level % 6) + 31}m{type(node).__name__}\u001b[0m"
+    if isinstance(node, ast.AST):
+        if use_ansi:
+            yield f"\u001b[{(level % 6) + 31}m{type(node).__name__}\u001b[0m"
+        else:
+            yield type(node).__name__
+
+        fields = node._fields
+
+        for index, field in enumerate(fields):
+            yield from format_ast_block(
+                getattr(node, field),
+                header=field,
+                through=index < len(fields) - 1,
+                level=level,
+                use_ansi=use_ansi
+            )
+
     else:
-        yield type(node).__name__
-
-    fields = node._fields
-
-    for index, field in enumerate(fields):
-        yield from format_ast_block(
-            getattr(node, field),
-            header=field,
-            through=index < len(fields) - 1,
-            level=level,
-            use_ansi=use_ansi
-        )
+        if use_ansi:
+            yield f"\u001b[1;4m{repr(node)}\u001b[0m"
+        else:
+            yield repr(node)
 
 
 def create_tree(code: str, use_ansi: bool = True) -> str:
