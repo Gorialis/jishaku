@@ -14,8 +14,9 @@ import asyncio
 import discord
 import pytest
 import pytest_asyncio
-import utils
 from discord.ext import commands
+
+from tests import utils
 
 
 @pytest_asyncio.fixture(

@@ -15,10 +15,10 @@ from io import BytesIO
 
 import discord
 import pytest
-import utils
 from discord.ext import commands
 
 from jishaku.paginators import FilePaginator, PaginatorEmbedInterface, PaginatorInterface, WrappedPaginator
+from tests import utils
 
 
 def test_file_paginator():

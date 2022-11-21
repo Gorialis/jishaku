@@ -10,9 +10,9 @@ jishaku.models tests
 """
 
 import pytest
-import utils
 
 from jishaku.models import copy_context_with
+from tests import utils
 
 
 @pytest.mark.asyncio
