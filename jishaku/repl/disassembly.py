@@ -93,25 +93,19 @@ def disassemble(
 
     func_def = scope.locals.get('_repl_coroutine') or scope.globals['_repl_coroutine']
 
-    # pylint is gonna really hate this part onwards
-    # pylint: disable=protected-access
-    co = func_def.__code__
-
-    for instruction in dis._get_instructions_bytes(  # type: ignore
-        co.co_code, co.co_varnames, co.co_names, co.co_consts,
-        co.co_cellvars + co.co_freevars, dict(dis.findlinestarts(co)),
-        line_offset=0
+    for instruction in dis.get_instructions(  # type: ignore
+        func_def, first_line=0
     ):
         instruction: dis.Instruction
 
         if instruction.starts_line is not None and instruction.offset > 0:
             yield ''
 
+        # pylint: disable=protected-access
         yield instruction._disassemble(  # type: ignore
             4, False, 4
         )
-
-    # pylint: enable=protected-access
+        # pylint: enable=protected-access
 
 
 TREE_CONTINUE = ('\N{BOX DRAWINGS HEAVY VERTICAL AND RIGHT}', '\N{BOX DRAWINGS HEAVY VERTICAL}')
