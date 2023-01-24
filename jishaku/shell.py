@@ -21,12 +21,7 @@ import time
 import typing
 
 T = typing.TypeVar('T')
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
-    P = ParamSpec('P')
-else:
-    P = typing.ParamSpec('P')  # pylint: disable=no-member
+P = typing.ParamSpec('P')
 
 
 SHELL = os.getenv("SHELL") or "/bin/bash"

@@ -24,5 +24,5 @@ from jishaku.hljs import get_language
         ('#!/usr/bin/unknown', '')
     ]
 )
-def test_hljs(filename, language):
+def test_hljs(filename: str, language: str):
     assert get_language(filename) == language

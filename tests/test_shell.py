@@ -19,7 +19,7 @@ from jishaku.shell import ShellReader
 
 @pytest.mark.asyncio
 async def test_reader_basic():
-    return_data = []
+    return_data: list[str] = []
 
     with ShellReader("echo hi") as reader:
         async for result in reader:
@@ -42,7 +42,7 @@ async def test_reader_basic():
 )
 @pytest.mark.asyncio
 async def test_linux():
-    return_data = []
+    return_data: list[str] = []
 
     with ShellReader(">&2 echo oops") as reader:
         async for result in reader:
@@ -68,7 +68,7 @@ async def test_linux():
 )
 @pytest.mark.asyncio
 async def test_windows():
-    return_data = []
+    return_data: list[str] = []
 
     with ShellReader("cmd /c \"echo one && echo two && echo three 1>&2\"") as reader:
         async for result in reader:

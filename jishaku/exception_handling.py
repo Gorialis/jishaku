@@ -59,12 +59,7 @@ async def send_traceback(
 
 
 T = typing.TypeVar('T')
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
-    P = ParamSpec('P')
-else:
-    P = typing.ParamSpec('P')  # pylint: disable=no-member
+P = typing.ParamSpec('P')
 
 
 async def do_after_sleep(delay: float, coro: typing.Callable[P, typing.Awaitable[T]], *args: P.args, **kwargs: P.kwargs) -> T:

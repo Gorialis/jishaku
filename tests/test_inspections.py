@@ -10,6 +10,7 @@ jishaku.inspections test
 """
 
 import collections  # for __iadd__ test
+import typing
 
 import discord
 import pytest
@@ -29,6 +30,6 @@ from tests.utils import sentinel
         sentinel  # cover current-working-directory inspections
     ]
 )
-def test_object_inspection(target):
+def test_object_inspection(target: typing.Any):
     for _, _ in all_inspections(target):
         pass

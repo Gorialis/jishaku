@@ -14,11 +14,10 @@ This variant overrides behavior directly.
 
 """
 
-import inspect
-
 from discord.ext import commands
 
 import jishaku
+from jishaku.types import ContextT
 
 
 class Magnet2(*jishaku.OPTIONAL_FEATURES, *jishaku.STANDARD_FEATURES):  # pylint: disable=too-few-public-methods
@@ -27,27 +26,16 @@ class Magnet2(*jishaku.OPTIONAL_FEATURES, *jishaku.STANDARD_FEATURES):  # pylint
     """
 
     @jishaku.Feature.Command(name="jishaku", aliases=["jsk"], invoke_without_command=True, ignore_extra=False)
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: ContextT):
         """
         override test
         """
         return await ctx.send("The behavior of this command has been overridden directly.")
 
 
-async def async_setup(bot: commands.Bot):
-    """
-    The async setup function for the extended cog
-    """
-
-    await bot.add_cog(Magnet2(bot=bot))
-
-
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     """
     The setup function for the extended cog
     """
 
-    if inspect.iscoroutinefunction(bot.add_cog):
-        return async_setup(bot)
-    else:
-        bot.add_cog(Magnet2(bot=bot))
+    await bot.add_cog(Magnet2(bot=bot))  # type: ignore[reportGeneralTypeIssues]

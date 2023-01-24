@@ -29,11 +29,7 @@ if typing.TYPE_CHECKING:
 else:
     from braceexpand import UnbalancedBracesError
 
-
-if typing.TYPE_CHECKING or discord.version_info >= (2, 0, 0):
-    _ExtensionConverterBase = commands.Converter[typing.List[str]]
-else:
-    _ExtensionConverterBase = commands.Converter
+_ExtensionConverterBase = commands.Converter[typing.List[str]]
 
 
 def find_extensions_in(path: typing.Union[str, pathlib.Path]) -> typing.List[str]:

@@ -35,10 +35,10 @@ LOGGER = logging.getLogger('jishaku.__main__')
 
 async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
     """
-    Async entrypoint for 2.0a compatibility
+    Async entrypoint
     """
 
-    await discord.utils.maybe_coroutine(bot.load_extension, 'jishaku')  # type: ignore
+    await bot.load_extension('jishaku')
 
     try:
         await bot.start(*args, **kwargs)
@@ -149,11 +149,7 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
 
     bot = commands.Bot(prefix, intents=intents_class)
 
-    if discord.version_info >= (2, 0, 0):
-        asyncio.run(entry(bot, token))
-    else:
-        bot.load_extension('jishaku')  # type: ignore
-        bot.run(token)  # type: ignore
+    asyncio.run(entry(bot, token))
 
 
 if __name__ == '__main__':

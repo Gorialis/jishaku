@@ -28,10 +28,7 @@ from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.types import ContextA, ContextT
 
-if typing.TYPE_CHECKING or discord.version_info >= (2, 0):
-    UserIDConverter = commands.IDConverter[typing.Union[discord.Member, discord.User]]
-else:
-    UserIDConverter = commands.IDConverter
+UserIDConverter = commands.IDConverter[typing.Union[discord.Member, discord.User]]
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods

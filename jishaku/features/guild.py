@@ -141,14 +141,10 @@ class GuildFeature(Feature):
                 role_lookup = {r.id: r for r in roles}
 
                 def is_role(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
-                    if discord.version_info >= (2, 0, 0):
-                        return overwrite.is_role()
-                    return overwrite.type == 'role'  # type: ignore
+                    return overwrite.is_role()
 
                 def is_member(overwrite: discord.abc._Overwrites) -> bool:  # type: ignore
-                    if discord.version_info >= (2, 0, 0):
-                        return overwrite.is_member()
-                    return overwrite.type == 'member'  # type: ignore
+                    return overwrite.is_member()
 
                 # Denies are applied BEFORE allows, always
                 # Handle denies
