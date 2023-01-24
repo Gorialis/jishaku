@@ -24,9 +24,9 @@ stages:
     - PYTHONPATH="$(pwd)" pytest -vs
     - cd docs && make html
 
-buster 3.9 git:
+buster 3.11 git:
   stage: build
-  image: gorialis/discord.py:3.9-buster-master
+  image: gorialis/discord.py:3.11-buster-master
   <<: *git_dependencies
   <<: *run_tests
   artifacts:
@@ -37,9 +37,9 @@ buster 3.9 git:
   retry: 1
   when: always
 
-buster 3.9 pypi:
+buster 3.11 pypi:
   stage: build
-  image: gorialis/discord.py:3.9-buster-pypi
+  image: gorialis/discord.py:3.11-buster-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -50,9 +50,9 @@ buster 3.9 pypi:
   retry: 1
   when: always
 
-buster 3.8 git:
+buster 3.10 git:
   stage: build
-  image: gorialis/discord.py:3.8-buster-master
+  image: gorialis/discord.py:3.10-buster-master
   <<: *git_dependencies
   <<: *run_tests
   artifacts:
@@ -63,9 +63,9 @@ buster 3.8 git:
   retry: 1
   when: always
 
-buster 3.8 pypi:
+buster 3.10 pypi:
   stage: build
-  image: gorialis/discord.py:3.8-buster-pypi
+  image: gorialis/discord.py:3.10-buster-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -76,9 +76,9 @@ buster 3.8 pypi:
   retry: 1
   when: always
 
-alpine 3.9 git:
+alpine 3.11 git:
   stage: build
-  image: gorialis/discord.py:3.9-alpine-master
+  image: gorialis/discord.py:3.11-alpine-master
   <<: *git_dependencies
   <<: *run_tests
   artifacts:
@@ -89,9 +89,9 @@ alpine 3.9 git:
   retry: 1
   when: always
 
-alpine 3.9 pypi:
+alpine 3.11 pypi:
   stage: build
-  image: gorialis/discord.py:3.9-alpine-pypi
+  image: gorialis/discord.py:3.11-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:
@@ -102,9 +102,9 @@ alpine 3.9 pypi:
   retry: 1
   when: always
 
-alpine 3.8 git:
+alpine 3.10 git:
   stage: build
-  image: gorialis/discord.py:3.8-alpine-master
+  image: gorialis/discord.py:3.10-alpine-master
   <<: *git_dependencies
   <<: *run_tests
   artifacts:
@@ -115,9 +115,9 @@ alpine 3.8 git:
   retry: 1
   when: always
 
-alpine 3.8 pypi:
+alpine 3.10 pypi:
   stage: build
-  image: gorialis/discord.py:3.8-alpine-pypi
+  image: gorialis/discord.py:3.10-alpine-pypi
   <<: *pypi_dependencies
   <<: *run_tests
   artifacts:

@@ -69,7 +69,6 @@ disable=raw-checker-failed,
         deprecated-pragma,
         use-symbolic-message-instead,
         ungrouped-imports,
-        unsubscriptable-object,  # FIXME: this should be REMOVED once pylint fixes the unsubscriptable-object bug on 3.9. do not forget, on pain of death
         too-many-instance-attributes,
         duplicate-code,  # This picks up stupid things like imports
         too-many-locals,  # This is dumb
