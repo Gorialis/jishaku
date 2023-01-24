@@ -10,6 +10,7 @@ Paginator-related tools and interfaces for Jishaku.
 :license: MIT, see LICENSE for more details.
 
 """
+from __future__ import annotations
 
 import asyncio
 import typing
