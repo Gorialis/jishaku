@@ -14,7 +14,6 @@ The base Feature class that serves as the superclass of all feature components.
 import asyncio
 import collections
 import contextlib
-import sys
 import typing
 from datetime import datetime, timezone
 

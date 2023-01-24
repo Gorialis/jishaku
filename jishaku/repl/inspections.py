@@ -15,7 +15,6 @@ import collections
 import functools
 import inspect
 import os
-import sys
 import typing
 
 INSPECTIONS: typing.List[

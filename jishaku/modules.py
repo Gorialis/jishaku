@@ -14,7 +14,6 @@ Functions for managing and searching modules.
 import pathlib
 import typing
 
-import discord
 import pkg_resources
 from braceexpand import braceexpand
 from discord.ext import commands

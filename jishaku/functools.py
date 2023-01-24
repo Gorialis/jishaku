@@ -13,7 +13,6 @@ Function-related tools for Jishaku.
 
 import asyncio
 import functools
-import sys
 import typing
 
 T = typing.TypeVar('T')

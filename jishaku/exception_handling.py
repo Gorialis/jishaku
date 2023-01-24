@@ -13,7 +13,6 @@ Functions and classes for handling exceptions.
 
 import asyncio
 import subprocess
-import sys
 import traceback
 import typing
 from types import TracebackType
