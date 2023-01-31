@@ -18,7 +18,6 @@ It can be used to perform manual administrative actions as the bot, or to test J
 import asyncio
 import logging
 import sys
-import time
 import typing
 import uuid
 
@@ -38,12 +37,49 @@ async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
     Async entrypoint
     """
 
-    await bot.load_extension('jishaku')
+    LOGGER.critical("Beginning async context")
+    async with bot:
+        LOGGER.critical("Loading jishaku")
+        await bot.load_extension('jishaku')
 
-    try:
-        await bot.start(*args, **kwargs)
-    except KeyboardInterrupt:
-        pass
+        for extension in bot.extensions_to_load:  # type: ignore
+            extension: str
+            LOGGER.critical("Loading %s", extension)
+            await bot.load_extension(extension)
+
+        LOGGER.critical(
+            'Generated a unique UUID for this session: %s'
+            '\nYou can use Jishaku with your bot once it starts using `%s::jsk <subcommand>`'
+            '\nIf you have no message content, you can prefix it with the mention: `@Bot %s::jsk <subcommand>`',
+            bot.unique_id, bot.unique_id, bot.unique_id  # type: ignore
+        )
+
+        try:
+            import pyperclip  # type: ignore # pylint: disable=import-outside-toplevel
+        except ImportError:
+            LOGGER.critical(
+                'If you install `pyperclip`, this prefix will be copied to your clipboard automatically.'
+            )
+        else:
+            try:
+                pyperclip.copy(f'{bot.unique_id}::jsk')  # type: ignore
+            except Exception as error:  # pylint: disable=broad-except
+                LOGGER.critical(
+                    'The prefix could not be copied to your clipboard: %s',
+                    error
+                )
+            else:
+                LOGGER.critical(
+                    'The prefix has been copied to your clipboard.'
+                )
+
+        if not bot.skip_wait:  # type: ignore
+            await asyncio.sleep(10)
+
+        try:
+            await bot.start(*args, **kwargs)
+        except KeyboardInterrupt:
+            pass
 
 
 @click.command()
@@ -51,7 +87,16 @@ async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
 @click.argument('token')
 @click.option('--log-level', '-v', default='DEBUG')
 @click.option('--log-file', '-l', default=None)
-def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_file: typing.Optional[str] = None):
+@click.option('--load-extension', '-e', multiple=True)
+@click.option('--skip-wait', '-s', default=False, is_flag=True)
+def entrypoint(
+    intents: typing.Iterable[str],
+    token: str,
+    log_level: str,
+    log_file: typing.Optional[str] = None,
+    load_extension: typing.Iterable[str] = (),
+    skip_wait: bool = False
+):
     """
     Entrypoint accessible through `python -m jishaku <TOKEN>`
 
@@ -111,43 +156,17 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
                 f"Intent argument {intent} is invalid; the intent {name} was not found."
             )
 
-    unique_id = str(uuid.uuid4())
-    LOGGER.critical(
-        'Generated a unique UUID for this session: %s'
-        '\nYou can use Jishaku with your bot once it starts using `%s::jsk <subcommand>`'
-        '\nIf you have no message content, you can prefix it with the mention: `@Bot %s::jsk <subcommand>`',
-        unique_id, unique_id, unique_id
-    )
-
-    try:
-        import pyperclip  # type: ignore # pylint: disable=import-outside-toplevel
-    except ImportError:
-        LOGGER.critical(
-            'If you install `pyperclip`, this prefix will be copied to your clipboard automatically.'
-        )
-    else:
-        try:
-            pyperclip.copy(f'{unique_id}::jsk')  # type: ignore
-        except Exception as error:  # pylint: disable=broad-except
-            LOGGER.critical(
-                'The prefix could not be copied to your clipboard: %s',
-                error
-            )
-        else:
-            LOGGER.critical(
-                'The prefix has been copied to your clipboard.'
-            )
-
-    time.sleep(10)
-
     def prefix(bot: commands.Bot, _: discord.Message) -> typing.List[str]:
         return [
-            f'{unique_id}::',
-            f'<@{bot.user.id}> {unique_id}::',  # type: ignore
-            f'<@!{bot.user.id}> {unique_id}::',  # type: ignore
+            f'{bot.unique_id}::',  # type: ignore
+            f'<@{bot.user.id}> {bot.unique_id}::',  # type: ignore
+            f'<@!{bot.user.id}> {bot.unique_id}::',  # type: ignore
         ]
 
     bot = commands.Bot(prefix, intents=intents_class)
+    bot.unique_id = str(uuid.uuid4())  # type: ignore
+    bot.extensions_to_load = load_extension  # type: ignore
+    bot.skip_wait = skip_wait  # type: ignore
 
     asyncio.run(entry(bot, token))
 
