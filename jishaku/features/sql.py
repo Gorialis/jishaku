@@ -373,7 +373,7 @@ class SQLFeature(Feature):
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)
 
-    @Feature.Command(parent="jsk_sql", name="select", aliases=['SELECT'])
+    @Feature.Command(parent="jsk_sql", name="select")
     async def jsk_sql_select(self, ctx: ContextA, *, query: str):
         """
         Shortcut for 'jsk sql fetch select'.
