@@ -17,7 +17,7 @@ import inspect
 import io
 import time
 import typing
-
+import aiohttp
 import discord
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
@@ -172,34 +172,124 @@ class PythonFeature(Feature):
         return arg_dict, convertables
 
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
-    async def jsk_python(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
+    async def jsk_python(self, ctx: ContextA, *, argument: codeblock_converter=None, file:typing.Optional[discord.Attachment]=None):  # type: ignore
         """
         Direct evaluation of Python code.
         """
-
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
+        VALID_TYPES = ['py', 'txt', 'pyi']
 
-        arg_dict, convertables = self.jsk_python_get_convertables(ctx)
-        scope = self.scope
+        #if argument is None and file is not None:
+        if ctx.message.attachments and argument is None:
+            try:
+                url = ctx.message.attachments[0].url
+                name = ctx.message.attachments[0].filename
+                if name not in VALID_TYPES:
+                    return await ctx.send("The file type is not valid")
+            except IndexError:
+                return await ctx.send("There were no attachments")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    data = await response.read()
+                    code = response.status
+            if not data:
+                return await ctx.send(f"HTTP response was empty (status code {code}).")
+            if type(data) == bytes:
+                data = data.decode('utf-8')
+            
+            arg_dict, convertables = self.jsk_python_get_convertables(ctx)
+            scope = self.scope
+            
+            try:
+                async with ReplResponseReactor(ctx.message):
+                    with self.submit(ctx):
+                        executor = AsyncCodeExecutor(data, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: typing.Callable[..., None]
+                            result: typing.Any
 
-        try:
-            async with ReplResponseReactor(ctx.message):
-                with self.submit(ctx):
-                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
-                    async for send, result in AsyncSender(executor):  # type: ignore
-                        send: typing.Callable[..., None]
-                        result: typing.Any
+                            if result is None:
+                                continue
 
-                        if result is None:
-                            continue
+                            self.last_result = result
 
-                        self.last_result = result
+                            send(await self.jsk_python_result_handling(ctx, result))
 
-                        send(await self.jsk_python_result_handling(ctx, result))
+            finally:
+                scope.clear_intersection(arg_dict)
+            return
+        elif ctx.message.attachments and argument.content is not None:
+            try:
+                url = ctx.message.attachments[0].url
+                name = ctx.message.attachments[0].filename
+                
+                if name not in VALID_TYPES:
+                    return await ctx.send("The file type is not valid")
+            except IndexError:
+                return await ctx.send("There were no attachments")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    data = await response.read()
+                    code = response.status
+            if not data:
+                return await ctx.send(f"HTTP response was empty (status code {code}).")
+            if type(data) == bytes:
+                data = data.decode('utf-8')
+            
+            arg_dict, convertables = self.jsk_python_get_convertables(ctx)
+            scope = self.scope
+            
+            try:
+                async with ReplResponseReactor(ctx.message):
+                    with self.submit(ctx):
+                        executor = AsyncCodeExecutor(data, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: typing.Callable[..., None]
+                            result: typing.Any
 
-        finally:
-            scope.clear_intersection(arg_dict)
+                            if result is None:
+                                continue
+
+                            self.last_result = result
+
+                            send(await self.jsk_python_result_handling(ctx, result))
+                        executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: typing.Callable[..., None]
+                            result: typing.Any
+
+                            if result is None:
+                                continue
+
+                            self.last_result = result
+
+                            send(await self.jsk_python_result_handling(ctx, result))
+
+            finally:
+                scope.clear_intersection(arg_dict)
+            return
+        else:
+            arg_dict, convertables = self.jsk_python_get_convertables(ctx)
+            scope = self.scope
+
+            try:
+                async with ReplResponseReactor(ctx.message):
+                    with self.submit(ctx):
+                        executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: typing.Callable[..., None]
+                            result: typing.Any
+
+                            if result is None:
+                                continue
+
+                            self.last_result = result
+
+                            send(await self.jsk_python_result_handling(ctx, result))
+
+            finally:
+                scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
     async def jsk_python_inspect(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
