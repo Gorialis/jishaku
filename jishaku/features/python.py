@@ -272,7 +272,33 @@ class PythonFeature(Feature):
         else:
             arg_dict, convertables = self.jsk_python_get_convertables(ctx)
             scope = self.scope
+            if argument.content.startswith('http://') or argument.content.startswith('https://'):
+                content = argument.content.split(' ')[0].strip()
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(content) as response:
+                        data = await response.read()
+                        code = response.status
+                if not data:
+                    return await ctx.send(f"HTTP response was empty (status code {code}).")
+            
+                try:
+                    async with ReplResponseReactor(ctx.message):
+                        with self.submit(ctx):
+                            executor = AsyncCodeExecutor(data, scope, arg_dict=arg_dict, convertables=convertables)
+                            async for send, result in AsyncSender(executor):  # type: ignore
+                                send: typing.Callable[..., None]
+                                result: typing.Any
 
+                                if result is None:
+                                    continue
+
+                                self.last_result = result
+
+                                send(await self.jsk_python_result_handling(ctx, result))
+
+                finally:
+                    scope.clear_intersection(arg_dict)
+                return
             try:
                 async with ReplResponseReactor(ctx.message):
                     with self.submit(ctx):
