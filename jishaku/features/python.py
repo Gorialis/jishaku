@@ -184,7 +184,7 @@ class PythonFeature(Feature):
         if ctx.message.attachments and argument is None:
             try:
                 url = ctx.message.attachments[0].url
-                name = ctx.message.attachments[0].filename
+                name = ctx.message.attachments[0].filename.split('.')[-1]
                 if name not in VALID_TYPES:
                     return await ctx.send("The file type is not valid")
             except IndexError:
@@ -222,18 +222,22 @@ class PythonFeature(Feature):
         elif ctx.message.attachments and argument.content is not None:
             try:
                 url = ctx.message.attachments[0].url
-                name = ctx.message.attachments[0].filename
-                
+                name = ctx.message.attachments[0].filename.split('.')[-1]
+
                 if name not in VALID_TYPES:
                     return await ctx.send("The file type is not valid")
+                
             except IndexError:
                 return await ctx.send("There were no attachments")
+            
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     data = await response.read()
                     code = response.status
+
             if not data:
                 return await ctx.send(f"HTTP response was empty (status code {code}).")
+            
             if type(data) == bytes:
                 data = data.decode('utf-8')
             
