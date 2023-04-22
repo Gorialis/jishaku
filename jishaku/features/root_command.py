@@ -241,7 +241,7 @@ class RootCommand(Feature):
 
         if task.ctx.command:
             await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
-                           f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+                           f" invoked {discord.utils.format_dt(task.ctx.message.created_at, 'R')}")
         else:
             await ctx.send(f"Cancelled task {task.index}: unknown,"
-                           f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+                           f" invoked {discord.utils.format_dt(task.ctx.message.created_at, 'R')}")
