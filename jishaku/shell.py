@@ -78,7 +78,7 @@ class ShellReader:
             self.highlight = "ansi"
             self.escape_ansi = escape_ansi
 
-        self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # pylint: disable=consider-using-with
+        self.process = subprocess.Popen(sequence, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # pylint: disable=consider-using-with
         self.close_code = None
 
         self.loop = loop or asyncio.get_event_loop()
@@ -164,3 +164,14 @@ class ShellReader:
                 return item
 
         raise StopAsyncIteration()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            item = self.queue.get_nowait()
+        except asyncio.QueueEmpty as exception:
+            raise StopIteration() from exception
+        else:
+            return item
