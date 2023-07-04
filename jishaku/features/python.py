@@ -25,7 +25,7 @@ from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
-from jishaku.math import format_stddev
+from jishaku.math import format_stddev, format_bargraph
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
 from jishaku.types import ContextA
@@ -304,15 +304,15 @@ class PythonFeature(Feature):
                                     self.last_result = result
 
                                     send(await self.jsk_python_result_handling(ctx, result))
-                                    # Reduces likelyhood of hardblocking
-                                    await asyncio.sleep(0.01)
+                                    # Reduces likelihood of hardblocking
+                                    await asyncio.sleep(0.001)
 
                                 end = time.perf_counter()
                             finally:
                                 profile.disable()  # type: ignore
 
-                            # Reduces likelyhood of hardblocking
-                            await asyncio.sleep(0.01)
+                            # Reduces likelihood of hardblocking
+                            await asyncio.sleep(0.001)
 
                             count += 1
                             timings.append(end - start)
@@ -321,8 +321,8 @@ class PythonFeature(Feature):
 
                             for function in profile.code_map.values():  # type: ignore
                                 for timing in function.values():  # type: ignore
-                                    line_timings[timing.lineno].append(timing.total_time * profile.timer_unit)  # type: ignore
-                                    ioless_time += timing.total_time * profile.timer_unit  # type: ignore
+                                    line_timings[timing['lineno']].append(timing['total_time'] * profile.timer_unit)  # type: ignore
+                                    ioless_time += timing['total_time'] * profile.timer_unit  # type: ignore
 
                             ioless_timings.append(ioless_time)
 
@@ -334,29 +334,16 @@ class PythonFeature(Feature):
                         linecache = executor.create_linecache()
                         lines: typing.List[str] = []
 
-                        RELATIVE_MAPPINGS = (
-                            (0 / 8, "\N{LEFT ONE EIGHTH BLOCK}", '\u001b[32m'),
-                            (1 / 8, "\N{LEFT ONE QUARTER BLOCK}", '\u001b[32m'),
-                            (2 / 8, "\N{LEFT THREE EIGHTHS BLOCK}", '\u001b[32m'),
-                            (3 / 8, "\N{LEFT HALF BLOCK}", '\u001b[33m'),
-                            (4 / 8, "\N{LEFT FIVE EIGHTHS BLOCK}", '\u001b[33m'),
-                            (5 / 8, "\N{LEFT THREE QUARTERS BLOCK}", '\u001b[33m'),
-                            (6 / 8, "\N{LEFT SEVEN EIGHTHS BLOCK}", '\u001b[31m'),
-                            (7 / 8, "\N{FULL BLOCK}", '\u001b[31m'),
-                        )
-
                         for lineno in sorted(line_timings.keys()):
                             timing = line_timings[lineno]
                             max_time = max(timing)
-                            mapping = RELATIVE_MAPPINGS[0]
+                            percentage = max_time / max_line_time
+                            blocks = format_bargraph(percentage, 5)
 
-                            for maybe_mapping in RELATIVE_MAPPINGS:
-                                if (max_time / max_line_time) > maybe_mapping[0]:
-                                    mapping = maybe_mapping
+                            line = f"{format_stddev(timing)} {blocks} {linecache[lineno - 1] if lineno <= len(linecache) else ''}"
+                            color = '\u001b[31m' if percentage > 6 / 8 else '\u001b[33m' if percentage > 3 / 8 else '\u001b[32m'
 
-                            line = f"{format_stddev(timing)} {mapping[1]} {linecache[lineno - 1] if lineno <= len(linecache) else ''}"
-
-                            lines.append('\u001b[0m' + mapping[2] + line if Flags.use_ansi(ctx) else line)
+                            lines.append('\u001b[0m' + color + line if Flags.use_ansi(ctx) else line)
 
                         await ctx.send(
                             content="\n".join([
