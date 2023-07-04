@@ -78,3 +78,40 @@ def format_stddev(collection: typing.Collection[float]) -> str:
         return f"{natural_time(average)} \N{PLUS-MINUS SIGN} {natural_time(stddev)}"
 
     return natural_time(sum(collection) / len(collection))
+
+
+BARGRAPH_BLOCKS = (
+    (0 / 8, "\N{LEFT ONE EIGHTH BLOCK}"),
+    (1 / 8, "\N{LEFT ONE QUARTER BLOCK}"),
+    (2 / 8, "\N{LEFT THREE EIGHTHS BLOCK}"),
+    (3 / 8, "\N{LEFT HALF BLOCK}"),
+    (4 / 8, "\N{LEFT FIVE EIGHTHS BLOCK}"),
+    (5 / 8, "\N{LEFT THREE QUARTERS BLOCK}"),
+    (6 / 8, "\N{LEFT SEVEN EIGHTHS BLOCK}"),
+    (7 / 8, "\N{FULL BLOCK}"),
+)
+
+
+def get_single_bargraph_block(value: float) -> str:
+    """
+    Where value is a float from 0 to 1, returns a unicode block character that represents that percentage with a filled block character.
+    """
+    mapping = BARGRAPH_BLOCKS[0]
+
+    for maybe_mapping in BARGRAPH_BLOCKS:
+        if value > maybe_mapping[0]:
+            mapping = maybe_mapping
+
+    return mapping[1]
+
+
+def format_bargraph(value: float, blocks: int) -> str:
+    """
+    Where value is a float from 0 to 1, returns a unicode representation of a bar of that percentage, using `blocks` unicode block characters
+    """
+
+    filled_blocks, percentage = divmod(max(min(value, 1.0), 0.0) * blocks, 1.0)
+
+    fill = ("\N{FULL BLOCK}" * int(filled_blocks)) + (get_single_bargraph_block(percentage) if percentage > 0.0 else "")
+
+    return fill + (" " * (blocks - len(fill)))
