@@ -173,5 +173,5 @@ class ShellReader:
             item = self.queue.get_nowait()
         except asyncio.QueueEmpty as exception:
             raise StopIteration() from exception
-        else:
-            return item
+
+        return item

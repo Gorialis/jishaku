@@ -15,6 +15,7 @@ import asyncio
 import collections
 import inspect
 import io
+import sys
 import time
 import typing
 
@@ -24,10 +25,11 @@ from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
+from jishaku.formatting import MultilineFormatter
 from jishaku.functools import AsyncSender
-from jishaku.math import format_stddev, format_bargraph
+from jishaku.math import format_bargraph, format_stddev
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_adaptive_spans, get_var_dict_from_ctx
 from jishaku.types import ContextA
 
 try:
@@ -404,3 +406,57 @@ class PythonFeature(Feature):
                 filename="ast.ansi",
                 fp=io.BytesIO(text.encode('utf-8'))
             ))
+
+    if sys.version_info >= (3, 11):
+        @Feature.Command(parent="jsk", name="specialist")
+        async def jsk_specialist(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
+            """
+            Direct evaluation of Python code.
+            """
+
+            if typing.TYPE_CHECKING:
+                argument: Codeblock = argument  # type: ignore
+
+            arg_dict, convertables = self.jsk_python_get_convertables(ctx)
+            scope = self.scope
+
+            try:
+                async with ReplResponseReactor(ctx.message):
+                    with self.submit(ctx):
+                        executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: typing.Callable[..., None]
+                            result: typing.Any
+
+                            if result is None:
+                                continue
+
+                            self.last_result = result
+
+                            send(await self.jsk_python_result_handling(ctx, result))
+
+                        formatter = MultilineFormatter(argument.content)
+
+                        for (
+                            index,
+                            (instruction, line, span, specialized, adaptive)
+                        ) in enumerate(get_adaptive_spans(executor.function.__code__)):  # pylint: disable=protected-access
+                            if line - 1 < len(formatter.lines):
+                                formatter.add_annotation(
+                                    line - 1,
+                                    instruction.opname,
+                                    span,
+                                    (index % 6) + 31,
+                                    None,
+                                    45 if specialized else 46 if adaptive else None
+                                )
+
+                        text = formatter.output(True, Flags.use_ansi(ctx))
+
+                        await ctx.send(file=discord.File(
+                            filename="specialist.ansi",
+                            fp=io.BytesIO(text.encode('utf-8'))
+                        ))
+
+            finally:
+                scope.clear_intersection(arg_dict)
