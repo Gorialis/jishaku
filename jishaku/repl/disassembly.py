@@ -218,7 +218,7 @@ def recurse_code(code: types.CodeType) -> typing.Generator[types.CodeType, None,
 
 
 if sys.version_info >= (3, 11):
-    SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset(opcode._specialized_instructions)  # type: ignore  # pylint: disable=protected-access
+    SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset(opcode._specialized_instructions)  # type: ignore  # pylint: disable=protected-access,no-member
 else:
     SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset()
 
@@ -267,7 +267,7 @@ def get_adaptive_spans(code: types.CodeType) -> typing.Generator[
     for child in recurse_code(code):
         # Adaptive info only supported in >=3.11
         if sys.version_info >= (3, 11):
-            instructions = dis.get_instructions(child, adaptive=True)
+            instructions = dis.get_instructions(child, adaptive=True)  # pylint: disable=unexpected-keyword-arg
         else:
             instructions = dis.get_instructions(child)
 

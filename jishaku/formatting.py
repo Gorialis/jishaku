@@ -98,7 +98,7 @@ class LineFormatter:
         block = BLOCK_CHARACTERS_FANCY if use_complex else BLOCK_CHARACTERS_SIMPLE
 
         # The main line
-        if use_ansi:
+        if use_ansi:  # pylint: disable=too-many-nested-blocks
             spans = [
                 (annotation.span, annotation.text_foreground, annotation.text_background)
                 for annotation in self.annotations
