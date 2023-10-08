@@ -13,8 +13,8 @@ Functions for managing and searching modules.
 
 import pathlib
 import typing
+import importlib.metadata
 
-import pkg_resources
 from braceexpand import braceexpand
 from discord.ext import commands
 
@@ -88,8 +88,9 @@ def package_version(package_name: str) -> typing.Optional[str]:
     """
 
     try:
-        return pkg_resources.get_distribution(package_name).version
-    except (pkg_resources.DistributionNotFound, AttributeError):
+        return importlib.metadata.version(package_name)
+    # ValueError if package_name was empty
+    except (importlib.metadata.PackageNotFoundError, ValueError):
         return None
 
 
