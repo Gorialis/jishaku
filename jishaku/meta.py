@@ -13,7 +13,6 @@ Meta information about jishaku.
 
 import typing
 
-
 __all__ = (
     '__author__',
     '__copyright__',
