@@ -1,1 +1,1 @@
-line-profiler >= 4.0.3
+line-profiler >= 4.1.1

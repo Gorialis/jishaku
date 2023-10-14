@@ -1,1 +1,2 @@
-yt-dlp >= 2023.6.22
+discord.py[voice] >= 2.3.2
+yt-dlp >= 2023.10.13
