@@ -118,7 +118,7 @@ setup(
     packages=['jishaku', 'jishaku.features', 'jishaku.repl'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
-    python_requires='>=3.10.0',
+    python_requires='>=3.8.0',
 
     extras_require=EXTRA_REQUIRES,
     entry_points={
@@ -138,8 +138,11 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Communications :: Chat',
         'Topic :: Internet',
         'Topic :: Software Development :: Debuggers',

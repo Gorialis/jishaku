@@ -14,14 +14,17 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
         python:
+          - {version: '3.8'}
+          - {version: '3.9'}
           - {version: '3.10'}
           - {version: '3.11'}
+          - {version: '3.12'}
         discord-py:
           - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
           - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
-    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.python-arch }} ${{ matrix.discord-py.NAME }} discord.py"
+    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.discord-py.NAME }} discord.py"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -92,15 +95,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # Watch as I let this get handled as a float again
+          python-version: '3.12'  # Watch as I let this get handled as a float again
 
       - name: Install dependencies
         shell: bash
@@ -132,7 +135,7 @@ jobs:
           rm ./dist/*.md
 
       - name: Publish packages to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.6.4
+        uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           user: __token__
           password: ${{ secrets.pypi_api_token }}
