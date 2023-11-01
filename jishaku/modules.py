@@ -11,9 +11,9 @@ Functions for managing and searching modules.
 
 """
 
+import importlib.metadata
 import pathlib
 import typing
-import importlib.metadata
 
 import discord
 from braceexpand import braceexpand

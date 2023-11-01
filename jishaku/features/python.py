@@ -25,7 +25,7 @@ from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
-from jishaku.math import format_stddev, format_bargraph
+from jishaku.math import format_bargraph, format_stddev
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
 from jishaku.types import ContextA
