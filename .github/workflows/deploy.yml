@@ -37,6 +37,10 @@ jobs:
       shell: bash
       run: |
         python -m pip install --upgrade pip setuptools wheel
+
+        # Temporary - remove me
+        pip install aiohttp==3.9.0b0
+
         pip install -U "${{ matrix.discord-py.PIP_TARGET }}" --extra-index-url https://gorialis.github.io/pip/
         pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
