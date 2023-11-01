@@ -68,7 +68,7 @@ jobs:
         sed -i'.original' -e "s/src=\".github\/assets/src=\"https:\/\/raw.githubusercontent.com\/Gorialis\/jishaku\/$(git rev-parse HEAD)\/.github\/assets/g" README.md
         rm -f README.md.original
 
-        python ./setup.py sdist bdist_egg bdist_wheel
+        python ./setup.py sdist bdist_wheel
         rm -rf jishaku
         find dist -name *.whl -exec pip install '{}' +
 
