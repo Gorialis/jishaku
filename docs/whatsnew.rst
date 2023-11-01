@@ -8,7 +8,7 @@ Version 2.5.2
 
 This version is a **backport release** to fix 3.12 and some other long-standing compatibility bugs.
 
-This **does not** contain any new features from master - it is a special bug fix only release. You can see the exact changes by `comparing tags on GitHub <https://github.com/Gorialis/jishaku/compare/2.5.1...2.5.2>`.
+This **does not** contain any new features from master - it is a special bug fix only release. You can see the exact changes by `comparing tags on GitHub <https://github.com/Gorialis/jishaku/compare/2.5.1...2.5.2>`_.
 
 Version 2.5.1
 -------------
