@@ -253,8 +253,9 @@ else:
 
 
 try:
-    import asqlite  # type: ignore
     import sqlite3
+
+    import asqlite  # type: ignore
 except ImportError:
     pass
 else:
