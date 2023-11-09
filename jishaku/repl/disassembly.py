@@ -189,11 +189,10 @@ def format_ast_node(node: typing.Optional[ast.AST], level: int = 0, use_ansi: bo
                 use_ansi=use_ansi
             )
 
+    elif use_ansi:
+        yield f"\u001b[1;4m{repr(node)}\u001b[0m"
     else:
-        if use_ansi:
-            yield f"\u001b[1;4m{repr(node)}\u001b[0m"
-        else:
-            yield repr(node)
+        yield repr(node)
 
 
 def create_tree(code: str, use_ansi: bool = True) -> str:

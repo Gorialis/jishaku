@@ -218,7 +218,7 @@ else:
         async def execute(self, query: str) -> str:
             cursor = await self.connection.cursor(aiomysql.DictCursor)  # type: ignore
             try:
-                return str(await cursor.execute(query)) + " row(s) affected"  # type: ignore
+                return f"{str(await cursor.execute(query))} row(s) affected"
             finally:
                 await cursor.close()  # type: ignore
 

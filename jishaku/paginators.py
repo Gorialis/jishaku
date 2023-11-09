@@ -73,12 +73,10 @@ class WrappedPaginator(commands.Paginator):
                 if last_delimiter != -1:
                     if self.include_wrapped and line[last_delimiter] != '\n':
                         super().add_line(line[start:last_delimiter + 1])
-                        needle = last_delimiter + 1
-                        start = last_delimiter + 1
                     else:
                         super().add_line(line[start:last_delimiter])
-                        needle = last_delimiter + 1
-                        start = last_delimiter + 1
+                    start = last_delimiter + 1
+                    needle = last_delimiter + 1
                 elif last_space != -1:
                     super().add_line(line[start:last_space])
                     needle = last_space + 1
@@ -97,8 +95,7 @@ class WrappedPaginator(commands.Paginator):
 
             needle += 1
 
-        last_line = line[start:needle]
-        if last_line:
+        if last_line := line[start:needle]:
             super().add_line(last_line)
 
         if empty:
@@ -227,9 +224,7 @@ def button_either_arg(
     Compatibility function to allow interaction and button to come in either order
     """
 
-    if isinstance(a, discord.Interaction):
-        return (a, b)  # type: ignore
-    return (b, a)  # type: ignore
+    return (a, b) if isinstance(a, discord.Interaction) else (b, a)
 
 
 class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
@@ -427,9 +422,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         Is this interface closed?
         """
 
-        if not self.task:
-            return False
-        return self.task.done()
+        return self.task.done() if self.task else False
 
     async def send_lock_delayed(self):
         """

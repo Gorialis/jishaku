@@ -138,7 +138,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
 
         try:
             self.code = wrap_code(code, args=', '.join(self.arg_names), auto_return=auto_return)
-        except (SyntaxError, IndentationError) as first_error:
+        except SyntaxError as first_error:
             if not convertables:
                 raise
 
@@ -146,7 +146,7 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 for key, value in convertables.items():
                     code = code.replace(key, value)
                 self.code = wrap_code(code, args=', '.join(self.arg_names))
-            except (SyntaxError, IndentationError) as second_error:
+            except SyntaxError as second_error:
                 raise second_error from first_error
 
         self.scope = scope or Scope()

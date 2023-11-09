@@ -50,16 +50,14 @@ class RootCommand(Feature):
         All other functionality is within its subcommands.
         """
 
-        # Try to locate what vends the `discord` package
-        distributions: typing.List[str] = [
-            dist for dist in packages_distributions()['discord']  # type: ignore
+        if distributions := [
+            dist
+            for dist in packages_distributions()['discord']  # type: ignore
             if any(
                 file.parts == ('discord', '__init__.py')  # type: ignore
                 for file in distribution(dist).files  # type: ignore
             )
-        ]
-
-        if distributions:
+        ]:
             dist_version = f'{distributions[0]} `{package_version(distributions[0])}`'
         else:
             dist_version = f'unknown `{discord.__version__}`'
@@ -97,11 +95,13 @@ class RootCommand(Feature):
 
                     summary.append("")  # blank line
             except psutil.AccessDenied:
-                summary.append(
-                    "psutil is installed, but this process does not have high enough access rights "
-                    "to query process information."
+                summary.extend(
+                    (
+                        "psutil is installed, but this process does not have high enough access rights "
+                        "to query process information.",
+                        "",
+                    )
                 )
-                summary.append("")  # blank line
         s_for_guilds = "" if len(self.bot.guilds) == 1 else "s"
         s_for_users = "" if len(self.bot.users) == 1 else "s"
         cache_summary = f"{len(self.bot.guilds)} guild{s_for_guilds} and {len(self.bot.users)} user{s_for_users}"
@@ -145,13 +145,12 @@ class RootCommand(Feature):
             ('presences', 'members', 'message_content')
         )
 
-        summary.append(f"{message_cache}, {', '.join(group)}, and {last}.")
-
-        # pylint: enable=protected-access
-
-        # Show websocket latency in milliseconds
-        summary.append(f"Average websocket latency: {round(self.bot.latency * 1000, 2)}ms")
-
+        summary.extend(
+            (
+                f"{message_cache}, {', '.join(group)}, and {last}.",
+                f"Average websocket latency: {round(self.bot.latency * 1000, 2)}ms",
+            )
+        )
         await ctx.send("\n".join(summary))
 
     # pylint: disable=no-member

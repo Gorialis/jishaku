@@ -239,8 +239,7 @@ class ManagementFeature(Feature):
             slash_commands = self.bot.tree._get_all_commands(  # type: ignore  # pylint: disable=protected-access
                 guild=discord.Object(guild) if guild else None
             )
-            translator = getattr(self.bot.tree, 'translator', None)
-            if translator:
+            if translator := getattr(self.bot.tree, 'translator', None):
                 payload = [await command.get_translated_payload(translator) for command in slash_commands]
             else:
                 payload = [command.to_dict() for command in slash_commands]
@@ -280,7 +279,7 @@ class ManagementFeature(Feature):
                             if pool:
                                 # If the pool exists, this should be a subcommand
                                 selected_command = pool[index]  # type: ignore
-                                name += selected_command.name + " "
+                                name += f"{selected_command.name} "
 
                                 if hasattr(selected_command, '_children'):  # type: ignore
                                     pool = list(selected_command._children.values())  # type: ignore  # pylint: disable=protected-access

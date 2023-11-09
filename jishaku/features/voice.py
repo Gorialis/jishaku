@@ -36,13 +36,12 @@ class VoiceFeature(Feature):
             return await ctx.send("Voice cannot be used because PyNaCl is not loaded.")
 
         if not discord.opus.is_loaded():
-            if hasattr(discord.opus, '_load_default'):
-                if not discord.opus._load_default():  # type: ignore  # pylint: disable=protected-access,no-member
-                    return await ctx.send(
-                        "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
-                    )
-            else:
+            if not hasattr(discord.opus, '_load_default'):
                 return await ctx.send("Voice cannot be used because libopus is not loaded.")
+            if not discord.opus._load_default():  # type: ignore  # pylint: disable=protected-access,no-member
+                return await ctx.send(
+                    "Voice cannot be used because libopus is not loaded and attempting to load the default failed."
+                )
 
     @staticmethod
     async def connected_check(ctx: ContextA):
@@ -121,16 +120,13 @@ class VoiceFeature(Feature):
         destination = destination or ctx.author
 
         if isinstance(destination, discord.Member):
-            if destination.voice and destination.voice.channel:
-                if isinstance(destination.voice.channel, discord.StageChannel):
-                    return await ctx.send("Cannot join a stage channel.")
-                destination = destination.voice.channel
-            else:
+            if not destination.voice or not destination.voice.channel:
                 return await ctx.send("Member has no voice channel.")
 
-        voice: discord.VoiceProtocol = ctx.guild.voice_client  # type: ignore
-
-        if voice:
+            if isinstance(destination.voice.channel, discord.StageChannel):
+                return await ctx.send("Cannot join a stage channel.")
+            destination = destination.voice.channel
+        if voice := ctx.guild.voice_client:
             if isinstance(voice, discord.VoiceClient):
                 await voice.move_to(destination)
             else:

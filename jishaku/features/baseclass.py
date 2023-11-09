@@ -141,7 +141,9 @@ class Feature(commands.Cog):
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         self.bot: BotT = kwargs.pop('bot')
-        self.start_time: datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
+        self.start_time: datetime = datetime.now(timezone.utc).replace(
+            tzinfo=timezone.utc
+        )
         self.tasks: typing.Deque[CommandTask] = collections.deque()
         self.task_count: int = 0
 
@@ -162,7 +164,7 @@ class Feature(commands.Cog):
 
             if cmd.parent and isinstance(cmd.parent, str):  # type: ignore
                 if cmd.standalone_ok:
-                    cmd.parent_instance = command_lookup.get(cmd.parent, None)
+                    cmd.parent_instance = command_lookup.get(cmd.parent)
                 else:
                     try:
                         cmd.parent_instance = command_lookup[cmd.parent]

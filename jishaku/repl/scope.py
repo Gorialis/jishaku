@@ -173,12 +173,13 @@ def get_parent_var(
         The content of the variable found by the given name, or None.
     """
 
-    scope = get_parent_scope_from_var(name, global_ok=global_ok, skip_frames=skip_frames + 1)
-
-    if not scope:
+    if scope := get_parent_scope_from_var(
+        name, global_ok=global_ok, skip_frames=skip_frames + 1
+    ):
+        return (
+            scope.locals.get(name, default)
+            if name in scope.locals
+            else scope.globals.get(name, default)
+        )
+    else:
         return default
-
-    if name in scope.locals:
-        return scope.locals.get(name, default)
-
-    return scope.globals.get(name, default)

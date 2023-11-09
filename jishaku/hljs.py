@@ -345,10 +345,9 @@ def get_language(query: str) -> str:
     shebang. Returns an empty string if none match.
     """
     query = query.lower()
-    for language in LANGUAGES:
-        if query.endswith(language):
-            return language
-    return ''
+    return next(
+        (language for language in LANGUAGES if query.endswith(language)), ''
+    )
 
 
 ENCODING_REGEX = re.compile(br'coding[=:]\s*([-\w.]+)')
@@ -368,15 +367,7 @@ def guess_file_traits(data: bytes) -> typing.Tuple[str, str, typing.Optional[str
         content = data.decode('utf-8')
         encoding = 'utf-8'
     except UnicodeDecodeError as exc:
-        # This file isn't UTF-8.
-
-        #  By Python and text-editor convention,
-        # there may be a hint as to what the actual encoding is
-        # near the start of the file.
-
-        encoding_match = ENCODING_REGEX.search(data[:128])
-
-        if encoding_match:
+        if encoding_match := ENCODING_REGEX.search(data[:128]):
             encoding = encoding_match.group(1)
         else:
             raise exc

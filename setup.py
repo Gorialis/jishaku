@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
 import os
 import pathlib
 import re
@@ -36,12 +37,15 @@ from setuptools import setup
 ROOT = pathlib.Path(__file__).parent
 
 with open(ROOT / 'jishaku' / 'meta.py', 'r', encoding='utf-8') as f:
-    VERSION_MATCH = re.search(r'VersionInfo\(major=(\d+), minor=(\d+), micro=(\d+), .+\)', f.read(), re.MULTILINE)
+    if VERSION_MATCH := re.search(
+        r'VersionInfo\(major=(\d+), minor=(\d+), micro=(\d+), .+\)',
+        f.read(),
+        re.MULTILINE,
+    ):
+        version = '.'.join([VERSION_MATCH[1], VERSION_MATCH[2], VERSION_MATCH[3]])
 
-    if not VERSION_MATCH:
+    else:
         raise RuntimeError('version is not set or could not be located')
-
-    version = '.'.join([VERSION_MATCH.group(1), VERSION_MATCH.group(2), VERSION_MATCH.group(3)])
 
 EXTRA_REQUIRES: typing.Dict[str, typing.List[str]] = {}
 

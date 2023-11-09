@@ -55,13 +55,11 @@ def codeblock_converter(argument: str) -> Codeblock:
         if char == '\n':  # \n delimits language and code
             in_language = False
             in_code = True
-        # we're not seeing a newline yet but we also passed the opening ```
         elif ''.join(last) == '`' * 3 and char != '`':
             in_language = True
             language.append(char)
         elif in_language:  # we're in the language after the first non-backtick character
-            if char != '\n':
-                language.append(char)
+            language.append(char)
 
         last.append(char)
 

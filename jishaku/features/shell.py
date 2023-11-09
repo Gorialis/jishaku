@@ -71,7 +71,7 @@ class ShellFeature(Feature):
     """
 
     @Feature.Command(parent="jsk", name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd", "terminal"])
-    async def jsk_shell(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
+    async def jsk_shell(self, ctx: ContextA, *, argument: codeblock_converter):    # type: ignore
         """
         Executes statements in the system shell.
 
@@ -85,7 +85,7 @@ class ShellFeature(Feature):
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
                 with ShellReader(argument.content, escape_ansi=not Flags.use_ansi(ctx)) as reader:
-                    prefix = "```" + reader.highlight
+                    prefix = f"```{reader.highlight}"
 
                     paginator = WrappedPaginator(prefix=prefix, max_size=1975)
                     paginator.add_line(f"{reader.ps1} {argument.content}\n")
@@ -101,7 +101,7 @@ class ShellFeature(Feature):
                 await interface.add_line(f"\n[status] Return code {reader.close_code}")
 
     @Feature.Command(parent="jsk", name="git")
-    async def jsk_git(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
+    async def jsk_git(self, ctx: ContextA, *, argument: codeblock_converter):    # type: ignore
         """
         Shortcut for 'jsk sh git'. Invokes the system shell.
         """
@@ -109,10 +109,13 @@ class ShellFeature(Feature):
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))  # type: ignore
+        return await ctx.invoke(
+            self.jsk_shell,
+            argument=Codeblock(argument.language, f"git {argument.content}"),
+        )
 
     @Feature.Command(parent="jsk", name="pip")
-    async def jsk_pip(self, ctx: commands.Context, *, argument: codeblock_converter):  # type: ignore
+    async def jsk_pip(self, ctx: commands.Context, *, argument: codeblock_converter):    # type: ignore
         """
         Shortcut for 'jsk sh pip'. Invokes the system shell.
         """
@@ -120,19 +123,21 @@ class ShellFeature(Feature):
         if typing.TYPE_CHECKING:
             argument: Codeblock = argument  # type: ignore
 
-        executable: str = "pip"
         location = pathlib.Path(sys.prefix)
 
-        for test in (
-            location / 'bin' / 'pip',
-            location / 'bin' / 'pip3',
-            location / 'Scripts' / 'pip.exe',
-            location / 'Scripts' / 'pip3.exe',
-        ):
-            if test.exists() and test.is_file():
-                executable = str(test)
-                break
-
+        executable: str = next(
+            (
+                str(test)
+                for test in (
+                    location / 'bin' / 'pip',
+                    location / 'bin' / 'pip3',
+                    location / 'Scripts' / 'pip.exe',
+                    location / 'Scripts' / 'pip3.exe',
+                )
+                if test.exists() and test.is_file()
+            ),
+            "pip",
+        )
         return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, f"{executable} {argument.content}"))  # type: ignore
 
     if shutil.which('node') and shutil.which('npm'):

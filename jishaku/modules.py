@@ -111,4 +111,4 @@ class ExtensionConverter(_ExtensionConverterBase):  # pylint: disable=too-few-pu
         try:
             return resolve_extensions(ctx.bot, argument)
         except UnbalancedBracesError as exc:
-            raise commands.BadArgument(str(exc))
+            raise commands.BadArgument(str(exc)) from exc

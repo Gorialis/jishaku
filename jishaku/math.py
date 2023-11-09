@@ -46,11 +46,14 @@ def natural_time(time_in_seconds: float) -> str:
 
     absolute = abs(time_in_seconds)
 
-    for label, size in units:
-        if absolute > size:
-            return f"{time_in_seconds / size:6.2f} {label}"
-
-    return f"{time_in_seconds / 1e-9:6.2f} ns"
+    return next(
+        (
+            f"{time_in_seconds / size:6.2f} {label}"
+            for label, size in units
+            if absolute > size
+        ),
+        f"{time_in_seconds / 1e-09:6.2f} ns",
+    )
 
 
 def mean_stddev(collection: typing.Collection[float]) -> typing.Tuple[float, float]:

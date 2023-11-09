@@ -96,7 +96,7 @@ class GuildFeature(Feature):
 
         if member_ids and channel.guild.owner_id in member_ids:
             # Is owner, has all perms
-            for key in dict(discord.Permissions.all()).keys():
+            for key in dict(discord.Permissions.all()):
                 permissions[key] = (True, f"<@{channel.guild.owner_id}> owns the server")
         else:
             # Otherwise, either not a member or not the guild owner, calculate perms manually
@@ -117,7 +117,7 @@ class GuildFeature(Feature):
                 if role.permissions.administrator:
                     is_administrator = True
 
-                    for key in dict(discord.Permissions.all()).keys():
+                    for key in dict(discord.Permissions.all()):
                         if not permissions[key][0]:
                             permissions[key] = (True, f"it is granted by Administrator on the server-wide {role.name} permission")
 

@@ -58,9 +58,7 @@ class PythonFeature(Feature):
         otherwise it is always a new Scope.
         """
 
-        if self.retain:
-            return self._scope
-        return Scope()
+        return self._scope if self.retain else Scope()
 
     @Feature.Command(parent="jsk", name="retain")
     async def jsk_retain(self, ctx: ContextA, *, toggle: bool = None):  # type: ignore
@@ -204,7 +202,7 @@ class PythonFeature(Feature):
             scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
+    async def jsk_python_inspect(self, ctx: ContextA, *, argument: codeblock_converter):    # type: ignore
         """
         Evaluation of Python code with inspect information.
         """
@@ -231,16 +229,12 @@ class PythonFeature(Feature):
                             header = header.replace(self.bot.http.token, "[token omitted]")
 
                         if len(header) > 485:
-                            header = header[0:482] + "..."
+                            header = f"{header[:482]}..."
 
                         lines = [f"=== {header} ===", ""]
 
-                        for name, res in all_inspections(result):
-                            lines.append(f"{name:16.16} :: {res}")
-
-                        docstring = (inspect.getdoc(result) or '').strip()
-
-                        if docstring:
+                        lines.extend(f"{name:16.16} :: {res}" for name, res in all_inspections(result))
+                        if docstring := (inspect.getdoc(result) or '').strip():
                             lines.append(f"\n=== Help ===\n\n{docstring}")
 
                         text = "\n".join(lines)

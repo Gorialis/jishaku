@@ -39,7 +39,7 @@ class Flag:
     handler: FlagHandler = None
     override: typing.Any = None
 
-    def resolve_raw(self, flags: 'FlagMeta'):  # pylint: disable=too-many-return-statements
+    def resolve_raw(self, flags: 'FlagMeta'):    # pylint: disable=too-many-return-statements
         """
         Receive the intrinsic value for this flag, before optionally being processed by the handler.
         """
@@ -48,18 +48,14 @@ class Flag:
         if self.override is not None:
             return self.override
 
-        # Resolve from environment
-        env_value = os.getenv(f"JISHAKU_{self.name}", "").strip()
-
-        if env_value:
-            if self.flag_type is bool:
-                if env_value.lower() in ENABLED_SYMBOLS:
-                    return True
-                if env_value.lower() in DISABLED_SYMBOLS:
-                    return False
-            else:
+        if env_value := os.getenv(f"JISHAKU_{self.name}", "").strip():
+            if self.flag_type is not bool:
                 return self.flag_type(env_value)
 
+            if env_value.lower() in ENABLED_SYMBOLS:
+                return True
+            if env_value.lower() in DISABLED_SYMBOLS:
+                return False
         # Fallback if no resolvation from environment
         if self.default is not None:
             if inspect.isfunction(self.default):
@@ -77,10 +73,7 @@ class Flag:
 
         value = self.resolve_raw(flags)
 
-        if self.handler:
-            return self.handler(value)  # type: ignore
-
-        return value
+        return self.handler(value) if self.handler else value
 
 
 class FlagMeta(type):
@@ -177,11 +170,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
         if cls.ALWAYS_DM_TRACEBACK:
             return message.author
 
-        if cls.NO_DM_TRACEBACK:
-            return message.channel
-
-        # Otherwise let the caller decide
-        return None
+        return message.channel if cls.NO_DM_TRACEBACK else None
 
     # Flag to indicate usage of braille J in shutdown command
     USE_BRAILLE_J: bool
