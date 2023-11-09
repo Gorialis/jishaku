@@ -75,7 +75,7 @@ class ShellFeature(Feature):
         """
         Executes statements in the system shell.
 
-        This uses the system shell as defined in $SHELL, or `/bin/bash` otherwise.
+        This uses the system shell as defined in $SHELL, or `/bin/sh` otherwise.
         Execution can be cancelled by closing the paginator.
         """
 

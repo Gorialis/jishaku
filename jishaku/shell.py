@@ -24,7 +24,7 @@ T = typing.TypeVar('T')
 P = typing.ParamSpec('P')
 
 
-SHELL = os.getenv("SHELL") or "/bin/bash"
+SHELL = os.getenv("SHELL") or "/bin/sh"
 WINDOWS = sys.platform == "win32"
 
 
