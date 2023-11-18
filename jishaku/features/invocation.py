@@ -57,7 +57,7 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
 
 class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-public-methods
     """
-    Similar to Union[GuildChannelConverter, ThreadConverter], but can return PrivateChannels and 
+    Similar to Union[GuildChannelConverter, ThreadConverter], but can return PrivateChannels and
     does not perform plaintext name or guild checks.
     """
 
