@@ -193,7 +193,7 @@ class InvocationFeature(Feature):
 
         start = time.perf_counter()
 
-        async with ReplResponseReactor(ctx):
+        async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
                 await alt_ctx.command.invoke(alt_ctx)
 
