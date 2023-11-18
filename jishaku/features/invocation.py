@@ -63,7 +63,7 @@ class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-publi
 
     async def convert(self, ctx: ContextA, argument: str) -> discord.TextChannel:
         """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
+        match = self._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
 
         if match is not None:
             channel_id = int(match.group(1))
@@ -80,7 +80,7 @@ class SlimThreadConverter(ThreadIDConverter):  # pylint: disable=too-few-public-
 
     async def convert(self, ctx: ContextA, argument: str) -> discord.Thread:
         """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
+        match = self._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
 
         if match is not None:
             thread_id = int(match.group(1))
