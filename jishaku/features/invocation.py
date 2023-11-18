@@ -29,8 +29,7 @@ from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_ch
 from jishaku.types import ContextA, ContextT
 
 UserIDConverter = commands.IDConverter[typing.Union[discord.Member, discord.User]]
-ChannelIDConverter = commands.IDConverter[discord.TextChannel]
-ThreadIDConverter = commands.IDConverter[discord.Thread]
+ChannelIDConverter = commands.IDConverter[typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]]
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
@@ -58,36 +57,23 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
 
 class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-public-methods
     """
-    Identical to the stock TextChannelConverter, but does not perform plaintext name checks.
+    Similar to Union[GuildChannelConverter, ThreadConverter], but can return PrivateChannels and 
+    does not perform plaintext name or guild checks.
     """
 
-    async def convert(self, ctx: ContextA, argument: str) -> discord.TextChannel:
+    async def convert(self, ctx: ContextA, argument: str) -> typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]:
         """Converter method"""
         match = self._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
 
         if match is not None:
             channel_id = int(match.group(1))
-            result = ctx.bot.get_channel(channel_id) or discord.utils.get(ctx.message.channel_mentions, id=channel_id)
+            if ctx.guild:
+                result = ctx.guild.get_channel_or_thread(channel_id)
+            if not result:
+                result = ctx.bot.get_channel(channel_id)
             if result is not None:
                 return result
         raise commands.ChannelNotFound(argument)
-
-
-class SlimThreadConverter(ThreadIDConverter):  # pylint: disable=too-few-public-methods
-    """
-    Identical to the stock ThreadConverter, but does not perform plaintext name checks.
-    """
-
-    async def convert(self, ctx: ContextA, argument: str) -> discord.Thread:
-        """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
-
-        if match is not None:
-            thread_id = int(match.group(1))
-            result = ctx.guild.get_thread(thread_id)
-            if result is not None:
-                return result
-        raise commands.ThreadNotFound(argument)
 
 
 class InvocationFeature(Feature):
@@ -95,7 +81,7 @@ class InvocationFeature(Feature):
     Feature containing the command invocation related commands
     """
 
-    OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter, SlimThreadConverter]
+    OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter]
 
     @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
     async def jsk_override(
