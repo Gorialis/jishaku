@@ -97,7 +97,7 @@ class InvocationFeature(Feature):
 
     OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter, SlimThreadConverter]
 
-    @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
+    @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!", "itachi", "obito", "sikey"])
     async def jsk_override(
         self,
         ctx: ContextT,
