@@ -111,18 +111,18 @@ class RootCommand(Feature):
             if len(self.bot.shards) > 20:
                 summary.append(
                     f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
-                    f" and can see {cache_summary}."
+                    f"and can see {cache_summary}."
                 )
             else:
                 shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
                 summary.append(
                     f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
-                    f" and can see {cache_summary}."
+                    f"and can see {cache_summary}."
                 )
         elif self.bot.shard_count:
             summary.append(
                 f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
-                f" and can see {cache_summary}."
+                f"and can see {cache_summary}."
             )
         else:
             summary.append(f"This bot is not sharded and can see {cache_summary}.")
