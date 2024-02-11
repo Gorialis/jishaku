@@ -121,6 +121,11 @@ setup(
     python_requires='>=3.10.0',
 
     extras_require=EXTRA_REQUIRES,
+    entry_points={
+        'console_scripts': [
+            'jishaku = jishaku.__main__:entrypoint',
+        ],
+    },
 
     download_url=f'https://github.com/Gorialis/jishaku/archive/{version}.tar.gz',
 
