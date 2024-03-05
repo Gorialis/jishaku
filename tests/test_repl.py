@@ -11,6 +11,7 @@ jishaku.repl internal test
 
 import inspect
 import random
+import typing
 
 import pytest
 
@@ -66,7 +67,7 @@ def test_scope_var():
     ]
 )
 @pytest.mark.asyncio
-async def test_executor_basic(code: str, expected: list[int]):
+async def test_executor_basic(code: str, expected: typing.List[int]):
     return_data: list[int] = []
     async for result in AsyncCodeExecutor(code):
         return_data.append(result)
@@ -100,7 +101,7 @@ async def test_executor_basic(code: str, expected: list[int]):
     ]
 )
 @pytest.mark.asyncio
-async def test_executor_advanced(code: str, expected: list[int | None], arg_dict: dict[str, int] | None, scope: Scope):
+async def test_executor_advanced(code: str, expected: typing.List[typing.Optional[int]], arg_dict: typing.Optional[typing.Dict[str, int]], scope: Scope):
 
     return_data: list[int | None] = []
     async for result in AsyncCodeExecutor(code, scope, arg_dict=arg_dict):

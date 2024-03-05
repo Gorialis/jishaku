@@ -33,14 +33,14 @@ def sig(*args, **kwargs):
     ]
 )
 @pytest.mark.asyncio
-async def test_magic_executor(args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any], expected_return: tuple[int, int | None, int]):
-    def non_executor(a: int, b: int | None = None, *, c: int) -> tuple[int, int | None, int]:
+async def test_magic_executor(args: typing.Tuple[typing.Any, ...], kwargs: typing.Dict[str, typing.Any], expected_return: typing.Tuple[int, typing.Optional[int], int]):
+    def non_executor(a: int, b: typing.Optional[int] = None, *, c: int) -> typing.Tuple[int, typing.Optional[int], int]:
         return a, b, c
 
     exact_executor = executor_function(non_executor)
 
     @executor_function
-    def redefined_executor(a: int, b: int | None = None, *, c: int) -> tuple[int, int | None, int]:
+    def redefined_executor(a: int, b: typing.Optional[int] = None, *, c: int) -> typing.Tuple[int, typing.Optional[int], int]:
         return a, b, c
 
     assert inspect.signature(non_executor) == inspect.signature(exact_executor)

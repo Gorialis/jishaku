@@ -49,7 +49,6 @@ _FeatureCommandToGroup = typing.Callable[
 
 T = typing.TypeVar('T')
 P = ParamSpec('P')
-Task = asyncio.Task[typing.Any]
 GenericFeature = typing.TypeVar('GenericFeature', bound='Feature')
 
 
@@ -60,7 +59,7 @@ class CommandTask(typing.NamedTuple):
 
     index: int  # type: ignore
     ctx: ContextA
-    task: typing.Optional[Task]
+    task: typing.Optional['asyncio.Task[typing.Any]']
 
 
 class Feature(commands.Cog):
