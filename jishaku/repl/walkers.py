@@ -43,7 +43,7 @@ class KeywordTransformer(ast.NodeTransformer):
 
         # Otherwise, replace the return with a yield & valueless return
         return ast.If(
-            test=ast.NameConstant(
+            test=ast.Constant(
                 value=True,  # if True; aka unconditional, will be optimized out
                 lineno=node.lineno,
                 col_offset=node.col_offset
@@ -94,7 +94,7 @@ class KeywordTransformer(ast.NodeTransformer):
         """
 
         return ast.If(
-            test=ast.NameConstant(
+            test=ast.Constant(
                 value=True,  # if True; aka unconditional, will be optimized out
                 lineno=node.lineno,
                 col_offset=node.col_offset
@@ -104,8 +104,8 @@ class KeywordTransformer(ast.NodeTransformer):
                     # if 'x' in globals():
                     test=ast.Compare(
                         # 'x'
-                        left=ast.Str(
-                            s=target.id,
+                        left=ast.Constant(
+                            value=target.id,
                             lineno=node.lineno,
                             col_offset=node.col_offset
                         ),
@@ -137,8 +137,8 @@ class KeywordTransformer(ast.NodeTransformer):
                                 ),
                                 args=[
                                     # 'x'
-                                    ast.Str(
-                                        s=target.id,
+                                    ast.Constant(
+                                        value=target.id,
                                         lineno=node.lineno,
                                         col_offset=node.col_offset
                                     )

@@ -250,7 +250,7 @@ class DynamicButton(ui.Button[V_co]):
         return self._underlying.to_dict()
 
 
-class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
+class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """
     A message and reaction based interface for paginators.
 
@@ -287,7 +287,13 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
                 await interface.add_line("I'm still here!")
     """
 
-    def __init__(self, bot: BotT, paginator: commands.Paginator, additional_buttons: typing.Optional[typing.List[ui.Button[typing.Self]]] = None, **kwargs: typing.Any):
+    def __init__(
+        self,
+        bot: BotT,
+        paginator: commands.Paginator,
+        additional_buttons: typing.Optional[typing.List[ui.Button[typing.Self]]] = None,
+        **kwargs: typing.Any
+    ):
         if not isinstance(paginator, commands.Paginator):  # type: ignore
             raise TypeError('paginator must be a commands.Paginator instance')
 
@@ -318,13 +324,27 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
         super().__init__(timeout=self.timeout_length)
 
-        self.button_start: DynamicButton[typing.Self] = DynamicButton(self.button_start_callback, self.button_start_label, style=discord.ButtonStyle.secondary)
-        self.button_previous: DynamicButton[typing.Self] = DynamicButton(self.button_previous_callback, self.button_previous_label, style=discord.ButtonStyle.secondary)
-        self.button_current: DynamicButton[typing.Self] = DynamicButton(self.button_current_callback, self.button_current_label, style=discord.ButtonStyle.primary)
-        self.button_next: DynamicButton[typing.Self] = DynamicButton(self.button_next_callback, self.button_next_label, style=discord.ButtonStyle.secondary)
-        self.button_last: DynamicButton[typing.Self] = DynamicButton(self.button_last_callback, self.button_last_label, style=discord.ButtonStyle.secondary)
-        self.button_goto: DynamicButton[typing.Self] = DynamicButton(self.button_goto_callback, self.button_goto_label, style=discord.ButtonStyle.primary)
-        self.button_close: DynamicButton[typing.Self] = DynamicButton(self.button_close_callback, self.button_close_label, style=discord.ButtonStyle.danger)
+        self.button_start: DynamicButton[typing.Self] = DynamicButton(
+            self.button_start_callback, self.button_start_label, style=discord.ButtonStyle.secondary
+        )
+        self.button_previous: DynamicButton[typing.Self] = DynamicButton(
+            self.button_previous_callback, self.button_previous_label, style=discord.ButtonStyle.secondary
+        )
+        self.button_current: DynamicButton[typing.Self] = DynamicButton(
+            self.button_current_callback, self.button_current_label, style=discord.ButtonStyle.primary
+        )
+        self.button_next: DynamicButton[typing.Self] = DynamicButton(
+            self.button_next_callback, self.button_next_label, style=discord.ButtonStyle.secondary
+        )
+        self.button_last: DynamicButton[typing.Self] = DynamicButton(
+            self.button_last_callback, self.button_last_label, style=discord.ButtonStyle.secondary
+        )
+        self.button_goto: DynamicButton[typing.Self] = DynamicButton(
+            self.button_goto_callback, self.button_goto_label, style=discord.ButtonStyle.primary
+        )
+        self.button_close: DynamicButton[typing.Self] = DynamicButton(
+            self.button_close_callback, self.button_close_label, style=discord.ButtonStyle.danger
+        )
 
         self.additional_buttons = additional_buttons or []
 
@@ -530,6 +550,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     def button_start_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Label for returning to the first page (constant)"""
         return f"1 \u200b {self.emojis.start}"
 
     async def button_previous_callback(self, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -539,6 +560,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     def button_previous_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Left arrow label for going to the previous page (constant)"""
         return str(self.emojis.back)
 
     async def button_current_callback(self, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -547,6 +569,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     def button_current_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Current page label (changes on page updates)"""
         return str(self.display_page + 1)
 
     async def button_next_callback(self, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -556,6 +579,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     def button_next_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Right arrow label for going to the next page (constant)"""
         return str(self.emojis.forward)
 
     async def button_last_callback(self, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -565,6 +589,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
     def button_last_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Endstop label for going to the last page (changes on page count)"""
         return f"{self.emojis.end} \u200b {self.page_count}"
 
     class PageChangeModal(ui.Modal, title="Go to page"):
@@ -599,6 +624,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.send_modal(self.PageChangeModal(self))
 
     def button_goto_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Label for selecting a page (constant)"""
         return "\N{RIGHTWARDS ARROW WITH HOOK} \u200b Go to page"
 
     async def button_close_callback(self, interaction: discord.Interaction):  # pylint: disable=unused-argument
@@ -613,6 +639,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             await message.delete()
 
     def button_close_label(self, _button: ui.Button[typing.Self]) -> str:
+        """Label for closing the paginator (constant)"""
         return f"{self.emojis.close} \u200b Close paginator"
 
 

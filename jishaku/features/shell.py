@@ -19,6 +19,8 @@ import sys
 import tempfile
 import typing
 
+import discord
+from discord import ui
 from discord.ext import commands
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
@@ -70,6 +72,32 @@ class ShellFeature(Feature):
     Feature containing the shell-related commands
     """
 
+    class ShellStandardInputModal(ui.Modal, title="Type input"):
+        """Modal that prompts users for text to provide to stdin"""
+
+        stdin_content: ui.TextInput[ui.Modal] = ui.TextInput(label="Text", style=discord.TextStyle.short)
+
+        def __init__(self, reader: ShellReader, *args: typing.Any, **kwargs: typing.Any):
+            super().__init__(*args, timeout=300, **kwargs)
+            self.reader = reader
+
+        async def on_submit(self, interaction: discord.Interaction, /):
+            value = self.stdin_content.value or ""
+
+            if self.reader.process.stdin and self.reader.process.stdin.writable():
+                self.reader.process.stdin.write(f"{value}\r".encode('utf-8'))
+                self.reader.process.stdin.flush()
+
+                await interaction.response.send_message(
+                    content="Sent into stdin",
+                    ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    content="Stdin is not writable",
+                    ephemeral=True
+                )
+
     @Feature.Command(parent="jsk", name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd", "terminal"])
     async def jsk_shell(self, ctx: ContextA, *, argument: codeblock_converter):  # type: ignore
         """
@@ -90,7 +118,13 @@ class ShellFeature(Feature):
                     paginator = WrappedPaginator(prefix=prefix, max_size=1975)
                     paginator.add_line(f"{reader.ps1} {argument.content}\n")
 
-                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+                    async def send_standard_input(interaction: discord.Interaction):
+                        await interaction.response.send_modal(self.ShellStandardInputModal(reader))
+
+                    stdin_button = ui.Button(label="\N{KEYBOARD} Send standard input")
+                    stdin_button.callback = send_standard_input
+
+                    interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author, additional_buttons=[stdin_button])
                     self.bot.loop.create_task(interface.send_to(ctx))
 
                     async for line in reader:
