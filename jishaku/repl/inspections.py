@@ -17,6 +17,8 @@ import inspect
 import os
 import typing
 
+from typing_extensions import ParamSpec
+
 INSPECTIONS: typing.List[
     typing.Tuple[
         str,
@@ -28,7 +30,7 @@ WrapperDescriptorType = type(int.__le__)
 
 
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+P = ParamSpec('P')
 
 
 def add_inspection(name: str) -> typing.Callable[

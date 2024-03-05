@@ -20,8 +20,10 @@ import sys
 import time
 import typing
 
+from typing_extensions import ParamSpec
+
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+P = ParamSpec('P')
 
 
 SHELL = os.getenv("SHELL") or "/bin/bash"

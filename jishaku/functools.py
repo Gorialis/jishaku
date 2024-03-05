@@ -15,8 +15,10 @@ import asyncio
 import functools
 import typing
 
+from typing_extensions import ParamSpec
+
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+P = ParamSpec('P')
 
 
 def executor_function(sync_function: typing.Callable[P, T]) -> typing.Callable[P, typing.Awaitable[T]]:

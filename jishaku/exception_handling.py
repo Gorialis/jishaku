@@ -19,6 +19,7 @@ from types import TracebackType
 
 import discord
 from discord.ext import commands
+from typing_extensions import ParamSpec
 
 from jishaku.flags import Flags
 
@@ -58,7 +59,7 @@ async def send_traceback(
 
 
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+P = ParamSpec('P')
 
 
 async def do_after_sleep(delay: float, coro: typing.Callable[P, typing.Awaitable[T]], *args: P.args, **kwargs: P.kwargs) -> T:

@@ -18,6 +18,7 @@ import typing
 from datetime import datetime, timezone
 
 from discord.ext import commands
+from typing_extensions import ParamSpec
 
 from jishaku.types import BotT, ContextA
 
@@ -47,7 +48,7 @@ _FeatureCommandToGroup = typing.Callable[
 ]
 
 T = typing.TypeVar('T')
-P = typing.ParamSpec('P')
+P = ParamSpec('P')
 Concatenate = typing.Concatenate
 Task = asyncio.Task[typing.Any]
 GenericFeature = typing.TypeVar('GenericFeature', bound='Feature')
