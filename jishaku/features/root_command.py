@@ -13,7 +13,11 @@ The jishaku root command.
 
 import sys
 import typing
-from importlib.metadata import distribution, packages_distributions
+
+try:
+    from importlib.metadata import distribution, packages_distributions
+except ImportError:
+    from importlib_metadata import distribution, packages_distributions
 
 import discord
 from discord.ext import commands

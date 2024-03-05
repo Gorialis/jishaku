@@ -89,7 +89,7 @@ class ShellReader:
         self.stdout_task = self.make_reader_task(self.process.stdout, self.stdout_handler) if self.process.stdout else None
         self.stderr_task = self.make_reader_task(self.process.stderr, self.stderr_handler) if self.process.stderr else None
 
-        self.queue: asyncio.Queue[str] = asyncio.Queue(maxsize=250)
+        self.queue: 'asyncio.Queue[str]' = asyncio.Queue(maxsize=250)
 
     @property
     def closed(self) -> bool:
