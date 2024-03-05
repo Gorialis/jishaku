@@ -33,7 +33,11 @@ def sig(*args, **kwargs):
     ]
 )
 @pytest.mark.asyncio
-async def test_magic_executor(args: typing.Tuple[typing.Any, ...], kwargs: typing.Dict[str, typing.Any], expected_return: typing.Tuple[int, typing.Optional[int], int]):
+async def test_magic_executor(
+    args: typing.Tuple[typing.Any, ...],
+    kwargs: typing.Dict[str, typing.Any],
+    expected_return: typing.Tuple[int, typing.Optional[int], int]
+):
     def non_executor(a: int, b: typing.Optional[int] = None, *, c: int) -> typing.Tuple[int, typing.Optional[int], int]:
         return a, b, c
 
