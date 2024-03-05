@@ -84,9 +84,12 @@ class ShellFeature(Feature):
         async def on_submit(self, interaction: discord.Interaction, /):
             value = self.stdin_content.value or ""
 
-            if self.reader.process.stdin and self.reader.process.stdin.writable():
-                self.reader.process.stdin.write(f"{value}\r".encode('utf-8'))
-                self.reader.process.stdin.flush()
+            if self.reader.stdin and self.reader.stdin.writable():
+                if sys.platform == "win32":
+                    self.reader.stdin.write(f"{value}\r\n".encode('utf-8'))
+                else:
+                    self.reader.stdin.write(f"{value}\r".encode('utf-8'))
+                self.reader.stdin.flush()
 
                 await interaction.response.send_message(
                     content="Sent into stdin",
