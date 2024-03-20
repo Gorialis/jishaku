@@ -218,7 +218,7 @@ class ManagementFeature(Feature):
             if target[0] == '-':
                 active_set = clear_guilds_set
                 target = target[1:]
-            if target == '' or target == '$':
+            if target in ('', '$'):
                 active_set.add(None)
             elif target == '*':
                 active_set |= set(self.bot.tree._guild_commands.keys())  # type: ignore  # pylint: disable=protected-access
