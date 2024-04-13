@@ -241,7 +241,7 @@ class ManagementFeature(Feature):
             )
             translator = getattr(self.bot.tree, 'translator', None)
             if translator:
-                payload = [await command.get_translated_payload(translator) for command in slash_commands]
+                payload = [await command.get_translated_payload(self.bot.tree, translator) for command in slash_commands]
             else:
                 payload = [command.to_dict() for command in slash_commands]
 
