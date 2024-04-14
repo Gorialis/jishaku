@@ -163,12 +163,6 @@ def transform_source(source: typing.Union[str, ReadableBuffer]) -> str:
     encoding, _ = tokenize.detect_encoding(stream.readline)
     stream.seek(0)
     tokens_list = transform_tokens(tokenize.tokenize(stream.readline))
-    try:
-        if tokens_list[1].type == tokenize.COMMENT:
-            import pprint
-            pprint.pprint(tokens_list)
-    except IndexError:
-        pass
     return tokenize.untokenize(tokens_list).decode(encoding)
 
 

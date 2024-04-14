@@ -206,6 +206,7 @@ def test_bytes_input() -> None:
     code = compile(tree, "<string>", "eval")
     assert eval(code) == TYPE_CHECKING
 
+
 @pytest.mark.parametrize("test_input", ["# comment here", "print('hello')\n# comment at end"])
 def test_comments_input(test_input: str) -> None:
     # Check that python3.8's adding of a bad NEWLINE token is accounted for when code ends with a comment and no newline.
