@@ -17,16 +17,15 @@ import inspect
 import linecache
 import typing
 
-import import_expression  # type: ignore
-
+from jishaku import inline_import
 from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
 from jishaku.repl.walkers import KeywordTransformer
 
-CORO_CODE = f"""
-async def _repl_coroutine({{0}}):
+
+CORO_CODE = """
+async def _repl_coroutine({0}):
     import asyncio
-    from importlib import import_module as {import_expression.constants.IMPORTER}
 
     import aiohttp
     import discord
@@ -51,8 +50,8 @@ def wrap_code(code: str, args: str = '', auto_return: bool = True) -> ast.Module
     Also adds inline import expression support.
     """
 
-    user_code: ast.Module = import_expression.parse(code, mode='exec')  # type: ignore
-    mod: ast.Module = import_expression.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
+    user_code: ast.Module = inline_import.parse(code, mode='exec')  # type: ignore
+    mod: ast.Module = inline_import.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
 
     for node in ast.walk(mod):
         node.lineno = -100_000

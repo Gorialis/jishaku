@@ -17,21 +17,21 @@ import sys
 import types
 import typing
 
-import import_expression  # type: ignore
 import opcode
 
+from jishaku import inline_import
 from jishaku.repl.scope import Scope
 
-CORO_CODE = f"""
+
+CORO_CODE = """
 import asyncio
 
 import discord
 from discord.ext import commands
-from importlib import import_module as {import_expression.constants.IMPORTER}
 
 import jishaku
 
-async def _repl_coroutine({{0}}):
+async def _repl_coroutine({0}):
     pass
 """
 
@@ -45,8 +45,8 @@ def wrap_code(code: str, args: str = '') -> ast.Module:
     it's implemented separately here.
     """
 
-    user_code: ast.Module = import_expression.parse(code, mode='exec')  # type: ignore
-    mod: ast.Module = import_expression.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
+    user_code: ast.Module = inline_import.parse(code, mode='exec')  # type: ignore
+    mod: ast.Module = inline_import.parse(CORO_CODE.format(args), mode='exec')  # type: ignore
 
     definition = mod.body[-1]  # async def ...:
     assert isinstance(definition, ast.AsyncFunctionDef)
@@ -201,7 +201,7 @@ def create_tree(code: str, use_ansi: bool = True) -> str:
     Compiles code into an AST tree and then formats it
     """
 
-    user_code = import_expression.parse(code, mode='exec')  # type: ignore
+    user_code = inline_import.parse(code, mode='exec')  # type: ignore
     return '\n'.join(format_ast_node(user_code, use_ansi=use_ansi))
 
 
