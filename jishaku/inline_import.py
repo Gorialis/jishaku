@@ -2,7 +2,7 @@
 
 """
 jishaku.inline_import
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Logic for parsing Python with inline import syntax.
 
@@ -13,19 +13,20 @@ Logic for parsing Python with inline import syntax.
 
 import ast
 import functools
+import io
+import sys
 import tokenize
-from io import BytesIO
-from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, Tuple, TypeVar, Union
+import typing
 
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from typing_extensions import ParamSpec, Buffer as ReadableBuffer
     P = ParamSpec("P")
 else:
     ReadableBuffer = bytes
-    P = [TypeVar("P")]
+    P = [typing.TypeVar("P")]
 
-T = TypeVar("T")
+T = typing.TypeVar("T")
 
 
 __all__ = ("parse",)
@@ -43,7 +44,7 @@ def offset_token_horizontal(tok: tokenize.TokenInfo, offset: int) -> tokenize.To
 
 
 def offset_line_horizontal(
-    tokens: List[tokenize.TokenInfo],
+    tokens: typing.List[tokenize.TokenInfo],
     start_index: int = 0,
     *,
     line: int,
@@ -52,11 +53,12 @@ def offset_line_horizontal(
     """Takes a list of tokens and changes the offset of some of the tokens in place."""
 
     for i, tok in enumerate(tokens[start_index:], start=start_index):
-        if line == tok.start[0]:
-            tokens[i] = offset_token_horizontal(tok, offset)
+        if tok.start[0] != line:
+            break
+        tokens[i] = offset_token_horizontal(tok, offset)
 
 
-def transform_tokens(tokens: Iterable[tokenize.TokenInfo]) -> List[tokenize.TokenInfo]:
+def transform_tokens(tokens: typing.Iterable[tokenize.TokenInfo]) -> typing.List[tokenize.TokenInfo]:
     """Find the inline import expressions in a list of tokens and replace the relevant tokens to wrap the imported
     modules with '_IMPORTLIB_MARKER(...)'.
 
@@ -64,7 +66,7 @@ def transform_tokens(tokens: Iterable[tokenize.TokenInfo]) -> List[tokenize.Toke
     """
 
     orig_tokens = list(tokens)
-    new_tokens: list[tokenize.TokenInfo] = []
+    new_tokens: typing.List[tokenize.TokenInfo] = []
 
     for orig_i, tok in enumerate(orig_tokens):
         # "!" is only an OP in >=3.12.
@@ -125,7 +127,7 @@ def transform_tokens(tokens: Iterable[tokenize.TokenInfo]) -> List[tokenize.Toke
             new_tokens.append(end_paren_token)
 
             # Fix the positions of the rest of the tokens on the same line.
-            fixed_line_tokens: list[tokenize.TokenInfo] = []
+            fixed_line_tokens: typing.List[tokenize.TokenInfo] = []
             offset_line_horizontal(orig_tokens, orig_i, line=new_tokens[-1].start[0], offset=18)
 
             # Check the rest of the line for inline import expressions.
@@ -134,20 +136,39 @@ def transform_tokens(tokens: Iterable[tokenize.TokenInfo]) -> List[tokenize.Toke
         else:
             new_tokens.append(tok)
 
+    # Hack to get around a bug where code that ends in a comment, but no newline, has an extra
+    # NEWLINE token added in randomly. This patch wasn't backported to 3.8.
+    # https://github.com/python/cpython/issues/79288
+    # https://github.com/python/cpython/issues/88833
+    if sys.version_info < (3, 9):
+        if len(new_tokens) >= 4 and (
+            new_tokens[-4].type == tokenize.COMMENT
+            and new_tokens[-3].type == tokenize.NL
+            and new_tokens[-2].type == tokenize.NEWLINE
+            and new_tokens[-1].type == tokenize.ENDMARKER
+        ):
+            del new_tokens[-2]
+
     return new_tokens
 
 
-def transform_source(source: Union[str, ReadableBuffer]) -> str:
+def transform_source(source: typing.Union[str, ReadableBuffer]) -> str:
     """Replace and wrap inline import expressions in source code so that it has syntax, with explicit markers for
     where to perform the imports.
     """
 
     if isinstance(source, str):
         source = source.encode("utf-8")
-    stream = BytesIO(source)
+    stream = io.BytesIO(source)
     encoding, _ = tokenize.detect_encoding(stream.readline)
     stream.seek(0)
     tokens_list = transform_tokens(tokenize.tokenize(stream.readline))
+    try:
+        if tokens_list[1].type == tokenize.COMMENT:
+            import pprint
+            pprint.pprint(tokens_list)
+    except IndexError:
+        pass
     return tokenize.untokenize(tokens_list).decode(encoding)
 
 
@@ -158,7 +179,7 @@ class InlineImportTransformer(ast.NodeTransformer):
     """An AST transformer that replaces '_IMPORTLIB_MARKER(...)' with '__import__("importlib").import_module(...)'."""
 
     @classmethod
-    def _collapse_attributes(cls, node: Union[ast.Attribute, ast.Name]) -> str:
+    def _collapse_attributes(cls, node: typing.Union[ast.Attribute, ast.Name]) -> str:
         if isinstance(node, ast.Name):
             return node.id
 
@@ -200,11 +221,11 @@ def transform_ast(tree: ast.AST) -> ast.Module:
     return ast.fix_missing_locations(InlineImportTransformer().visit(tree))
 
 
-def copy_annotations(original_func: Callable[P, T]) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def copy_annotations(original_func: typing.Callable[P, T]) -> typing.Callable[[typing.Callable[P, T]], typing.Callable[P, T]]:
     """Overrides annotations, thus lying, but it works for the final annotations that the *user* sees on the decorated func."""
 
     @functools.wraps(original_func)
-    def inner(new_func: Callable[P, T]) -> Callable[P, T]:
+    def inner(new_func: typing.Callable[P, T]) -> typing.Callable[P, T]:
         return new_func
 
     return inner
@@ -213,12 +234,12 @@ def copy_annotations(original_func: Callable[P, T]) -> Callable[[Callable[P, T]]
 # Some of the parameter annotations are too narrow or wide, but they should be "overriden" by this decorator.
 @copy_annotations(ast.parse)  # type: ignore
 def parse(
-    source: Union[str, ReadableBuffer],
+    source: typing.Union[str, ReadableBuffer],
     filename: str = "<unknown>",
     mode: str = "exec",
     *,
     type_comments: bool = False,
-    feature_version: Optional[Tuple[int, int]] = None,
+    feature_version: typing.Optional[typing.Tuple[int, int]] = None,
 ) -> ast.Module:
     """Convert source code with inline import expressions to an AST. Has the same signature as ast.parse."""
 
