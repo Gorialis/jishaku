@@ -22,7 +22,6 @@ from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
 from jishaku.repl.walkers import KeywordTransformer
 
-
 CORO_CODE = """
 async def _repl_coroutine({0}):
     import asyncio

@@ -22,7 +22,6 @@ import opcode
 from jishaku import inline_import
 from jishaku.repl.scope import Scope
 
-
 CORO_CODE = """
 import asyncio
 

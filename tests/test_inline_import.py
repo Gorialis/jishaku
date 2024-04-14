@@ -3,6 +3,7 @@ import urllib.parse
 from typing import TYPE_CHECKING, Any, Dict
 
 import pytest
+
 from jishaku import inline_import
 
 

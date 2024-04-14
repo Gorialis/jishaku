@@ -18,9 +18,9 @@ import sys
 import tokenize
 import typing
 
-
 if typing.TYPE_CHECKING:
-    from typing_extensions import ParamSpec, Buffer as ReadableBuffer
+    from typing_extensions import Buffer as ReadableBuffer
+    from typing_extensions import ParamSpec
     P = ParamSpec("P")
 else:
     ReadableBuffer = bytes
