@@ -18,14 +18,10 @@ import sys
 import tokenize
 import typing
 
-if typing.TYPE_CHECKING:
-    from typing_extensions import Buffer as ReadableBuffer
-    from typing_extensions import ParamSpec
-    P = ParamSpec("P")
-else:
-    ReadableBuffer = bytes
-    P = [typing.TypeVar("P")]
+from typing_extensions import Buffer as ReadableBuffer
+from typing_extensions import ParamSpec
 
+P = ParamSpec("P")
 T = typing.TypeVar("T")
 
 
@@ -215,18 +211,22 @@ def transform_ast(tree: ast.AST) -> ast.Module:
     return ast.fix_missing_locations(InlineImportTransformer().visit(tree))
 
 
-def copy_annotations(original_func: typing.Callable[P, T]) -> typing.Callable[[typing.Callable[P, T]], typing.Callable[P, T]]:
-    """Overrides annotations, thus lying, but it works for the final annotations that the *user* sees on the decorated func."""
+def copy_annotations(
+    original_func: typing.Callable[P, T],
+) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Callable[P, T]]:
+    """A decorator that applies the annotations from one function onto another.
 
-    @functools.wraps(original_func)
-    def inner(new_func: typing.Callable[P, T]) -> typing.Callable[P, T]:
-        return new_func
+    It can be a lie, but it aids the type checker and any IDE intellisense.
+    """
+
+    def inner(new_func: typing.Callable[..., typing.Any]) -> typing.Callable[P, T]:
+        return functools.update_wrapper(new_func, original_func, ("__doc__", "__annotations__"))  # type: ignore
 
     return inner
 
 
 # Some of the parameter annotations are too narrow or wide, but they should be "overriden" by this decorator.
-@copy_annotations(ast.parse)  # type: ignore
+@copy_annotations(ast.parse)
 def parse(
     source: typing.Union[str, ReadableBuffer],
     filename: str = "<unknown>",
