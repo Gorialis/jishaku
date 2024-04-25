@@ -29,7 +29,9 @@ from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_ch
 from jishaku.types import ContextA, ContextT
 
 UserIDConverter = commands.IDConverter[typing.Union[discord.Member, discord.User]]
-ChannelIDConverter = commands.IDConverter[typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]]
+ChannelIDConverter = commands.IDConverter[
+    typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]
+]
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
@@ -39,7 +41,7 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
 
     async def convert(self, ctx: ContextA, argument: str) -> typing.Union[discord.Member, discord.User]:
         """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)  # type: ignore
+        match = self._get_id_match(argument) or re.match(r"<@!?([0-9]{15,20})>$", argument)  # type: ignore
 
         if match is not None:
             user_id = int(match.group(1))
@@ -61,15 +63,18 @@ class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-publi
     does not perform plaintext name or guild checks.
     """
 
-    async def convert(self, ctx: ContextA, argument: str) -> typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]:
+    async def convert(
+        self, ctx: ContextA, argument: str
+    ) -> typing.Union[discord.abc.GuildChannel, discord.abc.PrivateChannel, discord.Thread]:
         """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
+        match = self._get_id_match(argument) or re.match(r"<#([0-9]{15,20})>$", argument)
 
         if match is not None:
             channel_id = int(match.group(1))
-            if ctx.guild:
+            result = None
+            if ctx.guild is not None:
                 result = ctx.guild.get_channel_or_thread(channel_id)
-            if not result:
+            if result is None:
                 result = ctx.bot.get_channel(channel_id)
             if result is not None:
                 return result
@@ -84,13 +89,7 @@ class InvocationFeature(Feature):
     OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter]
 
     @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
-    async def jsk_override(
-        self,
-        ctx: ContextT,
-        overrides: commands.Greedy[OVERRIDE_SIGNATURE],
-        *,
-        command_string: str
-    ):
+    async def jsk_override(self, ctx: ContextT, overrides: commands.Greedy[OVERRIDE_SIGNATURE], *, command_string: str):
         """
         Run a command with a different user, channel, or thread, optionally bypassing checks and cooldowns.
 
@@ -100,7 +99,7 @@ class InvocationFeature(Feature):
         kwargs: typing.Dict[str, typing.Any] = {}
 
         if ctx.prefix:
-            kwargs["content"] = ctx.prefix + command_string.lstrip('/')
+            kwargs["content"] = ctx.prefix + command_string.lstrip("/")
         else:
             await ctx.send("Reparsing requires a prefix")
             return
@@ -128,12 +127,12 @@ class InvocationFeature(Feature):
 
         if alt_ctx.command is None:
             if alt_ctx.invoked_with is None:
-                await ctx.send('This bot has been hard-configured to ignore this user.')
+                await ctx.send("This bot has been hard-configured to ignore this user.")
                 return
             await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
             return
 
-        if ctx.invoked_with and ctx.invoked_with.endswith('!'):
+        if ctx.invoked_with and ctx.invoked_with.endswith("!"):
             await alt_ctx.command.reinvoke(alt_ctx)
             return
 
@@ -209,17 +208,14 @@ class InvocationFeature(Feature):
             pass
 
         # getsourcelines for some reason returns WITH line endings
-        source_text = ''.join(source_lines)
+        source_text = "".join(source_lines)
 
         if use_file_check(ctx, len(source_text)):  # File "full content" preview limit
-            await ctx.send(file=discord.File(
-                filename=filename,
-                fp=io.BytesIO(source_text.encode('utf-8'))
-            ))
+            await ctx.send(file=discord.File(filename=filename, fp=io.BytesIO(source_text.encode("utf-8"))))
         else:
-            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
+            paginator = WrappedPaginator(prefix="```py", suffix="```", max_size=1980)
 
-            paginator.add_line(source_text.replace('```', '``\N{zero width space}`'))
+            paginator.add_line(source_text.replace("```", "``\N{zero width space}`"))
 
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)
