@@ -243,7 +243,7 @@ class ManagementFeature(Feature):
             if translator:
                 payload = [await command.get_translated_payload(self.bot.tree, translator) for command in slash_commands]
             else:
-                payload = [command.to_dict() for command in slash_commands]
+                payload = [command.to_dict(self.bot.tree) for command in slash_commands]
 
             try:
                 if guild is None:
