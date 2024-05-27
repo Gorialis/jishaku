@@ -22,16 +22,15 @@ import opcode
 
 from jishaku.repl.scope import Scope
 
-CORO_CODE = f"""
+CORO_CODE = """
 import asyncio
 
 import discord
 from discord.ext import commands
-from importlib import import_module as {import_expression.constants.IMPORTER}
 
 import jishaku
 
-async def _repl_coroutine({{0}}):
+async def _repl_coroutine({0}):
     pass
 """
 
