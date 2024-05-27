@@ -23,10 +23,9 @@ from jishaku.functools import AsyncSender
 from jishaku.repl.scope import Scope
 from jishaku.repl.walkers import KeywordTransformer
 
-CORO_CODE = f"""
-async def _repl_coroutine({{0}}):
+CORO_CODE = """
+async def _repl_coroutine({0}):
     import asyncio
-    from importlib import import_module as {import_expression.constants.IMPORTER}
 
     import aiohttp
     import discord
