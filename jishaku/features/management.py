@@ -212,38 +212,50 @@ class ManagementFeature(Feature):
         paginator = commands.Paginator(prefix='', suffix='')
 
         guilds_set: typing.Set[typing.Optional[int]] = set()
+        clear_guilds_set: typing.Set[typing.Optional[int]] = set()
         for target in targets:
-            if target == '$':
-                guilds_set.add(None)
+            active_set = guilds_set
+            if target[0] == '-':
+                active_set = clear_guilds_set
+                target = target[1:]
+            if target in ('', '$'):
+                active_set.add(None)
             elif target == '*':
-                guilds_set |= set(self.bot.tree._guild_commands.keys())  # type: ignore  # pylint: disable=protected-access
+                active_set |= set(self.bot.tree._guild_commands.keys())  # type: ignore  # pylint: disable=protected-access
             elif target == '.':
                 if ctx.guild:
-                    guilds_set.add(ctx.guild.id)
+                    active_set.add(ctx.guild.id)
                 else:
                     await ctx.send("Can't sync guild commands without guild information")
                     return
             else:
                 try:
-                    guilds_set.add(int(target))
+                    active_set.add(int(target))
                 except ValueError as error:
                     raise commands.BadArgument(f"{target} is not a valid guild ID") from error
 
         if not targets:
             guilds_set.add(None)
 
-        guilds: typing.List[typing.Optional[int]] = list(guilds_set)
-        guilds.sort(key=lambda g: (g is not None, g))
+        guilds: typing.List[typing.Tuple[typing.Optional[int], bool]] = []
+        for guild in guilds_set:
+            guilds.append((guild, False))
+        for guild in clear_guilds_set:
+            guilds.append((guild, True))
+        guilds.sort(key=lambda g: (g[0] is not None, g))
 
-        for guild in guilds:
+        for guild, clear in guilds:
             slash_commands = self.bot.tree._get_all_commands(  # type: ignore  # pylint: disable=protected-access
                 guild=discord.Object(guild) if guild else None
             )
-            translator = getattr(self.bot.tree, 'translator', None)
-            if translator:
-                payload = [await command.get_translated_payload(translator) for command in slash_commands]
+            if clear:
+                payload = []
             else:
-                payload = [command.to_dict() for command in slash_commands]
+                translator = getattr(self.bot.tree, 'translator', None)
+                if translator:
+                    payload = [await command.get_translated_payload(translator) for command in slash_commands]
+                else:
+                    payload = [command.to_dict() for command in slash_commands]
 
             try:
                 if guild is None:
