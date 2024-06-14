@@ -240,10 +240,19 @@ class ManagementFeature(Feature):
                 guild=discord.Object(guild) if guild else None
             )
             translator = getattr(self.bot.tree, 'translator', None)
-            if translator:
-                payload = [await command.get_translated_payload(translator) for command in slash_commands]
+            needs_dpy_2_4_signature_changes = discord.version_info.major >= 2 and discord.version_info.minor >= 4
+            
+            if needs_dpy_2_4_signature_changes:
+                if translator:
+                    payload = [await command.get_translated_payload(self.bot.tree, translator) for command in slash_commands]
+                else:
+                    payload = [command.to_dict(self.bot.tree) for command in slash_commands]
             else:
-                payload = [command.to_dict() for command in slash_commands]
+                if translator:
+                    payload = [await command.get_translated_payload(translator) for command in slash_commands]
+                else:
+                    payload = [command.to_dict() for command in slash_commands]
+
 
             try:
                 if guild is None:
