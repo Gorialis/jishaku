@@ -217,7 +217,10 @@ def recurse_code(code: types.CodeType) -> typing.Generator[types.CodeType, None,
 
 
 if sys.version_info >= (3, 11):
-    SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset(opcode._specialized_instructions)  # type: ignore  # pylint: disable=protected-access,no-member
+    try:
+        SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset(opcode._specialized_opmap.keys())  # type: ignore  # pylint: disable=protected-access,no-member
+    except AttributeError:
+        SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset(opcode._specialized_instructions)  # type: ignore  # pylint: disable=protected-access,no-member
 else:
     SPECIALIZED_INSTRUCTIONS: typing.Set[str] = frozenset()
 
