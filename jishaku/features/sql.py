@@ -321,64 +321,61 @@ else:
             return f"{row['type']}{not_null}{default_value}{primary_key}"
 
 try:
-    import sqlalchemy
-    import sqlalchemy.ext.asyncio
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+    from sqlalchemy import text
+    from sqlalchemy.engine.reflection import Inspector
 except ImportError:
     pass
 else:
-    @adapter(sqlalchemy.ext.asyncio.AsyncEngine, sqlalchemy.ext.asyncio.AsyncConnection)
-    class SQLAlchemyAsyncAdapter(Adapter[typing.Union[sqlalchemy.ext.asyncio.AsyncEngine, sqlalchemy.ext.asyncio.AsyncConnection]]):
-        def __init__(self, connection: typing.Union[sqlalchemy.ext.asyncio.AsyncEngine, sqlalchemy.ext.asyncio.AsyncConnection]):
-            super().__init__(connection)
-            self.connection: sqlalchemy.ext.asyncio.AsyncConnection = None  # type: ignore
+    @adapter(async_sessionmaker)
+    class SQLAlchemyAsyncSessionAdapter(Adapter[async_sessionmaker]):
+        def __init__(self, session_maker: async_sessionmaker):
+            super().__init__(session_maker)
+            self.session: AsyncSession = None  # type: ignore
 
         @contextlib.asynccontextmanager
         async def use(self):
-            if isinstance(self.connector, sqlalchemy.ext.asyncio.AsyncEngine):
-                async with self.connector.connect() as connection:
-                    self.connection = connection
-                    yield
-            else:
-                self.connection = self.connector
+            async with self.connector() as session:
+                self.session = session
                 yield
 
         def info(self) -> str:
-            return f"SQLAlchemy Async {sqlalchemy.__version__} {type(self.connector).__name__}"
+            return f"SQLAlchemy {AsyncSession.__module__.split('.')[1]} AsyncSession"
 
         async def fetchrow(self, query: str) -> typing.Dict[str, typing.Any]:
-            result = await self.connection.execute(query)
-            return dict(result.first()) if result.first() else None
+            result = await self.session.execute(text(query))
+            row = result.fetchone()
+            return dict(row._mapping) if row else None
 
         async def fetch(self, query: str) -> typing.List[typing.Dict[str, typing.Any]]:
-            result = await self.connection.execute(query)
-            return [dict(row) for row in result]
+            result = await self.session.execute(text(query))
+            return [dict(row._mapping) for row in result.fetchall()]
 
         async def execute(self, query: str) -> str:
-            result = await self.connection.execute(query)
-            return str(result.rowcount) + " row(s) affected"
+            result = await self.session.execute(text(query))
+            await self.session.commit()
+            return f"{result.rowcount} row(s) affected"
 
-        async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
-            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(dict)
+        async def table_summary(
+            self, table_query: typing.Optional[str]
+        ) -> typing.Dict[str, typing.Dict[str, str]]:
+            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(
+                dict
+            )
+
+            inspector = Inspector.from_engine(self.session.get_bind())
 
             if table_query:
-                inspector = await sqlalchemy.inspect(self.connection)
-                table_info = await inspector.get_columns(table_query)
-                for column in table_info:
-                    tables[table_query][column['name']] = self.format_column_info(column)
+                table_names = [table_query]
             else:
-                inspector = await sqlalchemy.inspect(self.connection)
-                for table_name in await inspector.get_table_names():
-                    table_info = await inspector.get_columns(table_name)
-                    for column in table_info:
-                        tables[table_name][column['name']] = self.format_column_info(column)
+                table_names = inspector.get_table_names()
+
+            for table_name in table_names:
+                columns = inspector.get_columns(table_name)
+                for column in columns:
+                    tables[table_name][column["name"]] = str(column["type"])
 
             return tables
-
-        def format_column_info(self, column: dict) -> str:
-            column_type = str(column['type'])
-            nullable = 'NOT NULL' if not column['nullable'] else ''
-            default = f" DEFAULT {column['default']}" if column['default'] is not None else ''
-            return f"{column_type} {nullable}{default}"
 
 # pylint: enable=missing-class-docstring,missing-function-docstring
 
