@@ -319,10 +319,9 @@ else:
             primary_key = " PRIMARY KEY" if row['pk'] else ""
 
             return f"{row['type']}{not_null}{default_value}{primary_key}"
-
 try:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-    from sqlalchemy import text
+    from sqlalchemy import text, inspect
     from sqlalchemy.engine.reflection import Inspector
 except ImportError:
     pass
@@ -362,18 +361,19 @@ else:
             tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(
                 dict
             )
-
-            inspector = Inspector.from_engine(self.session.get_bind())
+            
+            engine = self.session.get_bind()
+            inspector = inspect(engine)
 
             if table_query:
                 table_names = [table_query]
             else:
-                table_names = inspector.get_table_names()
+                table_names = await self.session.run_sync(inspector.get_table_names)
 
             for table_name in table_names:
-                columns = inspector.get_columns(table_name)
+                columns = await self.session.run_sync(lambda: inspector.get_columns(table_name))
                 for column in columns:
-                    tables[table_name][column["name"]] = str(column["type"])
+                    tables[table_name][column['name']] = str(column['type'])
 
             return tables
 
