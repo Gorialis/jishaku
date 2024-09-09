@@ -355,25 +355,36 @@ else:
             await self.session.commit()
             return f"{result.rowcount} row(s) affected"
 
-        async def table_summary(
-            self, table_query: typing.Optional[str]
-        ) -> typing.Dict[str, typing.Dict[str, str]]:
-            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(
-                dict
-            )
+        async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
+            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(dict)
             
-            engine = self.session.get_bind()
-            inspector = inspect(engine)
+            async def get_table_names():
+                result = await self.session.execute(text(
+                    "SELECT tablename FROM pg_catalog.pg_tables "
+                    "WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'"
+                ))
+                return [row[0] for row in result.fetchall()]
+
+            async def get_column_info(table_name):
+                result = await self.session.execute(text(
+                    "SELECT column_name, data_type, is_nullable "
+                    "FROM information_schema.columns "
+                    "WHERE table_name = :table_name"
+                ), {"table_name": table_name})
+                return result.fetchall()
 
             if table_query:
                 table_names = [table_query]
             else:
-                table_names = await self.session.run_sync(inspector.get_table_names)
+                table_names = await get_table_names()
 
             for table_name in table_names:
-                columns = await self.session.run_sync(lambda: inspector.get_columns(table_name))
+                columns = await get_column_info(table_name)
                 for column in columns:
-                    tables[table_name][column['name']] = str(column['type'])
+                    column_type = f"{column.data_type.upper()}"
+                    if column.is_nullable == 'NO':
+                        column_type += " NOT NULL"
+                    tables[table_name][column.column_name] = column_type
 
             return tables
 
