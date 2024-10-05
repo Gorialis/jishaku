@@ -234,7 +234,7 @@ class ManagementFeature(Feature):
                 except ValueError as error:
                     raise commands.BadArgument(f"{target} is not a valid guild ID") from error
 
-        if not flags.targets:
+        if not (flags.targets or flags.clear):
             guilds_set.add(None)
 
         guilds: typing.List[typing.Optional[int]] = list(guilds_set)
