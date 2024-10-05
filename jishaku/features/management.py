@@ -33,7 +33,7 @@ class SyncFlags(commands.FlagConverter, prefix="", delimiter=""):
     """
     A flag converter for the sync command.
     """
-    targets: typing.Tuple[str, ...] = commands.flag(positional=True)
+    targets: typing.Tuple[str, ...] = commands.flag(positional=True, default=())
     clear: typing.List[int] = commands.flag(aliases=["-"], default=[])
 
 
