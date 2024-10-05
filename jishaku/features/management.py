@@ -29,6 +29,11 @@ from jishaku.repl import inspections
 from jishaku.types import ContextA
 
 
+class SyncFlags(commands.FlagConverter, prefix="", delimiter=""):
+    targets: typing.Tuple[str, ...] = commands.flag(positional=True)
+    clear: typing.List[int] = commands.flag(aliases=["-"], default=[])
+
+
 class ManagementFeature(Feature):
     """
     Feature containing the extension and bot control commands
@@ -200,7 +205,7 @@ class ManagementFeature(Feature):
     SLASH_COMMAND_ERROR = re.compile(r"In ((?:\d+\.[a-z]+\.?)+)")
 
     @Feature.Command(parent="jsk", name="sync")
-    async def jsk_sync(self, ctx: ContextA, *targets: str):
+    async def jsk_sync(self, ctx: ContextA, *, flags: SyncFlags):
         """
         Sync global or guild application commands to Discord.
         """
@@ -211,8 +216,8 @@ class ManagementFeature(Feature):
 
         paginator = commands.Paginator(prefix='', suffix='')
 
-        guilds_set: typing.Set[typing.Optional[int]] = set()
-        for target in targets:
+        guilds_set: typing.Set[typing.Optional[int]] = set(flags.clear)
+        for target in flags.targets:
             if target == '$':
                 guilds_set.add(None)
             elif target == '*':
@@ -229,7 +234,7 @@ class ManagementFeature(Feature):
                 except ValueError as error:
                     raise commands.BadArgument(f"{target} is not a valid guild ID") from error
 
-        if not targets:
+        if not flags.targets:
             guilds_set.add(None)
 
         guilds: typing.List[typing.Optional[int]] = list(guilds_set)
@@ -242,7 +247,9 @@ class ManagementFeature(Feature):
             translator = getattr(self.bot.tree, 'translator', None)
             needs_dpy_2_4_signature_changes = discord.version_info.major >= 2 and discord.version_info.minor >= 4
 
-            if needs_dpy_2_4_signature_changes:
+            if guild in flags.clear:
+                payload = []
+            elif needs_dpy_2_4_signature_changes:
                 if translator:
                     payload = [await command.get_translated_payload(self.bot.tree, translator) for command in slash_commands]
                 else:
